@@ -13,6 +13,7 @@
   "dependencies": {
     "@heroui/react": "^3.2.2",
     "@heroui/styles": "^3.2.2",
+    "@vercel/analytics": "^2.0.1",
     "lucide-react": "^1.25.0",
     "next": "16.2.10",
     "react": "19.2.7",
