@@ -2,12 +2,37 @@ schema: spec-driven
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Project: Ruixe Blog - a single-author personal blog built with Next.js 16
+  (App Router, React Compiler) using a Markdown/MDX file-driven architecture.
+  No CMS, no database; posts are .mdx files under content/posts/.
+
+  Tech stack:
+  - Next.js 16.2.10, React 19.2.7, TypeScript ~6.0.3 (pinned - do NOT bump; TS 7
+    crashes @typescript-eslint/typescript-estree)
+  - HeroUI v3 beta (@heroui/react) + lucide-react icons
+  - Tailwind CSS v4
+  - ESLint ~9.39.5 (pinned - do NOT bump; ESLint 10 crashes eslint-plugin-react)
+  - Prettier: no semis, single quotes, 2-space, print width 100, sorted imports
+    (@ianvs/prettier-plugin-sort-imports) + Tailwind class sorting
+  - Planned: @next/mdx (rendering), next-intl (i18n via /[locale] URL prefix),
+    Fuse.js (static search), Giscus (comments), Cloudflare R2 (media)
+
+  Architecture:
+  - Posts: content/posts/{slug}.{locale}.mdx (e.g. hello-world.zh.mdx)
+  - Taxonomy: content/taxonomy/{categories,tags}.yaml - IDs unique, must
+    provide translations for every supported locale (zh, en)
+  - Frontmatter: title, description, publishedAt, updatedAt?, category, tags[]
+  - URLs: /[locale], /[locale]/posts, /[locale]/posts/<slug>,
+    /[locale]/categories/<id>, /[locale]/tags/<id>, /[locale]/about
+  - Layout: persistent Header + left Sidebar (profile, categories, tags) +
+    main content; mobile collapses sidebar into a Drawer
+  - Deleted posts need redirects for SEO
+
+  Conventions:
+  - Path alias: @/* -> repo root
+  - HeroUI v3 uses compound components (e.g. Card.Header), no Provider needed
+  - Full project description: .temp/my-first-blog-website.md
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.

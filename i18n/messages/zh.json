@@ -1,0 +1,68 @@
+{
+  "Nav": {
+    "Home": "首页",
+    "About": "关于",
+    "Github": "GitHub"
+  },
+  "Header": {
+    "Search": "搜索",
+    "SearchPlaceholder": "搜索文章...",
+    "SearchComingSoon": "搜索功能即将上线",
+    "Language": "语言",
+    "Theme": "主题",
+    "Settings": "设置",
+    "Menu": "菜单"
+  },
+  "Theme": {
+    "Light": "浅色",
+    "Dark": "深色",
+    "System": "跟随系统",
+    "Toggle": "切换主题"
+  },
+  "Sidebar": {
+    "Profile": "个人名片",
+    "Categories": "分类",
+    "Tags": "标签",
+    "FollowOnGithub": "在 GitHub 上关注"
+  },
+  "PostList": {
+    "Title": "全部文章",
+    "ReadMore": "阅读更多",
+    "PublishedAt": "发布于 {date}",
+    "UpdatedAt": "更新于 {date}",
+    "Empty": "暂无文章",
+    "EmptyHint": "稍后再来看看吧"
+  },
+  "PostDetail": {
+    "TableOfContents": "目录",
+    "PreviousPost": "上一篇",
+    "NextPost": "下一篇",
+    "NoPreviousPost": "没有更早的文章了",
+    "NoNextPost": "没有更新的文章了",
+    "PublishedAt": "发布于 {date}",
+    "UpdatedAt": "更新于 {date}",
+    "MinRead": "{minutes} 分钟阅读"
+  },
+  "Categories": {
+    "Title": "分类",
+    "PostsIn": "分类：{name}",
+    "Empty": "该分类下暂无文章"
+  },
+  "Tags": {
+    "Title": "标签",
+    "PostsIn": "标签：{name}",
+    "Empty": "该标签下暂无文章"
+  },
+  "About": {
+    "Title": "关于",
+    "AboutAuthor": "关于博主",
+    "AboutBlog": "关于博客",
+    "AuthorContent": "你好，我是 Ruixe，一名全栈开发者，热衷于探索前端工程化、React 生态与开发者体验。这个博客记录我的技术学习与项目实践。",
+    "BlogContent": "Ruixe Blog 是一个基于 Next.js 16、HeroUI v3 与 MDX 构建的个人博客，采用文件驱动的内容架构，支持中英双语。"
+  },
+  "NotFound": {
+    "Title": "页面未找到",
+    "Description": "你访问的页面不存在或已被移除",
+    "BackHome": "返回首页"
+  }
+}

@@ -1,0 +1,12 @@
+next-js:
+  name:
+    zh: Next.js
+    en: Next.js
+react:
+  name:
+    zh: React
+    en: React
+typescript:
+  name:
+    zh: TypeScript
+    en: TypeScript
