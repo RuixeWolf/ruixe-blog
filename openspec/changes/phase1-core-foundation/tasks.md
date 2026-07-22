@@ -113,5 +113,5 @@
   - 分类页、标签页、关于页正常渲染
   - 不存在的 locale（`/jp`）、不存在的 slug 返回 404
 - [x] 12.6 用 `next-devtools` MCP 的 `nextjs_index` + `nextjs_call` 检查运行时无错误、路由列表符合预期
-- [ ] 12.7 提交 git commit（`feat: implement phase 1 core foundation`），推送至 feature 分支
-- [ ] 12.8 创建 PR 至 `RuixeWolf/ruixe-blog`，等待 Vercel preview 部署，在 preview 环境再次验证关键路径
+- [x] 12.7 提交 git commit（`feat: implement phase 1 core foundation`），推送至 feature 分支
+- [x] 12.8 创建 PR 至 `RuixeWolf/ruixe-blog`，等待 Vercel preview 部署，在 preview 环境再次验证关键路径
