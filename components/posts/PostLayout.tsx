@@ -1,12 +1,12 @@
 import 'server-only'
-import { Accordion, Link } from '@heroui/react'
+import { Accordion } from '@heroui/react'
 import { ChevronDown } from 'lucide-react'
 import { getFormatter, getTranslations } from 'next-intl/server'
-import { Link as NavLink } from '../../i18n/navigation'
-import type { Locale } from '../../i18n/routing'
-import type { PostMeta } from '../../lib/posts'
-import { getCategory, getTag } from '../../lib/taxonomy'
-import type { TocItem } from '../../lib/toc'
+import { Link as NavLink } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
+import type { PostMeta } from '@/lib/posts'
+import { getCategory, getTag } from '@/lib/taxonomy'
+import type { TocItem } from '@/lib/toc'
 import { TableOfContents } from './TableOfContents'
 
 /**
@@ -77,13 +77,13 @@ export async function PostLayout({
             {meta.tags.map((tagId) => {
               const tag = getTag(tagId, locale)
               return (
-                <Link
+                <NavLink
                   key={tagId}
-                  href={`/${locale}/tags/${tag.id}`}
+                  href={`/tags/${tag.id}`}
                   className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground transition-colors hover:bg-secondary/80"
                 >
                   {tag.name}
-                </Link>
+                </NavLink>
               )
             })}
           </div>

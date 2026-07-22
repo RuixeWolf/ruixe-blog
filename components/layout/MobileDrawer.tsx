@@ -1,7 +1,7 @@
 'use client'
 
 import { Drawer } from '@heroui/react'
-import { siteConfig } from '../../lib/site-config'
+import { siteConfig } from '@/lib/site-config'
 
 /**
  * Mobile slide-out drawer (`lg:hidden`), controlled by the parent.

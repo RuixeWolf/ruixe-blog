@@ -1,9 +1,8 @@
 import 'server-only'
-import { Link } from '@heroui/react'
 import { getTranslations } from 'next-intl/server'
-import { Link as NavLink } from '../../i18n/navigation'
-import type { Locale } from '../../i18n/routing'
-import { getCategories, getTags } from '../../lib/taxonomy'
+import { Link as NavLink } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
+import { getCategories, getTags } from '@/lib/taxonomy'
 import { ProfileCard } from './ProfileCard'
 
 /**
@@ -44,13 +43,13 @@ export async function SidebarContent({ locale }: Readonly<{ locale: Locale }>) {
         <h2 className="text-sm font-semibold text-foreground">{t('Tags')}</h2>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <Link
+            <NavLink
               key={tag.id}
-              href={`/${locale}/tags/${tag.id}`}
+              href={`/tags/${tag.id}`}
               className="rounded-full bg-surface px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
             >
               {tag.name}
-            </Link>
+            </NavLink>
           ))}
         </div>
       </nav>

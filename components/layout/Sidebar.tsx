@@ -1,5 +1,5 @@
 import 'server-only'
-import type { Locale } from '../../i18n/routing'
+import type { Locale } from '@/i18n/routing'
 import { SidebarContent } from './SidebarContent'
 
 /**

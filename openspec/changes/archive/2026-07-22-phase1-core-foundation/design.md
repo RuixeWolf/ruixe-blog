@@ -78,20 +78,21 @@
 
 **选择：** 方案 A
 
-- `app/layout.tsx`：仅 `<html>`/`<body>` + Geist 字体 + ThemeProvider + Analytics + SpeedInsights
-- `app/[lang]/layout.tsx`：Header + Sidebar + Main + `NextIntlClientProvider` + `setRequestLocale`
+- `app/layout.tsx`：`<html lang="zh">`/`<body>` + Geist 字体 + ThemeProvider + Analytics + SpeedInsights + 站点级静态 `metadata`
+- `app/[lang]/layout.tsx`：Header + Sidebar + Main + `NextIntlClientProvider` + `setRequestLocale` + locale 级 `generateMetadata`（`hreflang` alternates）
 
 **理由：**
 
-- 根布局保持极简，未来可加非 locale 路由（如 `/api`、`/feed.xml`）而不被 locale 逻辑污染
+- 根布局保持极简，未来可加非 locale 路由（如 `/api`、`/feed.xml`、`/sitemap.xml`）而不被 locale 逻辑污染
 - locale 相关逻辑（翻译、Header 文案）集中在 `[lang]/layout.tsx`
-- `<html lang={lang}>` 在 `[lang]/layout.tsx` 中设置--但根布局已含 `<html>`，需协调
+- 根布局作为项目根级入口，便于未来接入 SEO 相关功能（sitemap、robots.txt、RSS、llms.txt、结构化数据）
 
-**实现注意：** 根布局的 `<html>` 不设 `lang` 属性（或设默认值），`[lang]/layout.tsx` 不再渲染 `<html>`，而是通过 `generateMetadata` 或在根布局读取 `headers` 获取 locale 设置 `lang`。实际上更简洁的方式：根布局 `<html lang="">` 留空，由 `[lang]/layout.tsx` 的 `generateMetadata` 设置 `<html lang>`。需验证 Next.js 16 是否允许子布局修改 `<html lang>` -- 若不允许，则根布局通过 `cookies()`/`headers()` 读取 locale。
+**实现注意：** 根布局的 `<html lang>` 设为默认 locale `"zh"`，而非动态读取 locale。原因是根布局位于 `[lang]` 动态段之上，在构建时无法确定 locale；若调用 `getLocale()` 动态读取，会使所有页面退出静态预渲染（变为 server-rendered on demand）。设默认 `"zh"` 保留静态预渲染，locale 定位由 `[lang]/layout.tsx` 的 `generateMetadata` 返回的 `hreflang` alternates 承担——搜索引擎以 `hreflang` 作为语言/地区定位的主信号。详见风险 3。
 
 **备选方案与否决理由：**
 
-- 方案 B（根布局直接挪到 `[lang]/layout.tsx`）：绑死 locale，未来非 locale 路由需额外处理
+- 方案 B（根布局直接挪到 `[lang]/layout.tsx`）：绑死 locale，未来非 locale 路由需额外处理；且 `<html lang>` 虽可动态设置，但会失去根级入口
+- 方案 C（根布局用 `getLocale()` 动态读取 locale 设置 `<html lang>`）：实测会使所有 23 个页面变为动态渲染（`ƒ`），放弃
 
 ### Decision 4: Header 导航--自建 flex 布局
 
@@ -123,7 +124,7 @@
 **实现：**
 
 - `components/theme/ThemeProvider.tsx`（`'use client'`）封装 `ThemeProvider`
-- `app/layout.tsx` 包裹 `<ThemeProviderWrapper>`
+- `app/layout.tsx` 包裹 `<ThemeProvider>`（根布局，不涉及 locale）
 - `components/theme/ThemeToggle.tsx`（`'use client'`）用 `useTheme()` 切换，`lucide-react` 的 `Sun`/`Moon` 图标
 
 ### Decision 6: 移动端断点--`lg`
@@ -282,11 +283,12 @@ rehypePlugins: ['rehype-slug'],
 - **缓解：** Next.js 16 官方文档示例即此用法，已验证可行；若失败，退路为 `@mdx-js/mdx` 的 `compile` + `run` 手动编译
 - **验证：** `pnpm build` 时 `generateStaticParams` 生成的所有文章页成功预渲染
 
-### 风险 3：`<html lang>` 设置位置
+### 风险 3：`<html lang>` 设置位置（已解决）
 
 - **风险：** 根布局含 `<html>`，但 locale 在 `[lang]/layout.tsx` 才知道，无法直接在根布局设 `lang` 属性
-- **缓解：** 根布局 `<html lang="">` 留空或设默认 `zh`，通过 `[lang]/layout.tsx` 的 `generateMetadata` 返回 `{ languageAlternates: { languages: { zh, en } } }`；或根布局用 `cookies()`/`headers()` 读取 next-intl 注入的 locale header
-- **验证：** 渲染后查看页面 HTML 的 `<html lang>` 属性正确
+- **缓解（已实施）：** 根布局 `<html lang="zh">` 设为默认 locale。locale 定位由 `[lang]/layout.tsx` 的 `generateMetadata` 返回 `alternates.languages`（`zh`/`en` 互指）承担，搜索引擎以 `hreflang` 为语言定位主信号
+- **否决方案：** 根布局用 `getLocale()` 动态读取 locale 设置 `<html lang>`——实测会使所有 23 个页面退出静态预渲染变为动态（`ƒ`），放弃
+- **验证：** `pnpm build` 确认 23 个页面均为静态预渲染（`●` SSG）；查看页面 HTML 的 `<head>` 含正确的 `hreflang` link 标签
 
 ### 风险 4：gray-matter 在 Edge Runtime
 

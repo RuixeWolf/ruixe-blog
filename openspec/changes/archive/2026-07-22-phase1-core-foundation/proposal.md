@@ -46,9 +46,9 @@
 
 **代码结构变更：**
 
-- `app/layout.tsx` - 重构为根布局（html/body + 字体 + ThemeProvider + Analytics）
+- `app/layout.tsx` - 重构为根布局（`<html lang="zh">`/`<body>` + 字体 + ThemeProvider + Analytics + SpeedInsights + 站点级静态 `metadata`）
 - `app/page.tsx` - 删除（根路径由 proxy.ts 重定向）
-- `app/[lang]/`（新增）- locale 布局 + 所有业务页面
+- `app/[lang]/`（新增）- locale 布局（Header/Sidebar/NextIntlClientProvider/`setRequestLocale`/`generateMetadata` hreflang）+ 所有业务页面
 - `components/layout/`（新增）- Header、MobileHeader、Sidebar、MobileDrawer、ProfileCard
 - `components/theme/`（新增）- ThemeProvider、ThemeToggle
 - `components/posts/`（新增）- PostList、TableOfContents、PostLayout

@@ -4,8 +4,8 @@ import { useTransition } from 'react'
 import { Button } from '@heroui/react'
 import { Globe } from 'lucide-react'
 import { useLocale } from 'next-intl'
-import { usePathname, useRouter } from '../../i18n/navigation'
-import { routing } from '../../i18n/routing'
+import { usePathname, useRouter } from '@/i18n/navigation'
+import { routing } from '@/i18n/routing'
 
 /**
  * Locale switcher that preserves the current path when changing language.
@@ -32,7 +32,8 @@ export function LanguageSwitcher() {
     startTransition(() => {
       // `pathname` is already locale-stripped by next-intl, so we only need to
       // override the locale — the router prepends the new `[lang]` prefix.
-      router.replace(pathname, { locale })
+      // `push` (not `replace`) so the back button returns to the prior locale.
+      router.push(pathname, { locale })
     })
   }
 

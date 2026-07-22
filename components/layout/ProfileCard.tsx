@@ -2,8 +2,8 @@ import 'server-only'
 import { Avatar, Card, Link } from '@heroui/react'
 import { ExternalLink } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
-import { getGitHubUser } from '../../lib/github'
-import { siteConfig } from '../../lib/site-config'
+import { getGitHubUser } from '@/lib/github'
+import { siteConfig } from '@/lib/site-config'
 
 /**
  * GitHub profile card shown in the sidebar and mobile drawer.

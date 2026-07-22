@@ -2,20 +2,19 @@ import type { Metadata } from 'next'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { Header } from '../../components/layout/Header'
-import { MobileHeader } from '../../components/layout/MobileHeader'
-import { Sidebar } from '../../components/layout/Sidebar'
-import { SidebarContent } from '../../components/layout/SidebarContent'
-import { routing } from '../../i18n/routing'
-import type { Locale } from '../../i18n/routing'
-import { siteConfig } from '../../lib/site-config'
+import { Header } from '@/components/layout/Header'
+import { MobileHeader } from '@/components/layout/MobileHeader'
+import { Sidebar } from '@/components/layout/Sidebar'
+import { SidebarContent } from '@/components/layout/SidebarContent'
+import { routing } from '@/i18n/routing'
+import type { Locale } from '@/i18n/routing'
 
 /** Pre-render both supported locales at build time. */
 export function generateStaticParams() {
   return routing.locales.map((lang) => ({ lang }))
 }
 
-/** Static site-wide metadata; individual pages override with `generateMetadata`. */
+/** Locale-specific metadata; site-wide defaults live in the root layout. */
 export async function generateMetadata({
   params,
 }: {
@@ -25,12 +24,6 @@ export async function generateMetadata({
   const locale: Locale = hasLocale(routing.locales, lang) ? lang : routing.defaultLocale
 
   return {
-    title: {
-      default: `${siteConfig.siteTitle} - ${siteConfig.siteDescription}`,
-      template: `%s | ${siteConfig.siteTitle}`,
-    },
-    description: siteConfig.siteDescription,
-    metadataBase: new URL(siteConfig.siteUrl),
     alternates: {
       languages: {
         zh: `/${routing.locales[0]}`,
@@ -38,23 +31,19 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: siteConfig.siteTitle,
-      description: siteConfig.siteDescription,
-      url: siteConfig.siteUrl,
-      siteName: siteConfig.siteTitle,
       locale,
-      type: 'website',
     },
   }
 }
 
 /**
- * Locale-scoped layout that wraps every `/[lang]/...` page.
+ * Locale layout for `/[lang]/...`.
  *
  * Validates the `lang` segment, sets the request locale for static rendering,
  * loads messages, and renders the responsive chrome: desktop Header + Sidebar
- * on `lg+`, mobile Header (with Drawer) on `<lg`. The main content area is
- * sandwiched between the sidebar and children.
+ * on `lg+`, mobile Header (with Drawer) on `<lg`. The root `app/layout.tsx`
+ * provides `<html>`/`<body>`, fonts, ThemeProvider, Analytics, SpeedInsights,
+ * and site-wide metadata.
  */
 export default async function LocaleLayout({
   children,

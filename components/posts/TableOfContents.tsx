@@ -1,6 +1,6 @@
 import 'server-only'
 import { getTranslations } from 'next-intl/server'
-import type { TocItem } from '../../lib/toc'
+import type { TocItem } from '@/lib/toc'
 
 /**
  * Desktop table-of-contents navigation for the post detail page.

@@ -1,11 +1,11 @@
 import { hasLocale } from 'next-intl'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { ProfileCard } from '../../components/layout/ProfileCard'
-import { PostList } from '../../components/posts/PostList'
-import { routing } from '../../i18n/routing'
-import type { Locale } from '../../i18n/routing'
-import { getAllPosts } from '../../lib/posts'
+import { ProfileCard } from '@/components/layout/ProfileCard'
+import { PostList } from '@/components/posts/PostList'
+import { routing } from '@/i18n/routing'
+import type { Locale } from '@/i18n/routing'
+import { getAllPosts } from '@/lib/posts'
 
 /**
  * Home page (`/[lang]`) -- equivalent to the post list, plus a compact profile
