@@ -15,14 +15,21 @@ import { MobileDrawer } from './MobileDrawer'
  *
  * Header: hamburger button (left), site title (center), search + settings (right).
  * The hamburger opens `MobileDrawer` (left-side) which displays server-rendered
- * sidebar content passed in via the `sidebar` prop. The settings button opens a
- * `Popover` with the language switcher and theme toggle.
+ * content passed in via the `navLinks` and `sidebar` props. The settings button
+ * opens a `Popover` with the language switcher and theme toggle.
  *
- * @param sidebar - Server-rendered sidebar content (profile card, categories, tags)
- *                  passed through to the drawer body to avoid crossing the
- *                  server-only boundary inside this client component.
+ * Both `navLinks` and `sidebar` are RSC payloads - server-rendered React nodes
+ * serialized across the server/client boundary so server-only modules
+ * (e.g. `siteConfig` env access, `lib/taxonomy` fs reads) stay out of this
+ * client component.
+ *
+ * @param navLinks - Server-rendered primary navigation (`NavLinks variant="drawer"`).
+ * @param sidebar - Server-rendered sidebar content (profile card, categories, tags).
  */
-export function MobileHeader({ sidebar }: Readonly<{ sidebar: React.ReactNode }>) {
+export function MobileHeader({
+  navLinks,
+  sidebar,
+}: Readonly<{ navLinks: React.ReactNode; sidebar: React.ReactNode }>) {
   const tHeader = useTranslations('Header')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
@@ -66,7 +73,21 @@ export function MobileHeader({ sidebar }: Readonly<{ sidebar: React.ReactNode }>
       </header>
 
       <MobileDrawer isOpen={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        {sidebar}
+        {/*
+          Click-interceptor: closes the drawer whenever any child link is clicked.
+          Relies on DOM event capture - a single `onClickCapture` on the wrapper
+          catches clicks on NavLinks items and SidebarContent category/tag links
+          alike during the capture phase (before they reach the link). This avoids
+          jsx-a11y warnings on static elements while still closing the drawer.
+          `preventDefault` is intentionally NOT called so Next.js Link client
+          navigation and the GitHub external link `target="_blank"` still proceed.
+          The child links are the keyboard-accessible interactive elements; this
+          wrapper is an event-delegation container, not an interactive control.
+        */}
+        <div onClickCapture={() => setIsDrawerOpen(false)}>
+          {navLinks}
+          {sidebar}
+        </div>
       </MobileDrawer>
     </>
   )

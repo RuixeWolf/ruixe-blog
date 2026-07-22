@@ -13,9 +13,6 @@ export function generateStaticParams() {
   return getAllPostSlugs().map(({ slug, lang }) => ({ lang, slug }))
 }
 
-/** Unmatched dynamic segments return 404 instead of attempting on-demand rendering. */
-export const dynamicParams = false
-
 /**
  * Generates SEO metadata for the post detail page from frontmatter.
  */

@@ -4,6 +4,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { MobileHeader } from '@/components/layout/MobileHeader'
+import { NavLinks } from '@/components/layout/NavLinks'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
 import { routing } from '@/i18n/routing'
@@ -65,7 +66,10 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <div className="flex min-h-screen flex-col">
         <Header locale={locale} />
-        <MobileHeader sidebar={<SidebarContent locale={locale} />} />
+        <MobileHeader
+          navLinks={<NavLinks variant="drawer" />}
+          sidebar={<SidebarContent locale={locale} />}
+        />
         <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-0 lg:gap-8 lg:px-6">
           <Sidebar locale={locale} />
           <main className="min-w-0 flex-1 py-6 lg:py-8">{children}</main>
