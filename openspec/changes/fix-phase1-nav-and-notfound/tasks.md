@@ -53,4 +53,4 @@
 - [x] 5.5 语言切换回归测试：在首页、文章详情页、分类页、标签页切换语言，URL 与文案正确变化
 - [x] 5.6 运行 `pnpm format-lint` 全量格式化与 lint，确保无错误
 - [x] 5.7 用 `next-devtools` MCP 的 `nextjs_index` + `nextjs_call` 检查运行时无错误、路由列表符合预期
-- [ ] 5.8 提交 git commit（`fix: complete phase 1 mobile drawer nav and localized 404`），推送至 `feat/phase-1` 分支
+- [x] 5.8 提交 git commit（`fix: complete phase 1 mobile drawer nav and localized 404`），推送至 `feat/phase-1` 分支
