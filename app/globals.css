@@ -2,6 +2,8 @@
 @import '@heroui/styles';
 @import './heroui-theme.css';
 
+@plugin '@tailwindcss/typography';
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

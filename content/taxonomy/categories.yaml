@@ -1,0 +1,12 @@
+frontend:
+  name:
+    zh: 前端开发
+    en: Frontend Development
+backend:
+  name:
+    zh: 后端开发
+    en: Backend Development
+devops:
+  name:
+    zh: 运维与部署
+    en: DevOps
