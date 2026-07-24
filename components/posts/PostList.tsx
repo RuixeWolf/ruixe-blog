@@ -1,7 +1,7 @@
 import 'server-only'
 import { getTranslations } from 'next-intl/server'
-import type { Locale } from '../../i18n/routing'
-import type { PostMeta } from '../../lib/posts'
+import type { Locale } from '@/i18n/routing'
+import type { PostMeta } from '@/lib/posts'
 import { PostCard } from './PostCard'
 
 /**

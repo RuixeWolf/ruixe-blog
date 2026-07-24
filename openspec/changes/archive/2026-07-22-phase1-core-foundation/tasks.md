@@ -21,7 +21,7 @@
 
 ## 3. content 目录与占位内容
 
-- [x] 3.1 创建 `content/posts/hello-world.zh.mdx`：frontmatter（title、description、publishedAt: 2026-07-21、category: frontend、tags: [next-js, react]）+ 简短"Hello World"中文正文（含 h2、h3、段落、列表、图片占位、代码块、链接，用于验证 MDX 组件）
+- [x] 3.1 创建 `content/posts/hello-world.zh.mdx`：frontmatter（title、description、publishedTime: 2026-07-21、category: frontend、tags: [next-js, react]）+ 简短"Hello World"中文正文（含 h2、h3、段落、列表、图片占位、代码块、链接，用于验证 MDX 组件）
 - [x] 3.2 创建 `content/posts/hello-world.en.mdx`：与中文版同结构英文内容
 - [x] 3.3 创建 `content/taxonomy/categories.yaml`：含 `frontend`、`backend`、`devops` 三个分类，每个含 `name.zh` 与 `name.en`
 - [x] 3.4 创建 `content/taxonomy/tags.yaml`：含 `next-js`、`react`、`typescript` 三个标签，每个含 `name.zh` 与 `name.en`
@@ -29,7 +29,7 @@
 
 ## 4. lib 服务端工具
 
-- [x] 4.1 创建 `lib/posts.ts`（顶部 `'server-only'`）：定义 `PostMeta` 类型（slug、lang、title、description、publishedAt、updatedAt?、category、tags、content 原文）；实现 `getAllPosts(lang)`、`getPostBySlug(slug, lang)`、`getPostsByCategory(categoryId, lang)`、`getPostsByTag(tagId, lang)`；用 `gray-matter` 解析 frontmatter；按 `publishedAt` 降序排列
+- [x] 4.1 创建 `lib/posts.ts`（顶部 `'server-only'`）：定义 `PostMeta` 类型（slug、lang、title、description、publishedTime、modifiedTime?、category、tags、content 原文）；实现 `getAllPosts(lang)`、`getPostBySlug(slug, lang)`、`getPostsByCategory(categoryId, lang)`、`getPostsByTag(tagId, lang)`；用 `gray-matter` 解析 frontmatter；按 `publishedTime` 降序排列
 - [x] 4.2 创建 `lib/taxonomy.ts`（顶部 `'server-only'`）：用 `yaml` 包加载 `categories.yaml` 与 `tags.yaml`；实现 `getCategories(lang)`、`getCategory(id, lang)`、`getTags(lang)`、`getTag(id, lang)`；校验每个 ID 含所有受支持 locale 翻译，缺失抛错
 - [x] 4.3 创建 `lib/toc.ts`：实现 `extractToc(markdownContent)`，正则 `/^(#{2,3})\s+(.+)$/gm` 提取 h2/h3，用 `github-slugger` 生成与 `rehype-slug` 一致的锚点 id；返回 `TocItem[]`（`{ level, text, id }`）
 - [x] 4.4 创建 `lib/github.ts`（顶部 `'server-only'`）：实现 `getGitHubUser(username)`，`fetch('https://api.github.com/users/{username}', { next: { revalidate: 3600 }, headers: { 'User-Agent': 'ruixe-blog' } })`；失败时返回 `null` 供调用方降级
@@ -46,13 +46,13 @@
 
 ## 6. 根布局重构
 
-- [x] 6.1 重构 `app/layout.tsx`：保留 Geist 字体、Analytics、SpeedInsights；`<html>` 加 `suppressHydrationWarning`；`<body>` 内包裹 `<ThemeProviderWrapper>`；移除默认 `metadata` 的 `title`/`description`（由各页面 `generateMetadata` 提供）
+- [x] 6.1 创建 `app/layout.tsx`：渲染 `<html lang="zh" suppressHydrationWarning>` + `<body>`；保留 Geist 字体、ThemeProvider、Analytics、SpeedInsights；导出静态站点级 `metadata`（`title.default`/`title.template`/`description`/`metadataBase`/`openGraph`）；不包含任何 locale chrome（Header/Sidebar 等）
 - [x] 6.2 暂时保留 `app/page.tsx`（冒烟测试），待 Group 7 的 `[lang]/layout.tsx` 与 Group 9 的首页就绪后再删除
 - [x] 6.3 运行 `pnpm dev` 验证根布局渲染正常，主题切换按钮可点击且无 hydration 报错
 
 ## 7. locale 布局与布局组件
 
-- [x] 7.1 创建 `app/[lang]/layout.tsx`：`async` 函数，`await params` 取 `lang`，`hasLocale` 校验后 `setRequestLocale(lang)`；`getMessages()` 获取文案；`<NextIntlClientProvider locale={lang} messages={messages}>` 包裹 `<Header />` + `<MobileHeader />` + `<Sidebar />` + `<MobileDrawer />` + `<main>{children}</main>`；导出 `generateStaticParams` 返回 `routing.locales.map(lang => ({ lang }))`
+- [x] 7.1 创建 `app/[lang]/layout.tsx`：`async` 函数，`await params` 取 `lang`，`hasLocale` 校验后 `setRequestLocale(lang)`；`getMessages()` 获取文案；`<NextIntlClientProvider locale={lang} messages={messages}>` 包裹 `<Header />` + `<MobileHeader />` + `<Sidebar />` + `<MobileDrawer />` + `<main>{children}</main>`（不渲染 `<html>`/`<body>`，由根布局提供）；导出 `generateStaticParams` 返回 `routing.locales.map(lang => ({ lang }))`；导出 `generateMetadata` 返回 `alternates.languages`（hreflang）与 `openGraph.locale`
 - [x] 7.2 用 `heroui-react` MCP 查询 HeroUI v3 `Drawer`、`Accordion`、`Card`、`Avatar`、`Link`、`Button` 的 compound 组件 API（记录关键用法）
 - [x] 7.3 创建 `components/layout/Header.tsx`（Server Component）：`hidden lg:flex` 桌面端 Header；左侧 `Ruixe Blog` 标题（`next-intl/navigation` 的 `Link` 指向 `/`）+ 导航（首页 `/`、关于 `/about`、GitHub 外链 `target="_blank"`）；右侧功能栏（搜索按钮占位 `Button` + `LanguageSwitcher` + `ThemeToggle`）；`sticky top-0 z-40` 定位
 - [x] 7.4 创建 `components/layout/MobileHeader.tsx`（Client Component，`'use client'`）：`lg:hidden`；左侧汉堡按钮（`Menu` 图标，点击触发 Drawer 打开状态）；中间 `Ruixe Blog` 标题；右侧搜索按钮占位 + 设置按钮（点击弹出 `Popover` 含 `LanguageSwitcher` + `ThemeToggle`）

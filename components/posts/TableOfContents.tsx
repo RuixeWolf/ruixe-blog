@@ -1,6 +1,6 @@
 import 'server-only'
 import { getTranslations } from 'next-intl/server'
-import type { TocItem } from '../../lib/toc'
+import type { TocItem } from '@/lib/toc'
 
 /**
  * Desktop table-of-contents navigation for the post detail page.
@@ -20,26 +20,27 @@ export async function TableOfContents({ items }: Readonly<{ items: TocItem[] }>)
   }
 
   return (
-    <nav aria-label={t('TableOfContents')} className="hidden lg:block">
-      <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">{t('TableOfContents')}</h2>
-        <ul className="flex flex-col gap-1 border-l border-default">
-          {items.map((item) => (
-            <li key={item.id}>
-              <a
-                href={`#${item.id}`}
-                className={
-                  item.level === 3
-                    ? 'block border-l-2 border-transparent pl-6 text-sm text-muted transition-colors hover:border-primary hover:text-foreground'
-                    : 'block border-l-2 border-transparent pl-3 text-sm text-muted transition-colors hover:border-primary hover:text-foreground'
-                }
-              >
-                {item.text}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+    <nav
+      aria-label={t('TableOfContents')}
+      className="sticky top-20 hidden max-h-[calc(100vh-6rem)] overflow-y-auto lg:block"
+    >
+      <h2 className="mb-3 text-sm font-semibold text-foreground">{t('TableOfContents')}</h2>
+      <ul className="flex flex-col gap-1 border-l border-default">
+        {items.map((item) => (
+          <li key={item.id}>
+            <a
+              href={`#${item.id}`}
+              className={
+                item.level === 3
+                  ? 'hover:border-primary block border-l-2 border-transparent pl-6 text-sm text-muted transition-colors hover:text-foreground'
+                  : 'hover:border-primary block border-l-2 border-transparent pl-3 text-sm text-muted transition-colors hover:text-foreground'
+              }
+            >
+              {item.text}
+            </a>
+          </li>
+        ))}
+      </ul>
     </nav>
   )
 }

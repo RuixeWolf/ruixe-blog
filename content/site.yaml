@@ -1,0 +1,22 @@
+# Site-wide identity configuration for Ruixe Blog.
+#
+# This file is the single source of truth for static, cross-environment site
+# identifiers (GitHub username, site title, site description) and is committed
+# to Git so a fresh clone works out of the box without any `.env` setup.
+#
+# `siteUrl` is intentionally NOT defined here - it comes from the
+# `NEXT_PUBLIC_SITE_URL` environment variable because preview and production
+# deployments may resolve to different URLs.
+#
+# Edit this file, then restart the dev server (the file is read at module
+# evaluation time and is not part of the module graph, so HMR does not apply).
+
+# GitHub login used by the profile card and external links.
+githubUsername: RuixeWolf
+
+# Site title shown in the header, mobile drawer, and browser tab metadata.
+siteTitle: Ruixe Blog
+
+# Default site description for SEO metadata and Open Graph.
+siteDescription: >-
+  A personal blog by Ruixe, sharing web development insights and project notes.

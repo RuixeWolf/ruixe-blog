@@ -1,9 +1,10 @@
 import 'server-only'
-import { Link } from '@heroui/react'
+import { Chip } from '@heroui/react'
 import { getTranslations } from 'next-intl/server'
-import { Link as NavLink } from '../../i18n/navigation'
-import type { Locale } from '../../i18n/routing'
-import { getCategories, getTags } from '../../lib/taxonomy'
+import { Link as NavLink } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
+import { getCategoryPostCounts } from '@/lib/posts'
+import { getCategories, getTags } from '@/lib/taxonomy'
 import { ProfileCard } from './ProfileCard'
 
 /**
@@ -18,6 +19,7 @@ import { ProfileCard } from './ProfileCard'
 export async function SidebarContent({ locale }: Readonly<{ locale: Locale }>) {
   const t = await getTranslations('Sidebar')
   const categories = getCategories(locale)
+  const counts = getCategoryPostCounts(locale)
   const tags = getTags(locale)
 
   return (
@@ -31,9 +33,10 @@ export async function SidebarContent({ locale }: Readonly<{ locale: Locale }>) {
             <li key={category.id}>
               <NavLink
                 href={`/categories/${category.id}`}
-                className="text-sm text-muted transition-colors hover:text-foreground"
+                className="flex items-center justify-between text-sm text-muted transition-colors hover:text-foreground"
               >
                 {category.name}
+                <span className="tabular-nums">{counts[category.id] ?? 0}</span>
               </NavLink>
             </li>
           ))}
@@ -44,13 +47,15 @@ export async function SidebarContent({ locale }: Readonly<{ locale: Locale }>) {
         <h2 className="text-sm font-semibold text-foreground">{t('Tags')}</h2>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <Link
-              key={tag.id}
-              href={`/${locale}/tags/${tag.id}`}
-              className="rounded-full bg-surface px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
-            >
-              {tag.name}
-            </Link>
+            <NavLink key={tag.id} href={`/tags/${tag.id}`}>
+              <Chip
+                size="sm"
+                variant="soft"
+                className="bg-surface px-2 py-0.5 transition-opacity hover:opacity-80"
+              >
+                {tag.name}
+              </Chip>
+            </NavLink>
           ))}
         </div>
       </nav>

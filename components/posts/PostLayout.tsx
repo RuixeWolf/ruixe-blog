@@ -1,12 +1,12 @@
 import 'server-only'
-import { Accordion, Link } from '@heroui/react'
+import { Accordion, Chip } from '@heroui/react'
 import { ChevronDown } from 'lucide-react'
 import { getFormatter, getTranslations } from 'next-intl/server'
-import { Link as NavLink } from '../../i18n/navigation'
-import type { Locale } from '../../i18n/routing'
-import type { PostMeta } from '../../lib/posts'
-import { getCategory, getTag } from '../../lib/taxonomy'
-import type { TocItem } from '../../lib/toc'
+import { Link as NavLink } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
+import type { PostMeta } from '@/lib/posts'
+import { getCategory, getTag } from '@/lib/taxonomy'
+import type { TocItem } from '@/lib/toc'
 import { TableOfContents } from './TableOfContents'
 
 /**
@@ -37,14 +37,14 @@ export async function PostLayout({
   const format = await getFormatter()
 
   const category = getCategory(meta.category, locale)
-  const publishedDate = new Date(meta.publishedAt)
+  const publishedDate = new Date(meta.publishedTime)
   const formattedPublished = format.dateTime(publishedDate, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   })
-  const formattedUpdated = meta.updatedAt
-    ? format.dateTime(new Date(meta.updatedAt), {
+  const formattedUpdated = meta.modifiedTime
+    ? format.dateTime(new Date(meta.modifiedTime), {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -57,33 +57,35 @@ export async function PostLayout({
         <h1 className="text-3xl font-bold text-pretty text-foreground">{meta.title}</h1>
         <p className="text-base text-muted">{meta.description}</p>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
-          <span>{t('PublishedAt', { date: formattedPublished })}</span>
-          {formattedUpdated ? (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{t('UpdatedAt', { date: formattedUpdated })}</span>
-            </>
-          ) : null}
-          <span aria-hidden="true">·</span>
           <NavLink
             href={`/categories/${category.id}`}
             className="transition-colors hover:text-foreground"
           >
             {category.name}
           </NavLink>
+          <span aria-hidden="true">·</span>
+          <span>{t('PublishedTime', { date: formattedPublished })}</span>
+          {formattedUpdated ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{t('ModifiedTime', { date: formattedUpdated })}</span>
+            </>
+          ) : null}
         </div>
         {meta.tags.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {meta.tags.map((tagId) => {
               const tag = getTag(tagId, locale)
               return (
-                <Link
-                  key={tagId}
-                  href={`/${locale}/tags/${tag.id}`}
-                  className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground transition-colors hover:bg-secondary/80"
-                >
-                  {tag.name}
-                </Link>
+                <NavLink key={tagId} href={`/tags/${tag.id}`}>
+                  <Chip
+                    size="sm"
+                    variant="soft"
+                    className="bg-surface px-2 py-0.5 transition-opacity hover:opacity-80"
+                  >
+                    {tag.name}
+                  </Chip>
+                </NavLink>
               )
             })}
           </div>
@@ -126,7 +128,7 @@ export async function PostLayout({
       ) : null}
 
       <div className="flex gap-8">
-        <article className="prose max-w-none dark:prose-invert min-w-0 flex-1">{children}</article>
+        <article className="prose max-w-none min-w-0 flex-1 dark:prose-invert">{children}</article>
         <div className="hidden w-56 shrink-0 lg:block">
           <TableOfContents items={toc} />
         </div>

@@ -22,7 +22,7 @@ context: |
   - Posts: content/posts/{slug}.{locale}.mdx (e.g. hello-world.zh.mdx)
   - Taxonomy: content/taxonomy/{categories,tags}.yaml - IDs unique, must
     provide translations for every supported locale (zh, en)
-  - Frontmatter: title, description, publishedAt, updatedAt?, category, tags[]
+  - Frontmatter: title, description, publishedTime, modifiedTime?, category, tags[]
   - URLs: /[locale], /[locale]/posts, /[locale]/posts/<slug>,
     /[locale]/categories/<id>, /[locale]/tags/<id>, /[locale]/about
   - Layout: persistent Header + left Sidebar (profile, categories, tags) +

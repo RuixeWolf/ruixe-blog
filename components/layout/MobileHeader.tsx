@@ -4,9 +4,8 @@ import { useState } from 'react'
 import { Button, Popover } from '@heroui/react'
 import { Menu, Search, Settings } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Link } from '../../i18n/navigation'
-import { siteConfig } from '../../lib/site-config'
-import { ThemeToggle } from '../theme/ThemeToggle'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
+import { Link } from '@/i18n/navigation'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { MobileDrawer } from './MobileDrawer'
 
@@ -15,20 +14,29 @@ import { MobileDrawer } from './MobileDrawer'
  *
  * Header: hamburger button (left), site title (center), search + settings (right).
  * The hamburger opens `MobileDrawer` (left-side) which displays server-rendered
- * sidebar content passed in via the `sidebar` prop. The settings button opens a
- * `Popover` with the language switcher and theme toggle.
+ * content passed in via the `navLinks` and `sidebar` props. The settings button
+ * opens a `Popover` with the language switcher and theme toggle.
  *
- * @param sidebar - Server-rendered sidebar content (profile card, categories, tags)
- *                  passed through to the drawer body to avoid crossing the
- *                  server-only boundary inside this client component.
+ * `navLinks`, `sidebar`, and `siteTitle` are RSC payloads - server-rendered
+ * values serialized across the server/client boundary so server-only modules
+ * (e.g. `lib/site-config` fs reads, `lib/taxonomy` fs reads) stay out of this
+ * client component.
+ *
+ * @param siteTitle - Site title rendered in the header and forwarded to the drawer.
+ * @param navLinks - Server-rendered primary navigation (`NavLinks variant="drawer"`).
+ * @param sidebar - Server-rendered sidebar content (profile card, categories, tags).
  */
-export function MobileHeader({ sidebar }: Readonly<{ sidebar: React.ReactNode }>) {
+export function MobileHeader({
+  siteTitle,
+  navLinks,
+  sidebar,
+}: Readonly<{ siteTitle: string; navLinks: React.ReactNode; sidebar: React.ReactNode }>) {
   const tHeader = useTranslations('Header')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-default px-4 lg:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-default bg-surface/70 px-4 backdrop-blur-md lg:hidden">
         <Button
           isIconOnly
           variant="ghost"
@@ -39,7 +47,7 @@ export function MobileHeader({ sidebar }: Readonly<{ sidebar: React.ReactNode }>
         </Button>
 
         <Link href="/" className="text-base font-bold text-foreground">
-          {siteConfig.siteTitle}
+          {siteTitle}
         </Link>
 
         <div className="flex items-center gap-1">
@@ -65,8 +73,22 @@ export function MobileHeader({ sidebar }: Readonly<{ sidebar: React.ReactNode }>
         </div>
       </header>
 
-      <MobileDrawer isOpen={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        {sidebar}
+      <MobileDrawer siteTitle={siteTitle} isOpen={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        {/*
+          Click-interceptor: closes the drawer whenever any child link is clicked.
+          Relies on DOM event capture - a single `onClickCapture` on the wrapper
+          catches clicks on NavLinks items and SidebarContent category/tag links
+          alike during the capture phase (before they reach the link). This avoids
+          jsx-a11y warnings on static elements while still closing the drawer.
+          `preventDefault` is intentionally NOT called so Next.js Link client
+          navigation and the GitHub external link `target="_blank"` still proceed.
+          The child links are the keyboard-accessible interactive elements; this
+          wrapper is an event-delegation container, not an interactive control.
+        */}
+        <div onClickCapture={() => setIsDrawerOpen(false)}>
+          {navLinks}
+          {sidebar}
+        </div>
       </MobileDrawer>
     </>
   )

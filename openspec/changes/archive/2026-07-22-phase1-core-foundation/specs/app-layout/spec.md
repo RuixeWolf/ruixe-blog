@@ -120,14 +120,24 @@
 
 ### Requirement: 根布局与 locale 布局分离
 
-系统 SHALL 将根布局（`app/layout.tsx`）仅保留 `<html>`/`<body>`、字体加载、ThemeProvider、Analytics 与 SpeedInsights。所有 locale 相关逻辑（Header、Sidebar、NextIntlClientProvider、`setRequestLocale`）MUST 位于 `app/[lang]/layout.tsx`。
+系统 SHALL 将根布局（`app/layout.tsx`）仅保留 `<html>`/`<body>`、字体加载、ThemeProvider、Analytics、SpeedInsights 与站点级静态 `metadata`。所有 locale 相关逻辑（Header、Sidebar、NextIntlClientProvider、`setRequestLocale`）MUST 位于 `app/[lang]/layout.tsx`。根布局的 `<html lang>` 属性 SHALL 设为默认 locale（`zh`），locale 级语言定位由 `app/[lang]/layout.tsx` 的 `generateMetadata` 返回的 `hreflang` alternates 承担。
 
 #### Scenario: 根布局渲染 html 骨架
 
 - **WHEN** 渲染根布局
-- **THEN** 输出 `<html suppressHydrationWarning>` 包裹 `<body>`，body 内含 ThemeProvider 与 `{children}`
+- **THEN** 输出 `<html lang="zh" suppressHydrationWarning>` 包裹 `<body>`，body 内含 ThemeProvider 与 `{children}`，不包含 Header/Sidebar 等 locale chrome
+
+#### Scenario: 根布局提供站点级 metadata
+
+- **WHEN** 渲染根布局
+- **THEN** 导出静态 `metadata` 对象，含 `title.default`、`title.template`、`description`、`metadataBase`、`openGraph`（title/description/url/siteName/type）
 
 #### Scenario: locale 布局包裹页面 chrome
 
 - **WHEN** 渲染 `app/[lang]/layout.tsx`
-- **THEN** 输出包含 Header、Sidebar、`<main>{children}</main>` 的结构，并被 `NextIntlClientProvider` 包裹
+- **THEN** 输出包含 Header、Sidebar、`<main>{children}</main>` 的结构，并被 `NextIntlClientProvider` 包裹，不渲染 `<html>`/`<body>`
+
+#### Scenario: locale 布局提供 hreflang alternates
+
+- **WHEN** 渲染 `app/[lang]/layout.tsx` 的 `generateMetadata`
+- **THEN** 返回 `alternates.languages`（`zh` 与 `en` 互指）与 `openGraph.locale`，作为搜索引擎语言定位的主信号

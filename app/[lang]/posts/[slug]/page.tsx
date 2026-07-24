@@ -13,9 +13,6 @@ export function generateStaticParams() {
   return getAllPostSlugs().map(({ slug, lang }) => ({ lang, slug }))
 }
 
-/** Unmatched dynamic segments return 404 instead of attempting on-demand rendering. */
-export const dynamicParams = false
-
 /**
  * Generates SEO metadata for the post detail page from frontmatter.
  */
@@ -41,8 +38,8 @@ export async function generateMetadata({
       title: post.title,
       description: post.description,
       type: 'article',
-      publishedTime: post.publishedAt,
-      modifiedTime: post.updatedAt,
+      publishedTime: post.publishedTime,
+      modifiedTime: post.modifiedTime,
     },
   }
 }
@@ -66,9 +63,7 @@ export default async function PostDetailPage({
   setRequestLocale(locale)
 
   const post = getPostBySlug(slug, locale)
-  if (!post) {
-    notFound()
-  }
+  if (!post) notFound()
 
   const toc = extractToc(post.content)
 

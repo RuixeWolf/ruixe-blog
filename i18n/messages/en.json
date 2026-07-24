@@ -17,19 +17,20 @@
     "Light": "Light",
     "Dark": "Dark",
     "System": "System",
+    "Mode": "Theme mode",
     "Toggle": "Toggle theme"
   },
   "Sidebar": {
     "Profile": "Profile",
     "Categories": "Categories",
     "Tags": "Tags",
-    "FollowOnGithub": "Follow on GitHub"
+    "ViewGithubProfile": "View GitHub Profile"
   },
   "PostList": {
     "Title": "All Posts",
     "ReadMore": "Read more",
-    "PublishedAt": "Published on {date}",
-    "UpdatedAt": "Updated on {date}",
+    "PublishedTime": "Published on {date}",
+    "ModifiedTime": "Modified on {date}",
     "Empty": "No posts yet",
     "EmptyHint": "Check back later"
   },
@@ -39,9 +40,11 @@
     "NextPost": "Next",
     "NoPreviousPost": "No older post",
     "NoNextPost": "No newer post",
-    "PublishedAt": "Published on {date}",
-    "UpdatedAt": "Updated on {date}",
-    "MinRead": "{minutes} min read"
+    "PublishedTime": "Published on {date}",
+    "ModifiedTime": "Modified on {date}",
+    "MinRead": "{minutes} min read",
+    "CopyCode": "Copy code",
+    "Copied": "Copied"
   },
   "Categories": {
     "Title": "Categories",
