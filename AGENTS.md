@@ -58,9 +58,10 @@ Package manager: **pnpm**. Node scripts/codemods should be `.mjs` files, not `no
 content/
 ├── posts/
 │   └── {slug}.{lang}.mdx       # e.g. hello-world.zh.mdx, hello-world.en.mdx
-└── taxonomy/
-    ├── categories.yaml          # {id: {name: {zh, en}}}
-    └── tags.yaml
+├── taxonomy/
+│   ├── categories.yaml          # {id: {name: {zh, en}}}
+│   └── tags.yaml
+└── site.yaml                    # githubUsername, siteTitle, siteDescription (committed to git)
 ```
 
 **Post frontmatter schema** (required):
@@ -69,8 +70,8 @@ content/
 ---
 title: ''
 description: ''
-publishedAt: 'YYYY-MM-DD'
-updatedAt: 'YYYY-MM-DD' # optional
+publishedTime: 'YYYY-MM-DD'
+modifiedTime: 'YYYY-MM-DD' # optional
 category: '<categoryId>' # references categories.yaml
 tags: [<tagId>, ...] # references tags.yaml
 ---
@@ -109,6 +110,25 @@ Locale codes: `zh`, `en` (default `zh`). App Router structure mirrors these segm
 - **Theming:** custom HeroUI tokens in `app/heroui-theme.css` (theme generator link in file header). Globals import order in `app/globals.css`: `tailwindcss` → `@heroui/styles` → `heroui-theme.css`.
 - **Fonts:** Geist Sans + Geist Mono via `next/font/google` (wired in `app/layout.tsx`).
 - **Deleted posts:** add a redirect from the old URL to preserve SEO (avoid dead links).
+- **Server-only boundary:** `lib/posts`, `lib/taxonomy`, `lib/site-config`, `lib/github` all `import 'server-only'` and use `node:fs`/`fetch`. Client components MUST NOT import them - pass server-rendered content as RSC `children`/props (see `app/[lang]/layout.tsx` -> `MobileHeader` -> `MobileDrawer`). `fs.readFileSync` in these modules does NOT force dynamic rendering (all routes stay SSG).
+- **`lib/` module patterns:** fail-fast validation (throw on missing/invalid data at module eval or call time), module-level singleton caches (prod-only in `posts.ts` via `process.env.NODE_ENV === 'production'`), `getCategory`/`getTag` throw on missing ID (wrap in try/catch + `notFound()` in pages).
+- **i18n message keys:** all levels PascalCase (e.g. `Nav.Home`, `PostDetail.TableOfContents`). Namespaces: `Nav`, `Header`, `Theme`, `Sidebar`, `PostList`, `PostDetail`, `Categories`, `Tags`, `About`, `NotFound`. Use `next-intl/navigation` (`Link`, `usePathname`, `useRouter`) over raw `next/link`/`next/navigation`.
+- **Env vars:** only `NEXT_PUBLIC_SITE_URL` (SEO `metadataBase`, falls back to Vercel URL). All other site config lives in `content/site.yaml` - no `.env` needed for a fresh clone.
+
+## Critical pitfalls
+
+Non-obvious issues that broke during development - heed them:
+
+- **`proxy.ts` matcher must be a plain string array** - Prettier converts it to `String.raw` tagged template, which Next.js 16's static analyzer rejects ("Invalid segment configuration export"). Verify after `pnpm format-lint`.
+- **Root layout `getLocale()` breaks SSG** - forces all pages dynamic (`ƒ`). Use `routing.defaultLocale` as a static `<html lang>`; per-locale `lang` is an accepted trade-off (`hreflang` comes from `generateMetadata`).
+- **`transition-colors` + next-themes = stuck background** on live theme switch. Use `transition-[color]` on theme-aware elements so `background-color`/`border-color` update instantly.
+- **Prettier plugin order:** `prettier-plugin-tailwindcss` MUST be last in `.prettierrc.json` `plugins` array (with `"tailwindStylesheet": "./app/globals.css"`), or Tailwind class sorting silently no-ops.
+- **`dynamicParams = false` bypasses segment `not-found.tsx`** - unmatched slugs hit the root 404 boundary. Omit it so the page runs `notFound()` and triggers the localized 404.
+- **`usePathname()` returns locale-stripped path** (e.g. `/posts/hello-world`, not `/zh/posts/hello-world`). Use `useLocale()` + `router.push(pathname, { locale })` to switch locales.
+- **HeroUI v3 `Button` has no `href` prop** - use HeroUI `Link` (supports `href`/`target`/`rel`) or `next-intl/navigation` `Link` for internal routes.
+- **lucide-react v1.x removed brand icons** (e.g. `Github`) - use generic icons (`ExternalLink`, `Menu`, `Search`).
+- **Editing `content/*.yaml` requires a dev server restart** (not in module graph, no HMR).
+- **PowerShell + bracket paths:** `Remove-Item 'path/[lang]/dir'` treats `[lang]` as a wildcard - use `-LiteralPath`.
 
 ## OpenSpec workflow
 

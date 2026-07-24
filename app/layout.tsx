@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 /** Static site-wide metadata; the locale layout and pages add overrides. */
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.siteTitle} - ${siteConfig.siteDescription}`,
+    default: `${siteConfig.siteTitle}`,
     template: `%s | ${siteConfig.siteTitle}`,
   },
   description: siteConfig.siteDescription,
@@ -63,7 +63,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
         <SpeedInsights />

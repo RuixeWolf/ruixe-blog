@@ -25,7 +25,7 @@ export default function NotFound() {
       <p className="text-muted">{t('Description')}</p>
       <Link
         href="/"
-        className="rounded-medium bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
+        className="rounded-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 transition-colors"
       >
         {t('BackHome')}
       </Link>

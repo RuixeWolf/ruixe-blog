@@ -21,7 +21,7 @@
 
 ## 3. content 目录与占位内容
 
-- [x] 3.1 创建 `content/posts/hello-world.zh.mdx`：frontmatter（title、description、publishedAt: 2026-07-21、category: frontend、tags: [next-js, react]）+ 简短"Hello World"中文正文（含 h2、h3、段落、列表、图片占位、代码块、链接，用于验证 MDX 组件）
+- [x] 3.1 创建 `content/posts/hello-world.zh.mdx`：frontmatter（title、description、publishedTime: 2026-07-21、category: frontend、tags: [next-js, react]）+ 简短"Hello World"中文正文（含 h2、h3、段落、列表、图片占位、代码块、链接，用于验证 MDX 组件）
 - [x] 3.2 创建 `content/posts/hello-world.en.mdx`：与中文版同结构英文内容
 - [x] 3.3 创建 `content/taxonomy/categories.yaml`：含 `frontend`、`backend`、`devops` 三个分类，每个含 `name.zh` 与 `name.en`
 - [x] 3.4 创建 `content/taxonomy/tags.yaml`：含 `next-js`、`react`、`typescript` 三个标签，每个含 `name.zh` 与 `name.en`
@@ -29,7 +29,7 @@
 
 ## 4. lib 服务端工具
 
-- [x] 4.1 创建 `lib/posts.ts`（顶部 `'server-only'`）：定义 `PostMeta` 类型（slug、lang、title、description、publishedAt、updatedAt?、category、tags、content 原文）；实现 `getAllPosts(lang)`、`getPostBySlug(slug, lang)`、`getPostsByCategory(categoryId, lang)`、`getPostsByTag(tagId, lang)`；用 `gray-matter` 解析 frontmatter；按 `publishedAt` 降序排列
+- [x] 4.1 创建 `lib/posts.ts`（顶部 `'server-only'`）：定义 `PostMeta` 类型（slug、lang、title、description、publishedTime、modifiedTime?、category、tags、content 原文）；实现 `getAllPosts(lang)`、`getPostBySlug(slug, lang)`、`getPostsByCategory(categoryId, lang)`、`getPostsByTag(tagId, lang)`；用 `gray-matter` 解析 frontmatter；按 `publishedTime` 降序排列
 - [x] 4.2 创建 `lib/taxonomy.ts`（顶部 `'server-only'`）：用 `yaml` 包加载 `categories.yaml` 与 `tags.yaml`；实现 `getCategories(lang)`、`getCategory(id, lang)`、`getTags(lang)`、`getTag(id, lang)`；校验每个 ID 含所有受支持 locale 翻译，缺失抛错
 - [x] 4.3 创建 `lib/toc.ts`：实现 `extractToc(markdownContent)`，正则 `/^(#{2,3})\s+(.+)$/gm` 提取 h2/h3，用 `github-slugger` 生成与 `rehype-slug` 一致的锚点 id；返回 `TocItem[]`（`{ level, text, id }`）
 - [x] 4.4 创建 `lib/github.ts`（顶部 `'server-only'`）：实现 `getGitHubUser(username)`，`fetch('https://api.github.com/users/{username}', { next: { revalidate: 3600 }, headers: { 'User-Agent': 'ruixe-blog' } })`；失败时返回 `null` 供调用方降级

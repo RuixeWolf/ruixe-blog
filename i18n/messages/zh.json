@@ -17,19 +17,20 @@
     "Light": "浅色",
     "Dark": "深色",
     "System": "跟随系统",
+    "Mode": "主题模式",
     "Toggle": "切换主题"
   },
   "Sidebar": {
     "Profile": "个人名片",
     "Categories": "分类",
     "Tags": "标签",
-    "FollowOnGithub": "在 GitHub 上关注"
+    "ViewGithubProfile": "查看 GitHub 主页"
   },
   "PostList": {
     "Title": "全部文章",
     "ReadMore": "阅读更多",
-    "PublishedAt": "发布于 {date}",
-    "UpdatedAt": "更新于 {date}",
+    "PublishedTime": "发布于 {date}",
+    "ModifiedTime": "修改于 {date}",
     "Empty": "暂无文章",
     "EmptyHint": "稍后再来看看吧"
   },
@@ -39,9 +40,11 @@
     "NextPost": "下一篇",
     "NoPreviousPost": "没有更早的文章了",
     "NoNextPost": "没有更新的文章了",
-    "PublishedAt": "发布于 {date}",
-    "UpdatedAt": "更新于 {date}",
-    "MinRead": "{minutes} 分钟阅读"
+    "PublishedTime": "发布于 {date}",
+    "ModifiedTime": "修改于 {date}",
+    "MinRead": "{minutes} 分钟阅读",
+    "CopyCode": "复制代码",
+    "Copied": "已复制"
   },
   "Categories": {
     "Title": "分类",

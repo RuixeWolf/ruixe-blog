@@ -21,7 +21,7 @@ export async function NavLinks({ variant }: Readonly<{ variant: 'header' | 'draw
   const t = await getTranslations('Nav')
 
   const isHeader = variant === 'header'
-  const navClassName = isHeader ? 'flex items-center gap-4' : 'flex flex-col gap-1'
+  const navClassName = isHeader ? 'flex items-center gap-5' : 'flex flex-col gap-1'
   const linkClassName = isHeader
     ? 'text-sm text-muted transition-colors hover:text-foreground'
     : 'rounded-medium px-3 py-2 text-base text-muted transition-colors hover:bg-secondary hover:text-foreground'
@@ -41,8 +41,8 @@ export async function NavLinks({ variant }: Readonly<{ variant: 'header' | 'draw
         aria-label={t('Github')}
         className={`${linkClassName} flex items-center gap-1.5`}
       >
-        <ExternalLink className="size-4" aria-hidden="true" />
         {t('Github')}
+        <ExternalLink className="size-4" aria-hidden="true" />
       </Link>
     </nav>
   )

@@ -1,8 +1,9 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import { Button, Tooltip } from '@heroui/react'
-import { Moon, Sun } from 'lucide-react'
+import { Tabs } from '@heroui/react'
+import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 
 /** No-op subscribe for `useSyncExternalStore` (no external updates needed). */
@@ -22,41 +23,57 @@ function useMounted(): boolean {
   )
 }
 
+/** Supported theme modes. `system` follows the OS preference via next-themes. */
+type ThemeMode = 'system' | 'light' | 'dark'
+
 /**
- * Theme toggle button with sun/moon icons.
+ * Tab descriptors for the three theme modes.
  *
- * Uses `next-themes` `useTheme()` to read and switch the resolved theme.
- * Guards against hydration mismatch by rendering a static placeholder until
- * the component mounts on the client (SSR cannot know the user's theme).
+ * Order matches the visual layout: system (default), light, then dark. Icons
+ * come from lucide-react; visible labels are omitted in favor of icons plus
+ * screen-reader text resolved from the `Theme` i18n namespace.
+ */
+const THEME_MODES: ReadonlyArray<{
+  key: ThemeMode
+  Icon: LucideIcon
+  labelKey: 'System' | 'Light' | 'Dark'
+}> = [
+  { key: 'system', Icon: Monitor, labelKey: 'System' },
+  { key: 'light', Icon: Sun, labelKey: 'Light' },
+  { key: 'dark', Icon: Moon, labelKey: 'Dark' },
+]
+
+/**
+ * Three-way theme mode switcher (system / light / dark) built on HeroUI v3 Tabs.
+ *
+ * Replaces the previous single toggle button. The selected tab reflects the
+ * `next-themes` `theme` *preference* (not `resolvedTheme`), so picking "system"
+ * retains OS-following behavior. "system" is the default via `ThemeProvider`.
+ *
+ * Hydration: `next-themes` exposes `theme` only after mount, so we fall back to
+ * "system" until `useMounted()` flips - this matches the SSR markup (default
+ * theme) and avoids a hydration mismatch on the selected indicator.
  */
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const mounted = useMounted()
+  const t = useTranslations('Theme')
 
-  if (!mounted) {
-    return (
-      <Button isIconOnly variant="ghost" isDisabled aria-label="Toggle theme">
-        <Sun className="size-5" />
-      </Button>
-    )
-  }
-
-  const isDark = resolvedTheme === 'dark'
-  const label = isDark ? 'Switch to light theme' : 'Switch to dark theme'
+  const selectedKey = (mounted ? (theme ?? 'system') : 'system') as ThemeMode
 
   return (
-    <Tooltip delay={0}>
-      <Button
-        isIconOnly
-        variant="ghost"
-        onPress={() => setTheme(isDark ? 'light' : 'dark')}
-        aria-label={label}
-      >
-        {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-      </Button>
-      <Tooltip.Content>
-        <p>{label}</p>
-      </Tooltip.Content>
-    </Tooltip>
+    <Tabs selectedKey={selectedKey} onSelectionChange={(key) => setTheme(key as ThemeMode)}>
+      <Tabs.ListContainer>
+        <Tabs.List aria-label={t('Mode')} className="*:size-7 *:p-0">
+          {THEME_MODES.map(({ key, Icon, labelKey }) => (
+            <Tabs.Tab key={key} id={key}>
+              <Icon className="size-4.5" />
+              <span className="sr-only">{t(labelKey)}</span>
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </Tabs.ListContainer>
+    </Tabs>
   )
 }

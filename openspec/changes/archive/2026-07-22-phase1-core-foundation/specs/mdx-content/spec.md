@@ -11,12 +11,12 @@
 
 ### Requirement: Frontmatter Schema
 
-每篇文章的 MDX 文件 MUST 在顶部包含 YAML frontmatter，字段如下：`title`（字符串，必填）、`description`（字符串，必填）、`publishedAt`（`YYYY-MM-DD` 日期字符串，必填）、`updatedAt`（`YYYY-MM-DD` 日期字符串，可选）、`category`（分类 ID 字符串，必填，须引用 `categories.yaml` 中的 ID）、`tags`（标签 ID 字符串数组，必填，可为空数组，每项须引用 `tags.yaml` 中的 ID）。
+每篇文章的 MDX 文件 MUST 在顶部包含 YAML frontmatter，字段如下：`title`（字符串，必填）、`description`（字符串，必填）、`publishedTime`（`YYYY-MM-DD` 日期字符串，必填）、`modifiedTime`（`YYYY-MM-DD` 日期字符串，可选）、`category`（分类 ID 字符串，必填，须引用 `categories.yaml` 中的 ID）、`tags`（标签 ID 字符串数组，必填，可为空数组，每项须引用 `tags.yaml` 中的 ID）。
 
 #### Scenario: 完整 frontmatter
 
 - **WHEN** 解析 `hello-world.zh.mdx`
-- **THEN** frontmatter 含 `title`、`description`、`publishedAt: '2026-07-21'`、`category: 'frontend'`、`tags: ['next-js', 'react']`
+- **THEN** frontmatter 含 `title`、`description`、`publishedTime: '2026-07-21'`、`category: 'frontend'`、`tags: ['next-js', 'react']`
 
 #### Scenario: 缺失必填字段
 
@@ -75,12 +75,12 @@
 
 ### Requirement: 文章列表读取
 
-系统 SHALL 通过 `lib/posts.ts`（标记 `'server-only'`）使用 `gray-matter` 解析 `content/posts/` 下所有 MDX 文件的 frontmatter，返回文章元数据列表。列表 MUST 按 `publishedAt` 降序排列（最新在前）。读取函数 MUST 支持按 locale 过滤、按 category 过滤、按 tag 过滤。
+系统 SHALL 通过 `lib/posts.ts`（标记 `'server-only'`）使用 `gray-matter` 解析 `content/posts/` 下所有 MDX 文件的 frontmatter，返回文章元数据列表。列表 MUST 按 `publishedTime` 降序排列（最新在前）。读取函数 MUST 支持按 locale 过滤、按 category 过滤、按 tag 过滤。
 
 #### Scenario: 获取所有中文文章
 
 - **WHEN** 调用 `getAllPosts('zh')`
-- **THEN** 返回所有 `*.zh.mdx` 文件的元数据，按 `publishedAt` 降序排列
+- **THEN** 返回所有 `*.zh.mdx` 文件的元数据，按 `publishedTime` 降序排列
 
 #### Scenario: 按分类过滤文章
 

@@ -26,9 +26,11 @@ export async function ProfileCard() {
   return (
     <Card className="w-full">
       <Card.Header className="flex-col items-center gap-3">
-        <Avatar className="size-20" aria-label={`${login}'s avatar`}>
-          {avatarUrl ? <Avatar.Image alt={`${login}'s avatar`} src={avatarUrl} /> : null}
-          <Avatar.Fallback>{initials}</Avatar.Fallback>
+        <Avatar className="size-20 rounded-lg" aria-label={`${login}'s avatar`}>
+          {avatarUrl ? (
+            <Avatar.Image alt={`${login}'s avatar`} className="rounded-lg" src={avatarUrl} />
+          ) : null}
+          <Avatar.Fallback className="rounded-lg">{initials}</Avatar.Fallback>
         </Avatar>
         <div className="flex flex-col items-center gap-1 text-center">
           <Card.Title>{name}</Card.Title>
@@ -37,7 +39,7 @@ export async function ProfileCard() {
       </Card.Header>
       {bio ? (
         <Card.Content>
-          <p className="text-sm text-pretty text-muted">{bio}</p>
+          <p className="text-center text-sm text-pretty text-muted">{bio}</p>
         </Card.Content>
       ) : null}
       <Card.Footer>
@@ -45,11 +47,11 @@ export async function ProfileCard() {
           href={githubUrl}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={t('FollowOnGithub')}
-          className="flex w-full items-center justify-center gap-1.5 rounded-medium bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+          aria-label={t('ViewGithubProfile')}
+          className="rounded-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 flex w-full items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors"
         >
+          {t('ViewGithubProfile')}
           <ExternalLink className="size-4" aria-hidden="true" />
-          {t('FollowOnGithub')}
         </Link>
       </Card.Footer>
     </Card>

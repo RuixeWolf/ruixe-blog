@@ -1,5 +1,6 @@
 import type { MDXComponents } from 'mdx/types'
 import Image, { type ImageProps } from 'next/image'
+import { CodeBlock } from '@/components/posts/CodeBlock'
 
 /**
  * Determines whether a URL points to an external resource.
@@ -61,7 +62,11 @@ function MDXImage({ alt, src, ...rest }: ImageProps) {
  *
  * - `img` -> `next/image` for automatic optimization and responsive sizing
  * - `a` -> external links open in a new tab with `rel="noopener noreferrer"`
- * - `pre`/`code` -> Tailwind-styled containers (syntax highlighting in phase 2)
+ * - `pre` -> `CodeBlock` client component (theme-aware `bg-surface-tertiary`
+ *   background + copy-to-clipboard button)
+ * - `code` -> inline code highlighted with `bg-muted`; block code (inside `pre`,
+ *   detected via `language-xxx` className) is transparent so the `CodeBlock`
+ *   background shows through
  *
  * All remaining HTML elements use their default tags; prose typography is
  * applied at the page level via the `prose` class.
@@ -75,17 +80,25 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     img: MDXImage,
     a: Anchor,
     pre: ({ children, ...rest }: React.HTMLAttributes<HTMLPreElement>) => (
-      <pre
-        className="my-4 overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm text-zinc-100 dark:bg-zinc-950"
-        {...rest}
-      >
-        {children}
-      </pre>
+      <CodeBlock {...rest}>{children}</CodeBlock>
     ),
-    code: ({ children, ...rest }: React.HTMLAttributes<HTMLElement>) => (
-      <code className="rounded bg-muted px-1.5 py-0.5 text-sm" {...rest}>
-        {children}
-      </code>
-    ),
+    code: ({ className, children, ...rest }: React.HTMLAttributes<HTMLElement>) => {
+      const isBlockCode = typeof className === 'string' && className.startsWith('language-')
+      // Block <code> lives inside <pre>; preserve the language-xxx class for
+      // future syntax highlighting and let the CodeBlock background show through.
+      if (isBlockCode) {
+        return (
+          <code className={className} {...rest}>
+            {children}
+          </code>
+        )
+      }
+      // Inline <code>: highlighted background for inline code references.
+      return (
+        <code className="rounded bg-muted px-1.5 py-0.5 text-sm" {...rest}>
+          {children}
+        </code>
+      )
+    },
   }
 }

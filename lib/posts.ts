@@ -7,6 +7,9 @@ import { routing, type Locale } from '../i18n/routing'
 /** Absolute path to the directory containing MDX post files. */
 const postsDirectory = path.join(process.cwd(), 'content', 'posts')
 
+/** Per-locale cache of parsed post metadata, used only in production builds. */
+const postsCache = new Map<Locale, PostMeta[]>()
+
 /** Metadata for a single blog post, parsed from MDX frontmatter. */
 export interface PostMeta {
   /** URL-safe identifier shared across all language variants of the same post. */
@@ -18,9 +21,9 @@ export interface PostMeta {
   /** Short description from frontmatter, used in listings and SEO meta. */
   description: string
   /** Publication date in `YYYY-MM-DD` format. */
-  publishedAt: string
+  publishedTime: string
   /** Optional last-updated date in `YYYY-MM-DD` format. */
-  updatedAt?: string
+  modifiedTime?: string
   /** Category ID referencing `categories.yaml`. */
   category: string
   /** Tag IDs referencing `tags.yaml`. */
@@ -30,7 +33,7 @@ export interface PostMeta {
 }
 
 /** Frontmatter fields that must be present on every post. */
-const REQUIRED_FIELDS = ['title', 'description', 'publishedAt', 'category', 'tags'] as const
+const REQUIRED_FIELDS = ['title', 'description', 'publishedTime', 'category', 'tags'] as const
 
 /**
  * Validates that a frontmatter object contains all required fields with correct types.
@@ -79,8 +82,8 @@ export function getPostBySlug(slug: string, lang: Locale): PostMeta | null {
     lang,
     title: String(data.title),
     description: String(data.description),
-    publishedAt: String(data.publishedAt),
-    updatedAt: data.updatedAt ? String(data.updatedAt) : undefined,
+    publishedTime: String(data.publishedTime),
+    modifiedTime: data.modifiedTime ? String(data.modifiedTime) : undefined,
     category: String(data.category),
     tags: data.tags as string[],
     content,
@@ -90,28 +93,67 @@ export function getPostBySlug(slug: string, lang: Locale): PostMeta | null {
 /**
  * Retrieves all posts for the given locale, sorted newest-first.
  *
+ * In production, the parsed list is cached per locale in a module-level `Map`
+ * so the filesystem is scanned only once per locale during SSG builds; callers
+ * receive the cached array reference and MUST NOT mutate it. In development,
+ * caching is skipped so newly added or edited posts are visible immediately.
+ *
  * @param lang - Target locale code.
- * @returns Array of post metadata sorted by `publishedAt` descending.
+ * @returns Array of post metadata sorted by `publishedTime` descending. In
+ *   production this is a shared cached reference - do not mutate.
  */
 export function getAllPosts(lang: Locale): PostMeta[] {
-  if (!fs.existsSync(postsDirectory)) {
-    return []
-  }
-
-  const files = fs.readdirSync(postsDirectory)
-  const posts: PostMeta[] = []
-
-  for (const file of files) {
-    if (!file.endsWith(`.${lang}.mdx`)) continue
-
-    const slug = file.replace(`.${lang}.mdx`, '')
-    const post = getPostBySlug(slug, lang)
-    if (post) {
-      posts.push(post)
+  if (process.env.NODE_ENV === 'production') {
+    const cached = postsCache.get(lang)
+    if (cached) {
+      return cached
     }
   }
 
-  return posts.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+  const posts: PostMeta[] = []
+
+  if (fs.existsSync(postsDirectory)) {
+    const files = fs.readdirSync(postsDirectory)
+
+    for (const file of files) {
+      if (!file.endsWith(`.${lang}.mdx`)) continue
+
+      const slug = file.replace(`.${lang}.mdx`, '')
+      const post = getPostBySlug(slug, lang)
+      if (post) {
+        posts.push(post)
+      }
+    }
+  }
+
+  const sorted = posts.toSorted((a, b) => b.publishedTime.localeCompare(a.publishedTime))
+
+  if (process.env.NODE_ENV === 'production') {
+    postsCache.set(lang, sorted)
+  }
+
+  return sorted
+}
+
+/**
+ * Aggregates post counts per category for the given locale.
+ *
+ * Iterates over `getAllPosts(lang)` and counts posts grouped by their
+ * `category` field. Categories with no posts are omitted from the result;
+ * callers should fall back to `0` via `counts[categoryId] ?? 0`.
+ *
+ * @param lang - Target locale code.
+ * @returns Map of category ID to post count. Categories with zero posts are
+ *   absent - use `?? 0` when reading.
+ */
+export function getCategoryPostCounts(lang: Locale): Record<string, number> {
+  const counts: Record<string, number> = {}
+
+  for (const post of getAllPosts(lang)) {
+    counts[post.category] = (counts[post.category] ?? 0) + 1
+  }
+
+  return counts
 }
 
 /**
@@ -119,7 +161,7 @@ export function getAllPosts(lang: Locale): PostMeta[] {
  *
  * @param categoryId - Category ID referencing `categories.yaml`.
  * @param lang - Target locale code.
- * @returns Matching posts sorted by `publishedAt` descending.
+ * @returns Matching posts sorted by `publishedTime` descending.
  */
 export function getPostsByCategory(categoryId: string, lang: Locale): PostMeta[] {
   return getAllPosts(lang).filter((post) => post.category === categoryId)
@@ -130,7 +172,7 @@ export function getPostsByCategory(categoryId: string, lang: Locale): PostMeta[]
  *
  * @param tagId - Tag ID referencing `tags.yaml`.
  * @param lang - Target locale code.
- * @returns Matching posts sorted by `publishedAt` descending.
+ * @returns Matching posts sorted by `publishedTime` descending.
  */
 export function getPostsByTag(tagId: string, lang: Locale): PostMeta[] {
   return getAllPosts(lang).filter((post) => post.tags.includes(tagId))

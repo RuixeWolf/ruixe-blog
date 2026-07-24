@@ -9,6 +9,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
+import { siteConfig } from '@/lib/site-config'
 
 /** Pre-render both supported locales at build time. */
 export function generateStaticParams() {
@@ -67,10 +68,11 @@ export default async function LocaleLayout({
       <div className="flex min-h-screen flex-col">
         <Header locale={locale} />
         <MobileHeader
+          siteTitle={siteConfig.siteTitle}
           navLinks={<NavLinks variant="drawer" />}
           sidebar={<SidebarContent locale={locale} />}
         />
-        <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-0 lg:gap-8 lg:px-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-4 lg:gap-8 lg:px-6">
           <Sidebar locale={locale} />
           <main className="min-w-0 flex-1 py-6 lg:py-8">{children}</main>
         </div>

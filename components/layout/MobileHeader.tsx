@@ -6,7 +6,6 @@ import { Menu, Search, Settings } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Link } from '@/i18n/navigation'
-import { siteConfig } from '@/lib/site-config'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { MobileDrawer } from './MobileDrawer'
 
@@ -18,24 +17,26 @@ import { MobileDrawer } from './MobileDrawer'
  * content passed in via the `navLinks` and `sidebar` props. The settings button
  * opens a `Popover` with the language switcher and theme toggle.
  *
- * Both `navLinks` and `sidebar` are RSC payloads - server-rendered React nodes
- * serialized across the server/client boundary so server-only modules
- * (e.g. `siteConfig` env access, `lib/taxonomy` fs reads) stay out of this
+ * `navLinks`, `sidebar`, and `siteTitle` are RSC payloads - server-rendered
+ * values serialized across the server/client boundary so server-only modules
+ * (e.g. `lib/site-config` fs reads, `lib/taxonomy` fs reads) stay out of this
  * client component.
  *
+ * @param siteTitle - Site title rendered in the header and forwarded to the drawer.
  * @param navLinks - Server-rendered primary navigation (`NavLinks variant="drawer"`).
  * @param sidebar - Server-rendered sidebar content (profile card, categories, tags).
  */
 export function MobileHeader({
+  siteTitle,
   navLinks,
   sidebar,
-}: Readonly<{ navLinks: React.ReactNode; sidebar: React.ReactNode }>) {
+}: Readonly<{ siteTitle: string; navLinks: React.ReactNode; sidebar: React.ReactNode }>) {
   const tHeader = useTranslations('Header')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-default px-4 lg:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-default bg-surface/70 px-4 backdrop-blur-md lg:hidden">
         <Button
           isIconOnly
           variant="ghost"
@@ -46,7 +47,7 @@ export function MobileHeader({
         </Button>
 
         <Link href="/" className="text-base font-bold text-foreground">
-          {siteConfig.siteTitle}
+          {siteTitle}
         </Link>
 
         <div className="flex items-center gap-1">
@@ -72,7 +73,7 @@ export function MobileHeader({
         </div>
       </header>
 
-      <MobileDrawer isOpen={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      <MobileDrawer siteTitle={siteTitle} isOpen={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         {/*
           Click-interceptor: closes the drawer whenever any child link is clicked.
           Relies on DOM event capture - a single `onClickCapture` on the wrapper

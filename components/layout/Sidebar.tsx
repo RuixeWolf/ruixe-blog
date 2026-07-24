@@ -13,7 +13,7 @@ import { SidebarContent } from './SidebarContent'
 export function Sidebar({ locale }: Readonly<{ locale: Locale }>) {
   return (
     <aside className="hidden lg:block lg:w-64 lg:shrink-0">
-      <div className="sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto">
+      <div className="sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto lg:pt-4">
         <SidebarContent locale={locale} />
       </div>
     </aside>
