@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { Button, Popover } from '@heroui/react'
-import { Menu, Search, Settings } from 'lucide-react'
+import { Menu, Settings } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { SearchTrigger } from '@/components/search/SearchTrigger'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Link } from '@/i18n/navigation'
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -51,9 +52,7 @@ export function MobileHeader({
         </Link>
 
         <div className="flex items-center gap-1">
-          <Button isIconOnly variant="ghost" aria-label={tHeader('Search')} isDisabled>
-            <Search className="size-5" />
-          </Button>
+          <SearchTrigger variant="mobile" />
           <Popover>
             <Button isIconOnly variant="ghost" aria-label={tHeader('Settings')}>
               <Settings className="size-5" />

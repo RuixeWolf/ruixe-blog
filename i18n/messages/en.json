@@ -7,11 +7,19 @@
   "Header": {
     "Search": "Search",
     "SearchPlaceholder": "Search posts...",
-    "SearchComingSoon": "Search is coming soon",
     "Language": "Language",
     "Theme": "Theme",
     "Settings": "Settings",
     "Menu": "Menu"
+  },
+  "Search": {
+    "DialogTitle": "Search Posts",
+    "Trigger": "Search",
+    "Placeholder": "Search post titles, content, categories, or tags...",
+    "EmptyState": "No matching posts found",
+    "EmptyStateHint": "Try different keywords",
+    "KeyboardHint": "Press Enter to open, ESC to close",
+    "ResultsCount": "Found {count} results"
   },
   "Theme": {
     "Light": "Light",

@@ -20,6 +20,7 @@
     "@types/mdx": "^2.0.14",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "fuse.js": "^7.5.0",
     "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.25.0",
