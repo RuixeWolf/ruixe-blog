@@ -1,14 +1,6 @@
-# Site Config Specification
+# Site Config Specification (Delta)
 
-## Purpose
-
-定义 Ruixe Blog 站点配置（站点标识 + Giscus 评论配置）的来源与加载方式。配置以 YAML 文件（`content/site.yaml`）为单一来源，随代码提交至 Git，避免环境变量在开发机与部署环境间漂移。`lib/site-config.ts` 作为 Server-only 模块提供统一访问入口 `siteConfig`，客户端组件通过 prop 接收配置值，不直接依赖配置模块。
-
-**站点标识字段**：GitHub 用户名、站点标题、站点描述。
-
-**Giscus 评论配置字段**：仓库与分类信息、映射策略、reaction 开关、评论框位置等，驱动 `components/posts/Comments.tsx` 的 Giscus 渲染。
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: 站点配置文件
 
@@ -102,22 +94,3 @@ Giscus 评论配置字段（新增）：
 
 - **WHEN** `process.env.NEXT_PUBLIC_SITE_URL` 未设置
 - **THEN** `siteConfig.siteUrl` 回退至硬编码值 `https://ruixe-blog.vercel.app`
-
-### Requirement: 客户端组件通过 prop 接收站点标题
-
-系统 SHALL 在客户端组件需要站点标题时，由 Server Component（`app/[lang]/layout.tsx`）读取 `siteConfig.siteTitle` 并通过 prop 传递，而非由客户端组件直接 import `siteConfig`。`MobileHeader` MUST 接收 `siteTitle` prop 并将其透传至 `MobileDrawer`。`MobileDrawer` MUST 接收 `siteTitle` prop 并在 Drawer 标题处渲染。`MobileHeader` 与 `MobileDrawer` MUST NOT 直接 import `lib/site-config`。
-
-#### Scenario: MobileHeader 接收 siteTitle prop
-
-- **WHEN** `app/[lang]/layout.tsx` 渲染 `<MobileHeader>`
-- **THEN** 传入 `siteTitle={siteConfig.siteTitle}` prop，`MobileHeader` 在站点标题位置渲染该值
-
-#### Scenario: MobileDrawer 接收透传的 siteTitle prop
-
-- **WHEN** `MobileHeader` 渲染 `<MobileDrawer>`
-- **THEN** 透传 `siteTitle` prop，`MobileDrawer` 在 Drawer 标题位置渲染该值
-
-#### Scenario: 客户端组件不直接依赖配置模块
-
-- **WHEN** 构建客户端 bundle
-- **THEN** `MobileHeader` 与 `MobileDrawer` 的依赖图中不包含 `lib/site-config`（由 `server-only` 边界保证）

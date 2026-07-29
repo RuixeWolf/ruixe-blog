@@ -54,6 +54,10 @@
     "CopyCode": "复制代码",
     "Copied": "已复制"
   },
+  "Comment": {
+    "Title": "评论",
+    "Loading": "加载评论中..."
+  },
   "Categories": {
     "Title": "分类",
     "PostsIn": "分类：{name}",

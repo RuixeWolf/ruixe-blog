@@ -5,8 +5,10 @@ import { getFormatter, getTranslations } from 'next-intl/server'
 import { Link as NavLink } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import type { PostMeta } from '@/lib/posts'
+import { siteConfig } from '@/lib/site-config'
 import { getCategory, getTag } from '@/lib/taxonomy'
 import type { TocItem } from '@/lib/toc'
+import { Comments } from './Comments'
 import { TableOfContents } from './TableOfContents'
 
 /**
@@ -133,6 +135,8 @@ export async function PostLayout({
           <TableOfContents items={toc} />
         </div>
       </div>
+
+      <Comments config={siteConfig.giscus} locale={locale} />
     </div>
   )
 }
