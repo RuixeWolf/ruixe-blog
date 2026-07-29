@@ -54,6 +54,10 @@
     "CopyCode": "Copy code",
     "Copied": "Copied"
   },
+  "Comment": {
+    "Title": "Comments",
+    "Loading": "Loading comments..."
+  },
   "Categories": {
     "Title": "Categories",
     "PostsIn": "Category: {name}",
