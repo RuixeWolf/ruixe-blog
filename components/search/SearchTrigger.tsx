@@ -44,17 +44,17 @@ export function SearchTrigger({ variant }: Readonly<SearchTriggerProps>) {
         variant={isDesktop ? 'outline' : 'ghost'}
         aria-label={label}
         onPress={() => setIsOpen(true)}
-        className={isDesktop ? undefined : 'size-9'}
+        className={isDesktop ? 'w-50 items-center' : 'size-9'}
       >
         <Search className="size-5" />
         {isDesktop && mounted ? (
-          <>
-            <span className="mr-10">{label}</span>
-            <Kbd className="hidden sm:inline-flex">
+          <div className="flex w-full items-center justify-between">
+            <span className="ml-1.5">{label}</span>
+            <Kbd className="ml-auto hidden sm:inline-flex">
               <Kbd.Abbr keyValue={isMac ? 'command' : 'ctrl'} />
               <Kbd.Content>K</Kbd.Content>
             </Kbd>
-          </>
+          </div>
         ) : null}
       </Button>
     </div>

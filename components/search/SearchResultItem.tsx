@@ -10,7 +10,7 @@ import type { SearchIndexItem } from '@/lib/search'
 export interface SearchResultItemProps {
   /** Pre-localized post data to render (no taxonomy lookups on the client). */
   item: SearchIndexItem
-  /** Whether this item is the keyboard-active option (for highlight + ARIA). */
+  /** Whether this item is the keyboard-active option (drives the visual highlight). */
   isActive: boolean
   /** Click handler; the parent closes the dialog and navigates. */
   onClick: () => void
@@ -44,7 +44,6 @@ export function SearchResultItem({ item, isActive, onClick }: Readonly<SearchRes
       className={`flex w-full flex-col gap-1.5 px-4 py-2.5 text-left ${isActive ? 'border-l-2 border-l-accent' : 'border-l-2 border-l-transparent'}`}
       onClick={onClick}
       type="button"
-      aria-pressed={isActive}
     >
       <span className="line-clamp-1 font-semibold text-foreground">{item.title}</span>
       {item.description ? (

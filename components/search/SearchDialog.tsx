@@ -252,12 +252,6 @@ export function SearchDialog({ searchIndex, isOpen, onOpenChange }: Readonly<Sea
                         ? 'cursor-pointer border-b border-default bg-default/50 last:border-b-0'
                         : 'cursor-pointer border-b border-default last:border-b-0'
                     }
-                    onClick={() => navigateToPost(result.item)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        navigateToPost(result.item)
-                      }
-                    }}
                     onMouseEnter={() => setActiveIndex(index)}
                   >
                     <SearchResultItem
