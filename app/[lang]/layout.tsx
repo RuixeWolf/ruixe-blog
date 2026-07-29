@@ -7,8 +7,10 @@ import { MobileHeader } from '@/components/layout/MobileHeader'
 import { NavLinks } from '@/components/layout/NavLinks'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
+import { SearchProvider } from '@/components/search/SearchProvider'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
+import { buildSearchIndex } from '@/lib/search'
 import { siteConfig } from '@/lib/site-config'
 
 /** Pre-render both supported locales at build time. */
@@ -62,21 +64,24 @@ export default async function LocaleLayout({
   const locale = lang as Locale
   setRequestLocale(locale)
   const messages = await getMessages()
+  const searchIndex = buildSearchIndex(locale)
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <div className="flex min-h-screen flex-col">
-        <Header locale={locale} />
-        <MobileHeader
-          siteTitle={siteConfig.siteTitle}
-          navLinks={<NavLinks variant="drawer" />}
-          sidebar={<SidebarContent locale={locale} />}
-        />
-        <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-4 lg:gap-8 lg:px-6">
-          <Sidebar locale={locale} />
-          <main className="min-w-0 flex-1 py-6 lg:py-8">{children}</main>
+      <SearchProvider searchIndex={searchIndex}>
+        <div className="flex min-h-screen flex-col">
+          <Header locale={locale} />
+          <MobileHeader
+            siteTitle={siteConfig.siteTitle}
+            navLinks={<NavLinks variant="drawer" />}
+            sidebar={<SidebarContent locale={locale} />}
+          />
+          <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-4 lg:gap-8 lg:px-6">
+            <Sidebar locale={locale} />
+            <main className="min-w-0 flex-1 py-6 lg:py-8">{children}</main>
+          </div>
         </div>
-      </div>
+      </SearchProvider>
     </NextIntlClientProvider>
   )
 }

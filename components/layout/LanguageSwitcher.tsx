@@ -72,7 +72,12 @@ export function LanguageSwitcher({
   if (variant === 'dropdown') {
     return (
       <Dropdown>
-        <Button isIconOnly variant="ghost" aria-label={tHeader('Language')} isDisabled={isPending}>
+        <Button
+          isIconOnly
+          variant="tertiary"
+          aria-label={tHeader('Language')}
+          isDisabled={isPending}
+        >
           <Globe className="size-5" />
         </Button>
         <Dropdown.Popover>

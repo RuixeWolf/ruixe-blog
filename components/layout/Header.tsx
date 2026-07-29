@@ -1,7 +1,5 @@
 import 'server-only'
-import { Button } from '@heroui/react'
-import { Search } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { SearchTrigger } from '@/components/search/SearchTrigger'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Link as NavLink } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
@@ -17,14 +15,14 @@ import { NavLinks } from './NavLinks'
  * `app/[lang]/layout.tsx`.
  *
  * Left: site title + primary navigation via `NavLinks` (Home, About, GitHub).
- * Right: search button (placeholder for phase 2), language switcher, theme toggle.
+ * Right: search trigger (opens the global `SearchDialog` via `⌘K`/`Ctrl+K`),
+ * language switcher, theme toggle.
  *
  * @param locale - Active locale code (reserved for future search routing).
  */
 export async function Header({ locale }: Readonly<{ locale: Locale }>) {
   // `locale` is reserved for future search routing; referenced to keep the prop stable.
   void locale
-  const tHeader = await getTranslations('Header')
 
   return (
     <header className="sticky top-0 z-40 hidden border-b border-default bg-surface/70 backdrop-blur-md lg:block">
@@ -37,9 +35,7 @@ export async function Header({ locale }: Readonly<{ locale: Locale }>) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button isIconOnly variant="ghost" aria-label={tHeader('Search')} isDisabled>
-            <Search className="size-5" />
-          </Button>
+          <SearchTrigger variant="desktop" />
           <LanguageSwitcher variant="dropdown" />
           <ThemeToggle />
         </div>

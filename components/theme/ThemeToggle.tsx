@@ -1,27 +1,10 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
 import { Tabs } from '@heroui/react'
 import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
-
-/** No-op subscribe for `useSyncExternalStore` (no external updates needed). */
-const emptySubscribe = () => () => {}
-
-/**
- * Returns `false` during SSR and initial hydration, `true` after client mount.
- *
- * Uses `useSyncExternalStore` instead of `useEffect` + `setState` to avoid
- * cascading renders flagged by the React Compiler lint rule.
- */
-function useMounted(): boolean {
-  return useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  )
-}
+import { useMounted } from '@/lib/hooks/use-mounted'
 
 /** Supported theme modes. `system` follows the OS preference via next-themes. */
 type ThemeMode = 'system' | 'light' | 'dark'

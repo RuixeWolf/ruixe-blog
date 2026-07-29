@@ -7,11 +7,19 @@
   "Header": {
     "Search": "搜索",
     "SearchPlaceholder": "搜索文章...",
-    "SearchComingSoon": "搜索功能即将上线",
     "Language": "语言",
     "Theme": "主题",
     "Settings": "设置",
     "Menu": "菜单"
+  },
+  "Search": {
+    "DialogTitle": "搜索文章",
+    "Trigger": "搜索",
+    "Placeholder": "搜索文章标题、正文、分类或标签...",
+    "EmptyState": "未找到相关文章",
+    "EmptyStateHint": "试试其他关键词",
+    "KeyboardHint": "按 Enter 跳转，ESC 关闭",
+    "ResultsCount": "找到 {count} 条结果"
   },
   "Theme": {
     "Light": "浅色",
