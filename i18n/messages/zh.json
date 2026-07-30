@@ -15,7 +15,7 @@
   "Search": {
     "DialogTitle": "搜索文章",
     "Trigger": "搜索",
-    "Placeholder": "搜索文章标题、正文、分类或标签...",
+    "Placeholder": "输入关键词...",
     "EmptyState": "未找到相关文章",
     "EmptyStateHint": "试试其他关键词",
     "KeyboardHint": "按 Enter 跳转，ESC 关闭",

@@ -38,10 +38,16 @@ export interface SearchDialogProps {
  * the dialog (design decision 10). Modal's own ESC handler is disabled
  * (`isKeyboardDismissDisabled`) so the custom ESC gradient takes over.
  *
- * The input is a HeroUI `SearchField` and is focused when the dialog opens
- * (manual focus in a `useEffect` since Modal's focus trap may not honor
- * `autoFocus` reliably - see design risk 4). Navigation uses the locale-aware
- * `useRouter` from `next-intl/navigation`.
+ * The dialog uses a `Modal.Header` (title + `Modal.CloseTrigger`) above a
+ * `Modal.Body` with a `fullWidth` HeroUI `SearchField`. The Header provides an
+ * always-visible close button - critical on mobile where `size="cover"` leaves
+ * almost no backdrop tap area. The SearchField Group has a full `border` (not
+ * just `border-b`) because `--overlay` and `--field-background` share the same
+ * value in the theme, so without a border the field is indistinguishable from
+ * the dialog background. The input is focused when the dialog opens (manual
+ * focus in a `useEffect` since Modal's focus trap may not honor `Focus`
+ * reliably - see design risk 4). Navigation uses the locale-aware `useRouter`
+ * from `next-intl/navigation`.
  *
  * React Compiler notes: `activeIndex` is clamped via a derived value (not a
  * setState-in-effect); query/active state is reset via the "store previous
@@ -203,17 +209,24 @@ export function SearchDialog({ searchIndex, isOpen, onOpenChange }: Readonly<Sea
       <Modal.Container placement="top" scroll="inside" size="cover" className="sm:max-w-2xl">
         <Modal.Dialog
           aria-label={t('DialogTitle')}
-          className="sm:h-auto sm:max-h-[85vh] sm:min-h-0"
+          className="rounded-lg p-0 sm:h-auto sm:max-h-[85vh] sm:min-h-0"
         >
-          <Modal.Body className="gap-0 p-1">
+          <Modal.Header className="flex-row items-center border-b border-default px-4 py-3">
+            <Modal.Heading className="text-base font-medium text-foreground">
+              {t('DialogTitle')}
+            </Modal.Heading>
+          </Modal.Header>
+          <Modal.CloseTrigger />
+          <Modal.Body className="m-3 gap-0">
             <SearchField
               aria-label={t('DialogTitle')}
               value={query}
               onChange={setQuery}
               onClear={() => setQuery('')}
               autoFocus
+              fullWidth
             >
-              <SearchField.Group className="border-b border-default">
+              <SearchField.Group className="border border-default">
                 <SearchField.SearchIcon />
                 <SearchField.Input
                   ref={inputRef}
@@ -247,11 +260,7 @@ export function SearchDialog({ searchIndex, isOpen, onOpenChange }: Readonly<Sea
                     role="option"
                     aria-selected={index === safeActiveIndex}
                     data-index={index}
-                    className={
-                      index === safeActiveIndex
-                        ? 'cursor-pointer border-b border-default bg-default/50 last:border-b-0'
-                        : 'cursor-pointer border-b border-default last:border-b-0'
-                    }
+                    className="cursor-pointer border-b border-default last:border-b-0"
                     onMouseEnter={() => setActiveIndex(index)}
                   >
                     <SearchResultItem
