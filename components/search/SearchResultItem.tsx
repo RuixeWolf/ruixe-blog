@@ -41,7 +41,7 @@ export function SearchResultItem({ item, isActive, onClick }: Readonly<SearchRes
 
   return (
     <button
-      className={`flex w-full flex-col gap-1.5 px-4 py-2.5 text-left ${isActive ? 'border-l-2 border-l-accent' : 'border-l-2 border-l-transparent'}`}
+      className={`flex w-full cursor-pointer flex-col gap-1.5 rounded-lg px-4 py-2.5 text-left ${isActive ? 'border-l-2 border-l-accent bg-default/50' : 'border-l-2 border-l-transparent'}`}
       onClick={onClick}
       type="button"
     >

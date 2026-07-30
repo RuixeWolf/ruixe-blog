@@ -15,7 +15,7 @@
   "Search": {
     "DialogTitle": "Search Posts",
     "Trigger": "Search",
-    "Placeholder": "Search post titles, content, categories, or tags...",
+    "Placeholder": "Search...",
     "EmptyState": "No matching posts found",
     "EmptyStateHint": "Try different keywords",
     "KeyboardHint": "Press Enter to open, ESC to close",
