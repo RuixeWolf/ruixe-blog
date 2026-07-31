@@ -42,6 +42,21 @@ function Anchor({
  * Forces `width`/`height` to `100%`/`auto` so images scale responsively within
  * the prose container without requiring explicit dimensions in every MDX file.
  * Remote images must be whitelisted via `images.remotePatterns` in `next.config.ts`.
+ *
+ * `sizes` reflects the post body container width so the browser selects an
+ * appropriately sized srcset entry instead of the largest viewport-wide one:
+ * - Mobile (<1024px): Sidebar hidden + TOC collapsed into an Accordion, so the
+ *   body container is roughly full viewport width -> `100vw`.
+ * - Desktop (≥1024px): body container width ≈ `max-w-7xl` (1280px) - `px-6`
+ *   (48px) - Sidebar (256px) - `gap-8` (32px) - TOC (224px) - `gap-8` (32px)
+ *   ≈ 688px, rounded to 690px. With `deviceSizes` [640, 750, 828, ...] the
+ *   browser picks the 640px or 750px entry instead of 3840px, cutting Vercel
+ *   image optimization quota usage.
+ *
+ * Decision 3 (accepted trade-off): `width={0} height={0}` + the fluid style
+ * keeps the component usable for PicGo/Typora images of unknown dimensions;
+ * this causes some CLS on load, which is preferred over build-time dimension
+ * fetching (see `add-media-hosting` design).
  */
 function MDXImage({ alt, src, ...rest }: ImageProps) {
   return (
@@ -50,7 +65,7 @@ function MDXImage({ alt, src, ...rest }: ImageProps) {
       src={src}
       width={0}
       height={0}
-      sizes="100vw"
+      sizes="(max-width: 1023px) 100vw, 690px"
       style={{ width: '100%', height: 'auto' }}
       {...rest}
     />
