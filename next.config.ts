@@ -66,8 +66,24 @@ const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   reactCompiler: true,
   images: {
-    // Placeholder image service (phase 2 replaces with Cloudflare R2)
-    remotePatterns: [{ protocol: 'https', hostname: 'placehold.co' }],
+    // Cloudflare R2 media + placehold.co for dev placeholders
+    remotePatterns: [
+      { protocol: 'https', hostname: 'blog-assets.ruixe.net' },
+      { protocol: 'https', hostname: 'placehold.co' },
+    ],
+    // Cap generated srcset widths. The post body container is ~690px on
+    // desktop (see `add-media-hosting` design Decision 2) and full viewport
+    // width on mobile (<1024px). Capping `deviceSizes` at 828 ensures
+    // `next/image` only generates 640/750/828 entries, avoiding 1080-3840
+    // entries that the browser would never select but would inflate the `src`
+    // fallback and contradict the `media-hosting` spec's srcset-width
+    // constraint (see design Decision 5).
+    deviceSizes: [640, 750, 828],
+    // Allow next/image to fetch from private/local IPs. A local network proxy
+    // (e.g. Clash) routes external domains through fake private IPs
+    // (198.18.x.x / fdfe:dcba:...), which Next.js 16's SSRF protection would
+    // otherwise reject with 400 `upstream image ... resolved to private ip`.
+    dangerouslyAllowLocalIP: true,
   },
   async redirects() {
     return readRedirectRules()
