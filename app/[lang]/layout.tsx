@@ -36,6 +36,12 @@ export async function generateMetadata({
     },
     openGraph: {
       locale,
+      images: [
+        {
+          url: '/opengraph-image.png',
+          alt: 'Ruixe Blog',
+        },
+      ],
     },
   }
 }

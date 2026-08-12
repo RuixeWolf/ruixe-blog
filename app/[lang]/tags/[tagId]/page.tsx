@@ -6,6 +6,8 @@ import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getPostsByTag } from '@/lib/posts'
+import { buildBreadcrumbJsonLd, buildPageUrl, buildTagUrl } from '@/lib/seo'
+import { siteConfig } from '@/lib/site-config'
 import { getTag, getTags } from '@/lib/taxonomy'
 
 /** Pre-render every locale × tag combination at build time. */
@@ -27,8 +29,14 @@ export async function generateMetadata({
   }
 
   try {
-    const tag = getTag(tagId, lang as Locale)
-    return { title: tag.name }
+    const locale = lang as Locale
+    const tag = getTag(tagId, locale)
+    return {
+      title: tag.name,
+      alternates: {
+        canonical: buildTagUrl(tagId, locale),
+      },
+    }
   } catch {
     return {}
   }
@@ -61,10 +69,21 @@ export default async function TagPage({
   const posts = getPostsByTag(tagId, locale)
   const t = await getTranslations('Tags')
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: siteConfig.siteTitle, url: buildPageUrl('', locale) },
+    { name: tag.name, url: buildTagUrl(tagId, locale) },
+  ])
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-foreground">{t('PostsIn', { name: tag.name })}</h1>
-      <PostList posts={posts} locale={locale} />
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <div className="flex flex-col gap-6">
+        <h1 className="text-2xl font-bold text-foreground">{t('PostsIn', { name: tag.name })}</h1>
+        <PostList posts={posts} locale={locale} />
+      </div>
+    </>
   )
 }

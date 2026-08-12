@@ -6,6 +6,8 @@ import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getPostsByCategory } from '@/lib/posts'
+import { buildBreadcrumbJsonLd, buildCategoryUrl, buildPageUrl } from '@/lib/seo'
+import { siteConfig } from '@/lib/site-config'
 import { getCategories, getCategory } from '@/lib/taxonomy'
 
 /** Pre-render every locale × category combination at build time. */
@@ -29,8 +31,14 @@ export async function generateMetadata({
   }
 
   try {
-    const category = getCategory(categoryId, lang as Locale)
-    return { title: category.name }
+    const locale = lang as Locale
+    const category = getCategory(categoryId, locale)
+    return {
+      title: category.name,
+      alternates: {
+        canonical: buildCategoryUrl(categoryId, locale),
+      },
+    }
   } catch {
     return {}
   }
@@ -63,12 +71,23 @@ export default async function CategoryPage({
   const posts = getPostsByCategory(categoryId, locale)
   const t = await getTranslations('Categories')
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: siteConfig.siteTitle, url: buildPageUrl('', locale) },
+    { name: category.name, url: buildCategoryUrl(categoryId, locale) },
+  ])
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-foreground">
-        {t('PostsIn', { name: category.name })}
-      </h1>
-      <PostList posts={posts} locale={locale} />
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <div className="flex flex-col gap-6">
+        <h1 className="text-2xl font-bold text-foreground">
+          {t('PostsIn', { name: category.name })}
+        </h1>
+        <PostList posts={posts} locale={locale} />
+      </div>
+    </>
   )
 }

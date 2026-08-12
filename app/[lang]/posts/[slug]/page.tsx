@@ -6,6 +6,14 @@ import { PostLayout } from '@/components/posts/PostLayout'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getAllPostSlugs, getPostBySlug } from '@/lib/posts'
+import {
+  buildBlogPostingJsonLd,
+  buildBreadcrumbJsonLd,
+  buildPageUrl,
+  buildPostAlternates,
+  buildPostUrl,
+} from '@/lib/seo'
+import { siteConfig } from '@/lib/site-config'
 import { extractToc } from '@/lib/toc'
 
 /** Pre-render every `{slug}.{lang}.mdx` post at build time. */
@@ -26,18 +34,28 @@ export async function generateMetadata({
     return {}
   }
 
-  const post = getPostBySlug(slug, lang as Locale)
+  const locale = lang as Locale
+  const post = getPostBySlug(slug, locale)
   if (!post) {
     return {}
   }
 
+  const url = buildPostUrl(slug, locale)
+
   return {
     title: post.title,
     description: post.description,
+    alternates: {
+      canonical: url,
+      languages: buildPostAlternates(slug),
+    },
     openGraph: {
       title: post.title,
       description: post.description,
       type: 'article',
+      url,
+      siteName: siteConfig.siteTitle,
+      locale,
       publishedTime: post.publishedTime,
       modifiedTime: post.modifiedTime,
     },
@@ -66,14 +84,30 @@ export default async function PostDetailPage({
   if (!post) notFound()
 
   const toc = extractToc(post.content)
+  const postUrl = buildPostUrl(slug, locale)
+  const blogPostingJsonLd = buildBlogPostingJsonLd(post, locale, postUrl)
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: siteConfig.siteTitle, url: buildPageUrl('', locale) },
+    { name: post.title, url: postUrl },
+  ])
 
   // Dynamic import so Turbopack can code-split each MDX post. The template
   // string is required -- a static import would break per-post splitting.
   const { default: Post } = await import(`@/content/posts/${slug}.${locale}.mdx`)
 
   return (
-    <PostLayout meta={post} toc={toc} locale={locale}>
-      <Post />
-    </PostLayout>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <PostLayout meta={post} toc={toc} locale={locale}>
+        <Post />
+      </PostLayout>
+    </>
   )
 }

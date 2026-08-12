@@ -1,0 +1,169 @@
+import 'server-only'
+import { routing, type Locale } from '../i18n/routing'
+import { getPostBySlug, type PostMeta } from './posts'
+import { siteConfig } from './site-config'
+
+/**
+ * Central SEO construction module.
+ *
+ * Concentrates URL generation and Schema.org JSON-LD building logic so that
+ * sitemap, `generateMetadata`, and JSON-LD `<script>` injection don't duplicate
+ * path-assembly or schema-shaping code. All functions are pure except
+ * {@link buildPostAlternates}, which checks post existence via `getPostBySlug`.
+ */
+
+/**
+ * Builds an absolute, locale-prefixed URL for a page path.
+ *
+ * @param path - Path segment after the locale prefix (e.g. `'posts'`, `'about'`);
+ *   pass an empty string for the locale homepage.
+ * @param locale - Target locale code.
+ * @returns Absolute URL (e.g. `https://example.com/zh/posts`).
+ */
+export function buildPageUrl(path: string, locale: Locale): string {
+  const siteUrl = siteConfig.siteUrl.replace(/\/$/, '')
+  const base = `${siteUrl}/${locale}`
+  return path ? `${base}/${path}` : base
+}
+
+/**
+ * Builds an absolute URL for a post detail page.
+ *
+ * @param slug - URL-safe post identifier.
+ * @param locale - Target locale code.
+ * @returns Absolute URL (e.g. `https://example.com/zh/posts/hello-world`).
+ */
+export function buildPostUrl(slug: string, locale: Locale): string {
+  return buildPageUrl(`posts/${slug}`, locale)
+}
+
+/**
+ * Builds an absolute URL for a category listing page.
+ *
+ * @param categoryId - Category ID referencing `categories.yaml`.
+ * @param locale - Target locale code.
+ * @returns Absolute URL (e.g. `https://example.com/zh/categories/frontend`).
+ */
+export function buildCategoryUrl(categoryId: string, locale: Locale): string {
+  return buildPageUrl(`categories/${categoryId}`, locale)
+}
+
+/**
+ * Builds an absolute URL for a tag listing page.
+ *
+ * @param tagId - Tag ID referencing `tags.yaml`.
+ * @param locale - Target locale code.
+ * @returns Absolute URL (e.g. `https://example.com/zh/tags/next-js`).
+ */
+export function buildTagUrl(tagId: string, locale: Locale): string {
+  return buildPageUrl(`tags/${tagId}`, locale)
+}
+
+/**
+ * Builds hreflang alternates for a post, including only locales where the post
+ * actually exists.
+ *
+ * Iterates over all supported locales and uses `getPostBySlug` to check file
+ * existence. Non-existent variants are omitted so crawlers never discover 404
+ * alternates. The returned mapping always includes the current locale when the
+ * post exists in it.
+ *
+ * @param slug - URL-safe post identifier shared across language variants.
+ * @returns Map of locale code to absolute post URL, only for existing variants.
+ */
+export function buildPostAlternates(slug: string): Record<string, string> {
+  const alternates: Record<string, string> = {}
+  for (const locale of routing.locales) {
+    if (getPostBySlug(slug, locale)) {
+      alternates[locale] = buildPostUrl(slug, locale)
+    }
+  }
+  return alternates
+}
+
+/**
+ * Builds the `WebSite` Schema.org JSON-LD object for the root layout.
+ *
+ * @returns `WebSite` schema with the site name and URL.
+ */
+export function buildWebsiteJsonLd(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: siteConfig.siteTitle,
+    url: siteConfig.siteUrl,
+  }
+}
+
+/**
+ * Builds the `Person` Schema.org JSON-LD object for the site author.
+ *
+ * @returns `Person` schema with the author's GitHub username, profile URL, and
+ *   `sameAs` reference.
+ */
+export function buildPersonJsonLd(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: siteConfig.githubUsername,
+    url: siteConfig.githubUrl,
+    sameAs: [siteConfig.githubUrl],
+  }
+}
+
+/**
+ * Builds the `BlogPosting` Schema.org JSON-LD object for a post detail page.
+ *
+ * @param post - Post metadata parsed from frontmatter.
+ * @param locale - Locale of the post variant being rendered (used for
+ *   `inLanguage`).
+ * @param url - Absolute URL of the post page.
+ * @returns `BlogPosting` schema with headline, description, dates, author, and
+ *   main entity reference.
+ */
+export function buildBlogPostingJsonLd(
+  post: PostMeta,
+  locale: Locale,
+  url: string,
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.description,
+    datePublished: post.publishedTime,
+    dateModified: post.modifiedTime ?? post.publishedTime,
+    inLanguage: locale,
+    author: {
+      '@type': 'Person',
+      name: siteConfig.githubUsername,
+      url: siteConfig.githubUrl,
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+    },
+  }
+}
+
+/**
+ * Builds the `BreadcrumbList` Schema.org JSON-LD object.
+ *
+ * @param items - Ordered list of breadcrumb items (name + absolute URL), root
+ *   first. Position numbers are assigned automatically starting at 1.
+ * @returns `BreadcrumbList` schema with an `itemListElement` array.
+ */
+export function buildBreadcrumbJsonLd(
+  items: { name: string; url: string }[],
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  }
+}

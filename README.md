@@ -217,3 +217,16 @@ changes.**
 
 This project uses [OpenSpec](https://openspec.dev) for spec-driven development;
 specs live under `openspec/`.
+
+## Font Resources
+
+The local SEO asset bundle uses:
+
+- Noto Sans SC Regular/Bold — sourced from Google Fonts and stored locally as
+  `assets/NotoSansSC-Regular.ttf` / `assets/NotoSansSC-Bold.ttf`, with subset
+  variants under `assets/` for the generated Open Graph images.
+- Geist SemiBold — sourced from the Vercel Geist font release archive and stored
+  locally as `assets/Geist-SemiBold.ttf`.
+
+The Noto Sans SC fonts are distributed under the SIL Open Font License (OFL),
+and the license text is preserved in `assets/OFL.txt`.
