@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
+import { buildPersonJsonLd, buildWebsiteJsonLd } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import './globals.css'
 
@@ -32,7 +33,44 @@ export const metadata: Metadata = {
     url: siteConfig.siteUrl,
     siteName: siteConfig.siteTitle,
     type: 'website',
+    images: [
+      {
+        url: '/opengraph-image.png',
+        alt: 'Ruixe Blog',
+      },
+    ],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.siteTitle,
+    description: siteConfig.siteDescription,
+    creator: '@RuixeWolf',
+  },
+}
+
+/**
+ * Renders the `WebSite` Schema.org JSON-LD globally so search engines
+ * understand the site identity on every page.
+ */
+function WebSiteJsonLd() {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebsiteJsonLd()) }}
+    />
+  )
+}
+
+/**
+ * Renders the global `Person` Schema.org JSON-LD identifying the site author.
+ */
+function PersonJsonLd() {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(buildPersonJsonLd()) }}
+    />
+  )
 }
 
 /**
@@ -64,7 +102,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <WebSiteJsonLd />
+          <PersonJsonLd />
+          {children}
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>

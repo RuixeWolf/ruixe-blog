@@ -4,8 +4,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
+import { buildPageUrl, buildPersonJsonLd } from '@/lib/seo'
 
-/** Generates metadata with the localized "About" title. */
+/** Generates metadata with the localized "About" title and canonical URL. */
 export async function generateMetadata({
   params,
 }: {
@@ -16,8 +17,14 @@ export async function generateMetadata({
     return {}
   }
 
-  const t = await getTranslations({ locale: lang as Locale, namespace: 'About' })
-  return { title: t('Title') }
+  const locale = lang as Locale
+  const t = await getTranslations({ locale, namespace: 'About' })
+  return {
+    title: t('Title'),
+    alternates: {
+      canonical: buildPageUrl('about', locale),
+    },
+  }
 }
 
 /**
@@ -40,19 +47,31 @@ export default async function AboutPage({
 
   const t = await getTranslations('About')
 
+  const personJsonLd = {
+    ...buildPersonJsonLd(),
+    description: t('AuthorContent'),
+    jobTitle: 'Blogger',
+  }
+
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8">
-      <h1 className="text-3xl font-bold text-foreground">{t('Title')}</h1>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
+      <div className="mx-auto flex max-w-2xl flex-col gap-8">
+        <h1 className="text-3xl font-bold text-foreground">{t('Title')}</h1>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold text-foreground">{t('AboutAuthor')}</h2>
-        <p className="text-base text-pretty text-muted">{t('AuthorContent')}</p>
-      </section>
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xl font-semibold text-foreground">{t('AboutAuthor')}</h2>
+          <p className="text-base text-pretty text-muted">{t('AuthorContent')}</p>
+        </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold text-foreground">{t('AboutBlog')}</h2>
-        <p className="text-base text-pretty text-muted">{t('BlogContent')}</p>
-      </section>
-    </div>
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xl font-semibold text-foreground">{t('AboutBlog')}</h2>
+          <p className="text-base text-pretty text-muted">{t('BlogContent')}</p>
+        </section>
+      </div>
+    </>
   )
 }

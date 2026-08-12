@@ -33,6 +33,8 @@ context: |
   - Path alias: @/* -> repo root
   - HeroUI v3 uses compound components (e.g. Card.Header), no Provider needed
   - Full project description: .temp/my-first-blog-website.md
+githubCopilot:
+  cloudAgent: true
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
