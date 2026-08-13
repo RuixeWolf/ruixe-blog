@@ -82,6 +82,31 @@ export function buildPostAlternates(slug: string): Record<string, string> {
 }
 
 /**
+ * Builds the `alternates.types` mapping for RSS auto-discovery.
+ *
+ * Returns the MIME-type-to-descriptor pair that Next.js renders as
+ * `<link rel="alternate" type="application/rss+xml" title="{siteTitle}"
+ * href="...">`. The descriptor's `url` is a relative path
+ * (`/{locale}/feed.xml`) which Next.js resolves against `metadataBase` into
+ * an absolute URL; `title` names the feed for readers that surface it. Because
+ * Next.js shallowly merges metadata, any page that defines its own
+ * `alternates` object must include `types` (via this helper) — otherwise the
+ * layout's `types` is overwritten.
+ *
+ * @param locale - Target locale code.
+ * @returns Map with the RSS MIME type keyed to an array of alternate-link
+ *   descriptors (Next.js resolves `alternates.types` values as arrays of
+ *   `{ url, title }`).
+ */
+export function buildRssAlternateTypes(
+  locale: Locale,
+): Record<string, { url: string; title: string }[]> {
+  return {
+    'application/rss+xml': [{ url: `/${locale}/feed.xml`, title: siteConfig.siteTitle }],
+  }
+}
+
+/**
  * Builds the `WebSite` Schema.org JSON-LD object for the root layout.
  *
  * @returns `WebSite` schema with the site name and URL.

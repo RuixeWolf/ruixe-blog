@@ -6,7 +6,12 @@ import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getPostsByCategory } from '@/lib/posts'
-import { buildBreadcrumbJsonLd, buildCategoryUrl, buildPageUrl } from '@/lib/seo'
+import {
+  buildBreadcrumbJsonLd,
+  buildCategoryUrl,
+  buildPageUrl,
+  buildRssAlternateTypes,
+} from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { getCategories, getCategory } from '@/lib/taxonomy'
 
@@ -37,6 +42,7 @@ export async function generateMetadata({
       title: category.name,
       alternates: {
         canonical: buildCategoryUrl(categoryId, locale),
+        types: buildRssAlternateTypes(locale),
       },
     }
   } catch {

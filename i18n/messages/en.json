@@ -10,7 +10,8 @@
     "Language": "Language",
     "Theme": "Theme",
     "Settings": "Settings",
-    "Menu": "Menu"
+    "Menu": "Menu",
+    "Rss": "RSS Feed"
   },
   "Search": {
     "DialogTitle": "Search Posts",

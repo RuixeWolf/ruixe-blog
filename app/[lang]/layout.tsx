@@ -5,12 +5,14 @@ import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { NavLinks } from '@/components/layout/NavLinks'
+import { RssButton } from '@/components/layout/RssButton'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
 import { SearchProvider } from '@/components/search/SearchProvider'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { buildSearchIndex } from '@/lib/search'
+import { buildRssAlternateTypes } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 
 /** Pre-render both supported locales at build time. */
@@ -33,6 +35,11 @@ export async function generateMetadata({
         zh: `/${routing.locales[0]}`,
         en: `/${routing.locales[1]}`,
       },
+      // Generates `<link rel="alternate" type="application/rss+xml"
+      // title="…">` so RSS readers can auto-discover the current locale's
+      // feed. The relative href is resolved against `metadataBase` (root
+      // layout) into an absolute URL.
+      types: buildRssAlternateTypes(locale),
     },
     openGraph: {
       locale,
@@ -81,6 +88,7 @@ export default async function LocaleLayout({
             siteTitle={siteConfig.siteTitle}
             navLinks={<NavLinks variant="drawer" />}
             sidebar={<SidebarContent locale={locale} />}
+            rssButton={<RssButton locale={locale} variant="ghost" />}
           />
           <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-4 lg:gap-8 lg:px-6">
             <Sidebar locale={locale} />

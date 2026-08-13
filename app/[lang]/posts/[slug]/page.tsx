@@ -12,6 +12,7 @@ import {
   buildPageUrl,
   buildPostAlternates,
   buildPostUrl,
+  buildRssAlternateTypes,
 } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { extractToc } from '@/lib/toc'
@@ -48,6 +49,7 @@ export async function generateMetadata({
     alternates: {
       canonical: url,
       languages: buildPostAlternates(slug),
+      types: buildRssAlternateTypes(locale),
     },
     openGraph: {
       title: post.title,

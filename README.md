@@ -37,7 +37,10 @@ identity, taxonomy, and posts are all plain files under `content/`.
 - 🏷️ **Taxonomy pages** — category & tag listings with per-category post counts
 - 🖥️ **GitHub profile card** — live GitHub avatar/username via the GitHub API
 - ⚡ **Fully static (SSG)** — all routes pre-rendered at build time
-- 📊 **Analytics & Speed Insights** — `@vercel/analytics` + `@vercel/speed-insights`
+- � **RSS feed** — per-locale RSS 2.0 feed at `/zh/feed.xml` and `/en/feed.xml`,
+  with root `/feed.xml` redirecting to the browser-preferred locale; auto-discovery
+  `<link rel="alternate">` and a header subscription button
+- �📊 **Analytics & Speed Insights** — `@vercel/analytics` + `@vercel/speed-insights`
 
 ### Planned (Roadmap)
 
@@ -45,7 +48,6 @@ identity, taxonomy, and posts are all plain files under `content/`.
 - 💬 **Comments** — Giscus (GitHub Discussions)
 - 🖼️ **Media hosting** — Cloudflare R2 for post images
 - 🗺️ **SEO** — sitemap + structured metadata
-- 📰 **RSS feed**
 - 🤖 **`llms.txt`** — AI-friendly content discovery
 - 📱 **PWA** — installable, minimal cache
 
