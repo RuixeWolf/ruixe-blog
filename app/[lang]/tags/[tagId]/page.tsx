@@ -6,7 +6,7 @@ import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getPostsByTag } from '@/lib/posts'
-import { buildBreadcrumbJsonLd, buildPageUrl, buildTagUrl } from '@/lib/seo'
+import { buildBreadcrumbJsonLd, buildPageUrl, buildRssAlternateTypes, buildTagUrl } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { getTag, getTags } from '@/lib/taxonomy'
 
@@ -35,6 +35,7 @@ export async function generateMetadata({
       title: tag.name,
       alternates: {
         canonical: buildTagUrl(tagId, locale),
+        types: buildRssAlternateTypes(locale),
       },
     }
   } catch {

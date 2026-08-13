@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
-import { buildPageUrl, buildPersonJsonLd } from '@/lib/seo'
+import { buildPageUrl, buildPersonJsonLd, buildRssAlternateTypes } from '@/lib/seo'
 
 /** Generates metadata with the localized "About" title and canonical URL. */
 export async function generateMetadata({
@@ -23,6 +23,7 @@ export async function generateMetadata({
     title: t('Title'),
     alternates: {
       canonical: buildPageUrl('about', locale),
+      types: buildRssAlternateTypes(locale),
     },
   }
 }

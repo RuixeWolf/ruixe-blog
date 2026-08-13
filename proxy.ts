@@ -14,5 +14,14 @@ export const config = {
   // Match all pathnames except for:
   // - API and internal routes (`/api`, `/_next`, `/_vercel`)
   // - Pathnames containing a dot (e.g. `favicon.ico`)
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  //
+  // The second entry lets next-intl middleware run locale detection
+  // (cookie → Accept-Language → defaultLocale) on the root feed path and
+  // 307 redirect to `/{locale}/feed.xml`, mirroring `/` → `/{locale}`. The
+  // dot in `feed.xml` would otherwise exclude it from the regex matcher.
+  //
+  // NOTE: keep this as a plain string array — Prettier may rewrite regex
+  // strings as `String.raw` tagged templates, which Next.js 16's static
+  // analyzer rejects. Verify with `pnpm format-lint` after edits.
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)', '/feed.xml'],
 }

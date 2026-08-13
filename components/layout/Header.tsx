@@ -1,4 +1,5 @@
 import 'server-only'
+import { RssButton } from '@/components/layout/RssButton'
 import { SearchTrigger } from '@/components/search/SearchTrigger'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Link as NavLink } from '@/i18n/navigation'
@@ -21,9 +22,6 @@ import { NavLinks } from './NavLinks'
  * @param locale - Active locale code (reserved for future search routing).
  */
 export async function Header({ locale }: Readonly<{ locale: Locale }>) {
-  // `locale` is reserved for future search routing; referenced to keep the prop stable.
-  void locale
-
   return (
     <header className="sticky top-0 z-40 hidden border-b border-default bg-surface/70 backdrop-blur-md lg:block">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 lg:px-6">
@@ -36,6 +34,7 @@ export async function Header({ locale }: Readonly<{ locale: Locale }>) {
 
         <div className="flex items-center gap-2">
           <SearchTrigger variant="desktop" />
+          <RssButton locale={locale} />
           <LanguageSwitcher variant="dropdown" />
           <ThemeToggle />
         </div>

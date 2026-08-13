@@ -10,7 +10,8 @@
     "Language": "语言",
     "Theme": "主题",
     "Settings": "设置",
-    "Menu": "菜单"
+    "Menu": "菜单",
+    "Rss": "RSS 订阅"
   },
   "Search": {
     "DialogTitle": "搜索文章",

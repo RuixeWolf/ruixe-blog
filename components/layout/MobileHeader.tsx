@@ -26,12 +26,22 @@ import { MobileDrawer } from './MobileDrawer'
  * @param siteTitle - Site title rendered in the header and forwarded to the drawer.
  * @param navLinks - Server-rendered primary navigation (`NavLinks variant="drawer"`).
  * @param sidebar - Server-rendered sidebar content (profile card, categories, tags).
+ * @param rssButton - Server-rendered RSS subscription button (`RssButton`);
+ *   passed as an RSC payload because `RssButton` is a server-only component.
+ *   The caller is responsible for styling (e.g. `variant="ghost"` to match
+ *   the other mobile icon buttons).
  */
 export function MobileHeader({
   siteTitle,
   navLinks,
   sidebar,
-}: Readonly<{ siteTitle: string; navLinks: React.ReactNode; sidebar: React.ReactNode }>) {
+  rssButton,
+}: Readonly<{
+  siteTitle: string
+  navLinks: React.ReactNode
+  sidebar: React.ReactNode
+  rssButton: React.ReactNode
+}>) {
   const tHeader = useTranslations('Header')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
@@ -53,6 +63,7 @@ export function MobileHeader({
 
         <div className="flex items-center gap-1">
           <SearchTrigger variant="mobile" />
+          {rssButton}
           <Popover>
             <Button isIconOnly variant="ghost" aria-label={tHeader('Settings')}>
               <Settings className="size-5" />
