@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
@@ -42,9 +42,6 @@ export default async function AboutPage({
   if (!hasLocale(routing.locales, lang)) {
     notFound()
   }
-
-  const locale = lang as Locale
-  setRequestLocale(locale)
 
   const t = await getTranslations('About')
 

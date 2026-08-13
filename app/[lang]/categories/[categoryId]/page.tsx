@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
@@ -65,7 +65,6 @@ export default async function CategoryPage({
   }
 
   const locale = lang as Locale
-  setRequestLocale(locale)
 
   let category
   try {
