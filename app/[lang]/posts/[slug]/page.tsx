@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
-import { setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { PostLayout } from '@/components/posts/PostLayout'
 import { routing } from '@/i18n/routing'
@@ -80,7 +79,6 @@ export default async function PostDetailPage({
   }
 
   const locale = lang as Locale
-  setRequestLocale(locale)
 
   const post = getPostBySlug(slug, locale)
   if (!post) notFound()

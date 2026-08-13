@@ -12,9 +12,11 @@ import { Link } from '@/i18n/navigation'
  * Uses `useTranslations` (not `getTranslations`) following next-intl's official
  * not-found pattern: this is a non-async Server Component, and the not-found
  * boundary may render with an incomplete request context (e.g. when the locale
- * layout itself calls `notFound()` before `setRequestLocale` runs), making the
- * hook-based API - which reads from React Context - more robust than the
- * async `getTranslations` server API.
+ * layout itself calls `notFound()` before `NextIntlClientProvider` mounts),
+ * making the hook-based API - which reads from React Context - more robust than
+ * the async `getTranslations` server API. `i18n/request.ts` falls back to the
+ * default locale when `rootParams.lang()` is invalid, so messages are always
+ * available.
  */
 export default function NotFound() {
   const t = useTranslations('NotFound')

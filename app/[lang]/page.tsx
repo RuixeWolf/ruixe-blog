@@ -1,5 +1,5 @@
 import { hasLocale } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { ProfileCard } from '@/components/layout/ProfileCard'
 import { PostList } from '@/components/posts/PostList'
@@ -11,9 +11,10 @@ import { getAllPosts } from '@/lib/posts'
  * Home page (`/[lang]`) -- equivalent to the post list, plus a compact profile
  * card on mobile.
  *
- * Sets the request locale for static rendering, fetches all posts for the
- * active locale, and renders them via `PostList`. On mobile (`<lg`) a compact
- * `ProfileCard` is shown above the list to compensate for the hidden sidebar.
+ * Fetches all posts for the active locale and renders them via `PostList`. On
+ * mobile (`<lg`) a compact `ProfileCard` is shown above the list to compensate
+ * for the hidden sidebar. Static rendering is enabled automatically by
+ * `next/root-params` (see `i18n/request.ts`) - no `setRequestLocale` needed.
  *
  * Deliberately omits `generateMetadata` so the browser tab title falls back to
  * the root layout's `title.default` (`siteConfig.siteTitle`), yielding a clean
@@ -29,7 +30,6 @@ export default async function HomePage({
   }
 
   const locale = lang as Locale
-  setRequestLocale(locale)
 
   const posts = getAllPosts(locale)
   const t = await getTranslations('Nav')
