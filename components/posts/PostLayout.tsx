@@ -5,10 +5,12 @@ import { getFormatter, getTranslations } from 'next-intl/server'
 import { Link as NavLink } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import type { PostMeta } from '@/lib/posts'
+import { buildPostMarkdownPath } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { getCategory, getTag } from '@/lib/taxonomy'
 import type { TocItem } from '@/lib/toc'
 import { Comments } from './Comments'
+import { MarkdownLinkButton } from './MarkdownLinkButton'
 import { TableOfContents } from './TableOfContents'
 
 /**
@@ -92,6 +94,7 @@ export async function PostLayout({
             })}
           </div>
         ) : null}
+        <MarkdownLinkButton path={buildPostMarkdownPath(meta.slug, locale)} />
       </header>
 
       {toc.length > 0 ? (

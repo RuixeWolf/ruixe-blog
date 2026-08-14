@@ -53,7 +53,11 @@
     "ModifiedTime": "修改于 {date}",
     "MinRead": "{minutes} 分钟阅读",
     "CopyCode": "复制代码",
-    "Copied": "已复制"
+    "Copied": "已复制",
+    "ViewMarkdown": "查看原文",
+    "ViewMarkdownTooltip": "在新标签页中打开 Markdown 原文",
+    "CopyMarkdownLink": "复制 Markdown 链接",
+    "CopyMarkdownLinkTooltip": "复制 Markdown 链接到剪贴板"
   },
   "Comment": {
     "Title": "评论",

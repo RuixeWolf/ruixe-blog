@@ -1,14 +1,17 @@
 {
   "cSpell.words": [
+    "frontmatter",
     "Giscus",
     "heroui",
     "ianvs",
+    "llms",
     "opengraph",
     "openspec",
     "opsx",
     "placehold",
     "Stylesheet",
-    "Turbopack"
+    "Turbopack",
+    "Typora"
   ],
   "i18n-ally.localesPaths": ["i18n", "i18n/messages"]
 }

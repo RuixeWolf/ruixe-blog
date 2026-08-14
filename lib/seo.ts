@@ -38,6 +38,40 @@ export function buildPostUrl(slug: string, locale: Locale): string {
 }
 
 /**
+ * Builds an absolute URL for a post's Markdown version (llms.txt companion).
+ *
+ * Appends `/index.md` to the post detail URL so the path follows the llms.txt
+ * v2 convention for "URLs without file names" (append `index.md`). The
+ * corresponding Route Handler lives at
+ * `app/[lang]/posts/[slug]/index.md/route.ts` and serves the frontmatter-stripped
+ * markdown body.
+ *
+ * @param slug - URL-safe post identifier.
+ * @param locale - Target locale code.
+ * @returns Absolute URL (e.g. `https://example.com/zh/posts/hello-world/index.md`).
+ */
+export function buildPostMarkdownUrl(slug: string, locale: Locale): string {
+  return `${buildPostUrl(slug, locale)}/index.md`
+}
+
+/**
+ * Builds a root-relative path for a post's Markdown version.
+ *
+ * Unlike {@link buildPostMarkdownUrl}, this returns a path with no origin so
+ * the client can resolve it against `window.location.origin` at runtime. Used
+ * by the post detail `MarkdownLinkButton` so the "View Markdown" and "Copy
+ * link" actions track the current browser origin in dev, preview, and
+ * production without depending on the server-only `siteConfig.siteUrl`.
+ *
+ * @param slug - URL-safe post identifier.
+ * @param locale - Target locale code.
+ * @returns Root-relative path (e.g. `/zh/posts/hello-world/index.md`).
+ */
+export function buildPostMarkdownPath(slug: string, locale: Locale): string {
+  return `/${locale}/posts/${slug}/index.md`
+}
+
+/**
  * Builds an absolute URL for a category listing page.
  *
  * @param categoryId - Category ID referencing `categories.yaml`.

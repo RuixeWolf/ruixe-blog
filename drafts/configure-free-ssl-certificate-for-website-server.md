@@ -1,0 +1,157 @@
+# 为网站服务器配置免费的 SSL 证书
+
+前一段时间在又发现了一个 “赛博活佛”，能提供免费 SSL 证书的 [Let's Encrypt](https://letsencrypt.org/)。在 [GlobalSign](https://www.globalsign.com/) 购买一个 SSL 证书一年要花大几千 RMB，而 Let's Encrypt 竟然免费提供，搭配 Certbot 还能自动化配置与自动续约签发新的 SSL 证书。
+
+这篇文章记录我为前后端分离部署的一台 Web 服务器配置 Nginx 与免费的 SSL 证书。
+
+## 网站服务器现状与任务目标
+
+### 现状
+
+前后端分离开发部署的两个项目，前端将 Vue.js 打包构建产物（纯静态文件）上传至服务器，使用 Node.js 的一个 CLI HTTP 工具提供 80 端口的前端访问。
+
+后端使用 Nest.js 开发，服务器 Clone 完整仓库代码，运行构建后使用 node 运行构建产物的入口 JS 文件，后端绑定 8080 端口。
+
+### 目标
+
+使用 Nginx 托管前端项目的构建产物静态文件，并作为后端项目的反向代理服务。
+
+使用 Certbot + Let's Encrypt 配置免费的 SSL 证书。
+
+最终的预期为服务器仅对外开放 443 端口用于访问网站，用户通过 `https://example.com` 访问前端项目，通过 `https://example.com/api` 访问后端接口。
+
+## 安装与配置 Nginx
+
+**Ubuntu 安装 Nginx**
+
+```bash
+sudo apt update
+sudo apt install nginx
+```
+
+**启动 Nginx**
+
+```bash
+sudo systemctl enable nginx
+sudo systemctl start nginx
+```
+
+**查看 Nginx 运行状态**
+
+```bash
+systemctl status nginx
+```
+
+浏览器访问 `http://example.com` 已经能看到 Nginx 默认页面。
+
+将前端项目的构建产物静态文件存放至 `/var/www/frontend`
+
+```
+/var/www/frontend
+├── index.html
+├── assets
+└── favicon.ico
+```
+
+**创建 Nginx 配置文件** `/etc/nginx/sites-available/my-site`
+
+```nginx
+server {
+    listen 80;
+
+    server_name example.com;
+
+    root /var/www/frontend;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080/;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+**启用新创建的 Nginx 配置文件**
+
+```bash
+sudo ln -s /etc/nginx/sites-available/my-site /etc/nginx/sites-enabled/
+```
+
+**检查 Nginx 配置并重启**
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+再次访问网站，前端的 URL 为 `http://example.com`，后端 URL 为 `http://example.com/api/xxx`，至此通过 Nginx 实现了对外只用一个 80 端口就能访问前后端服务。
+
+## 安装 Certbot 并配置 SSL 证书
+
+由于 Certbot 与 Let's Encrypt 更新频繁，传统的 apt 包管理器的软件源更新不及时，因此建议使用 Snap 安装 Certbot。
+
+**安装 Snap**
+
+```bash
+sudo apt install snapd
+sudo snap install core
+sudo snap refresh core
+```
+
+**安装 Certbot**
+
+```bash
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+certbot --version
+```
+
+> snap --classic 参数的作用是关闭 Snap 的默认沙盒隔离限制，给予程序完全访问宿主机系统的权限
+
+**使用 Certbot 申请 SSL 证书**
+
+```bash
+sudo certbot --nginx
+```
+
+Certbot 会：
+
+1. 自动识别 Nginx
+2. 自动修改配置
+3. 自动申请证书
+4. 自动配置 HTTPS
+5. 自动配置 HTTP → HTTPS 跳转（可选）
+
+> Certbot 会在 Nginx 配置额外添加 80 端口的监听，用于 Let's Encrypt 验证域名
+
+**SSL 证书自动续期**
+
+通过 Snap 安装的 Certbot 会自动安装 systemd timer，SSL 证书配置成功后，Certbot 会自动创建定时任务用于定期检查与重新签发 SSL 证书。
+
+**查看 Certbot 定时任务**
+
+```bash
+systemctl list-timers | grep certbot
+```
+
+**测试 Certbot 重新签发 SSL 证书**
+
+```bash
+sudo certbot renew --dry-run
+```
+
+如果成功会显示 `Congratulations, all simulated renewals succeeded`
+
+---
+
+至此，实现了 Nginx 使用同一个端口代理前后端项目，Certbot + Let's Encrypt 自动签发与部署 SSL 证书，不再需要手动操作了。
