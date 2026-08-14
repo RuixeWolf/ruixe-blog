@@ -136,6 +136,7 @@ ruixe-blog/
 │   ├── posts/               # {slug}.{lang}.mdx
 │   ├── taxonomy/            # categories.yaml, tags.yaml
 │   └── site.yaml            # site identity (githubUsername, siteTitle, ...)
+├── drafts/                  # draft posts & working notes (not published/rendered)
 ├── i18n/                    # next-intl config + messages/{zh,en}.json
 ├── lib/                     # server-only content/config modules (fs + fetch)
 ├── proxy.ts                 # Next.js 16 middleware (locale detection & redirect)

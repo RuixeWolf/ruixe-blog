@@ -1,0 +1,104 @@
+# 首次使用 VS Code Agents Window
+
+记录一篇使用 VSCode Angents Window + OpenSpec 工作流的使用体验。
+
+VS Code 的 **Agents Window（代理窗口）** 功能发布于 **2026年5月13日**。该功能随着 **VS Code 1.120** 版本更新正式进入 Stable（稳定版）的预览阶段。
+
+我现在的 AI Coding 工作流是在 VS Code 编辑器窗口使用 Copilot Chat + OpenSpec，Agents Window 刚推出时的试用体验并不完善，因此尝鲜后又退回了 Copilot Chat。
+
+2026年6月1日后，$10/月的 Copilot 计费方式由每月 300 次对话更改为了按量计费每月 1500 Credits，约 $15 的 Tokens 额度，从以前 Codex 5.3 Xhigh 随意使用变成了一次探索消耗月额度 20%，我就彻底转为通过 OAICopilot 插件接入自定义模型了。当时的 Agent Window 仅支持 Copilot 官方订阅的模型，那就更不想使用 Agent Window 了。
+
+2026年7月28日当我想点击 VS Code 窗口顶栏时误触打开 Agent Window 后，发现已经可以选择我通过 OAICopilot 配置的自定义模型了，那么喜欢尝鲜的我自然要进一步尝试，便有了这篇文章。
+
+## 在 Agents Window 使用 OpenSpec
+
+此时遇到了第一个重要的问题，我曾经在 Copilot Chat 窗口使用 OpenSpec 的 `/opsx-xxx` 指令无法在 Agents Window 使用了，Agents Window 中输入 `/` 后找不到位于 `.github/prompts` 的 `/opsx-xxx` 指令，只能找到位于 `.github/skills` 的 `/openspec-xxx`
+
+| Copilot Chat                                                                                              | Agents Window                                                                                             |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| ![image-20260728104935117](https://blog-assets.ruixe.net/2026-07/28104936420-image-20260728104935117.png) | ![image-20260728105028901](https://blog-assets.ruixe.net/2026-07/28105029575-image-20260728105028901.png) |
+
+经过 Google AI 模式搜索后发现 Agents Window 不再支持旧版的 Prompts 了，推荐使用 Skills。由于 OpenSpec 的初始化是在 CLI 选择对应的 Agents 工具后直接生成相应工具的 Prompts 和 Skills，从而实现为 Agents 工具安装 OpenSpec。比如安装时选择 Github Copilot，那么 OpenSpec CLI 就会自动在项目的 `.github` 目录创建提示词文件，并为项目初始化 `openspec` 目录。而且 CLI 与提示词的版本必须对应，因此没法直接通过 Agents 插件的形式安装。
+
+经过探索后发现位于 `.github/prompts` 的 `opsx-xxx.prompt.md` 与位于 `.github/skills` 的 `openspec-xxx-xxx` 内容非常相似，正文内容几乎相同甚至更完善，可以在 Agents Window 直接使用这些 Skills，还可以直接通过 `/openspec-xxx-xxx` 的方式明确指定。
+
+## 在 Agents Window 实现博客文章搜索功能
+
+我现在正在开发我的个人博客网站，我想试试在 Agents Window 用 OpenSpec 工作流实现文章搜索功能，感受 Agents Window 的使用体验。
+
+### 探索与创建 OpenSpec Change
+
+在 Agents Window 的对话框输入：
+
+```
+/openspec-explore
+请探索当前项目，整理功能实现方案，列出需要决策问题，先不要创建 OpenSpec Proposal。
+
+请参考 `my-first-blog-website.md` 的内容，实现功能：文章搜索
+```
+
+经过两三次探索对话，回答了几个决策问题后使用 `openspec-propose` Skills 创建 OpenSpec Change Proposal `add-post-search`。
+
+在使用 Agents Window 的过程中，我发现它支持 Copilot Agents 远程控制，会将本地的 Agents 会话实时同步至 Github 云端，在 Github 网页或者手机 App 选择问题选项或者发送新的提示词。但我还没搞懂 Agents Window 右上角的远程会话访问开关的功能，似乎开启和关闭都不影响会话内容的实时同步和远程发送提示词。
+
+### 实现 OpenSpec Change
+
+在新的对话使用 `openspec-apply-change` 实现刚才创建的 Proposal，由于任务较为复杂，因此将任务拆分至不同的对话实现。
+
+依据 `task.md` 的内容，输入以下提示词：
+
+```
+/openspec-apply-change add-post-search
+
+Please complete only the following tasks:
+1. 依赖与基础设施
+2. 服务端搜索索引
+3. 客户端搜索 Context
+```
+
+之后的步骤类似，将复杂任务拆分至多个对话实现，能防止同一个对话上下文过多而影响生成质量。
+
+还发现了 Agents Window 的一个功能，左侧栏是会话 Session 列表，中间与右侧为 Session 详情，一个 Session 可以包含多个对话 Chats，多个对话的代码变更统一由会话管理，这与 Copilot Chat 的一个对话就是一个会话的功能不太一样。
+
+### 结束 OpenSpec Change
+
+使用 OpenSpec 的 apply 工作流实现功能后，对 Change 进行验证、同步规范与归档。
+
+新开对话验证 Change，如果验证发现了 CRITICAL 或 WARNING 级别的问题则进行解决，SUGGESTION 级别视情况解决。
+
+```
+/openspec-verify-change add-post-search
+```
+
+新开对话同步与归档 Change
+
+```
+/openspec-sync-specs add-post-search
+/openspec-archive-change add-post-search
+```
+
+### 使用 Agents Window 进行 Code Review
+
+将代码提交并推送远程分支，创建 PR 后可以使用 Agents Window 的 Code Review 功能自动评审代码变更。
+
+在 Agents Window 右侧的代码变更视图上方有一个 `Run Code Review` 按钮，点击后会自动新建 Chat 并发送 `/code-review`，调用内置的 Code Review skill，这是 VSCode Editor Copilot Chat 没有的功能，用起来很方便。
+
+我曾经为 Github Copilot 开启了 PR 自动触发云端 Agent code review，响应结果质量一般，还要消耗不少的 Token Credits，因此我关闭了这个功能。
+
+现在能在本地 Agents Window 使用自定义模型运行 Code Review，前端项目还能自动使用内置浏览器进行 Playwright E2E 测试（就是比较耗 Token）。
+
+Code Review 结束后，查看生成的代码评论，可以编辑与删除评论内容，然后在对话框使用 `/act-on-feedback` 按评论自动更改代码。
+
+## Agents Window 使用体验
+
+总体来看 Agents Window 体验还不错，像是介于代码编辑器 IDE + Agent Chat 的产品（如 VSCode、JetBrains IDEA 等）与纯 Vibe Coding Agent 的产品（如 Codex、Claude Code 等）之间。
+
+但还目前有很多 Bug 影响体验，可能是大量使用 Vibe Coding 又没有严格测试导致的，以下是我在 VSCode 1.130.0 版本的 Agents Window 遇到的一些 Bug
+
+- 必须先启动 VSCode 编辑器窗口等待 OAICopilot 插件加载后再打开 Agents Window 才能使用 OAICopilot 注册的自定义模型，只打开 Agents Window 无法使用自定义模型。
+
+- 点击 `Create Pull Request` 按钮没有反应，按钮没有禁用，但是点击后没有操作也没有报错提示。我的预期是像 Claude Code Desktop 那样，自动使用创建 PR 工作流，提交代码 + 推送 + 创建 PR 一条龙，搜了下发现需要我自己先提交代码推送到远程。
+- 运行 Code Review 后点击提交 Agent comments 按钮没有反应，具体情况同上。
+- 重启窗口后右上方的操作按钮会改变，可能是 `Create Pull Request` ，也可能是 `Run Code Review`，又或者是其他功能。
+
+希望未来能够解决这些问题，完善用户体验。我之后应该会混合使用 VSCode Copilot Chat 与 Agents Window 两种模式，可能还会有新的使用体验。
