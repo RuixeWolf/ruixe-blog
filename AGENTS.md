@@ -16,20 +16,20 @@ Full project background, requirements, and tech-selection rationale: [`.temp/my-
 
 ## Tech Stack
 
-| Layer           | Package                                       | Notes                                                                                                                                                                |
-| --------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Framework       | `next@16.2.10`                                | App Router, React Compiler enabled (`reactCompiler: true` in `next.config.ts`)                                                                                       |
-| React           | `react@19.2.7`                                |                                                                                                                                                                      |
-| UI              | `@heroui/react`, `@heroui/styles@^3.2.2`      | **HeroUI v3 beta** — compound components (e.g. `Card.Header`), no `Provider`, built on React Aria. Training data is likely wrong; use the `heroui-react` MCP server. |
-| Icons           | `lucide-react@^1.25.0`                        |                                                                                                                                                                      |
-| MDX             | `@next/mdx`                                   | File-driven rendering; not `next-mdx-remote` (archived)                                                                                                              |
-| i18n            | `next-intl`                                   | App Router + RSC; locale via `/[lang]` URL path prefix, `proxy.ts` middleware (Next.js 16 renames `middleware.ts`)                                                   |
-| Search          | `fuse.js@^7.5.0`                              | Client-side fuzzy search; index built server-side in `lib/search.ts` (markdown stripped) and inlined into RSC props for `components/search/SearchProvider`           |
-| Comments        | `@giscus/react@^3.1.0`                        | GitHub Discussions backed; config in `content/site.yaml` (`giscus` block, committed) - no `.env` needed                                                              |
-| Media           | Cloudflare R2 (`blog-assets.ruixe.net`)       | Binary assets never committed to git; `next/image` `remotePatterns` in `next.config.ts`                                                                              |
-| Theming         | `next-themes@^0.4.6`                          | Class-based dark mode; Giscus theme synced via `useTheme` + `postMessage`                                                                                            |
-| Content parsing | `gray-matter`, `yaml`, `github-slugger`       | Frontmatter + taxonomy YAML + heading slugs                                                                                                                          |
-| Analytics       | `@vercel/analytics`, `@vercel/speed-insights` | Already wired in `app/layout.tsx` — do not remove                                                                                                                    |
+| Layer           | Package                                         | Notes                                                                                                                                                                |
+| --------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework       | `next@16.3.0`                                   | App Router, React Compiler enabled (`reactCompiler: true` in `next.config.ts`)                                                                                       |
+| React           | `react@19.2.8`                                  |                                                                                                                                                                      |
+| UI              | `@heroui/react@^3.2.4`, `@heroui/styles@^3.2.4` | **HeroUI v3 beta** — compound components (e.g. `Card.Header`), no `Provider`, built on React Aria. Training data is likely wrong; use the `heroui-react` MCP server. |
+| Icons           | `lucide-react@^1.31.0`                          |                                                                                                                                                                      |
+| MDX             | `@next/mdx`                                     | File-driven rendering; not `next-mdx-remote` (archived)                                                                                                              |
+| i18n            | `next-intl`                                     | App Router + RSC; locale via `/[lang]` URL path prefix, `proxy.ts` middleware (Next.js 16 renames `middleware.ts`)                                                   |
+| Search          | `fuse.js@^7.5.0`                                | Client-side fuzzy search; index built server-side in `lib/search.ts` (markdown stripped) and inlined into RSC props for `components/search/SearchProvider`           |
+| Comments        | `@giscus/react@^3.1.0`                          | GitHub Discussions backed; config in `content/site.yaml` (`giscus` block, committed) - no `.env` needed                                                              |
+| Media           | Cloudflare R2 (`blog-assets.ruixe.net`)         | Binary assets never committed to git; `next/image` `remotePatterns` in `next.config.ts`                                                                              |
+| Theming         | `next-themes@^0.4.6`                            | Class-based dark mode; Giscus theme synced via `useTheme` + `postMessage`                                                                                            |
+| Content parsing | `gray-matter`, `yaml`, `github-slugger`         | Frontmatter + taxonomy YAML + heading slugs                                                                                                                          |
+| Analytics       | `@vercel/analytics`, `@vercel/speed-insights`   | Already wired in `app/[lang]/layout.tsx` - do not remove                                                                                                             |
 
 ### Version pins — do NOT bump
 
@@ -52,6 +52,8 @@ pnpm format       # prettier --write .
 pnpm lint         # eslint --fix .
 pnpm format-lint  # run before committing
 pnpm delete-post <slug>  # delete a post + append 308 redirect (see Post deletion below)
+pnpm generate-pwa-icons  # regenerate PWA icons from assets (deterministic via sharp)
+pnpm start               # production server (after `pnpm build`)
 ```
 
 Package manager: **pnpm**. Node scripts/codemods should be `.mjs` files, not `node -e` one-liners (the terminal truncates long one-liners on Windows).
@@ -114,22 +116,26 @@ Locale codes: `zh`, `en` (default `zh`). App Router structure mirrors these segm
 - **Path alias:** `@/*` → repo root (`tsconfig.json`).
 - **HeroUI v3:** compound components, no Provider. Always check docs via the `heroui-react` MCP before writing component code — v3 is beta and differs from v2.
 - **Theming:** custom HeroUI tokens in `app/heroui-theme.css` (theme generator link in file header). Globals import order in `app/globals.css`: `tailwindcss` → `@heroui/styles` → `heroui-theme.css`.
-- **Fonts:** Geist Sans + Geist Mono via `next/font/google` (wired in `app/layout.tsx`).
+- **Fonts:** Geist Sans + Geist Mono via `next/font/google` (wired in `app/[lang]/layout.tsx`).
 - **Post deletion:** run `pnpm delete-post <slug>` - it deletes all locale MDX variants and appends a 308 permanent redirect record to `content/redirects.yaml`. `next.config.ts` `redirects()` reads that file at build time and expands each record into per-locale redirect rules. Never manually edit `redirects.yaml`. The script also prints guidance to manually lock the Giscus Discussion (no API automation for that step). Supports `--force` (skip confirm), `--dry-run`, `--target <destination>` (supports `{lang}` placeholder).
-- **Server-only boundary:** `lib/posts`, `lib/taxonomy`, `lib/site-config`, `lib/github`, `lib/search` all `import 'server-only'` and use `node:fs`/`fetch`. Client components MUST NOT import them - pass server-rendered content as RSC `children`/props (see `app/[lang]/layout.tsx` -> `MobileHeader` -> `MobileDrawer`). `fs.readFileSync` in these modules does NOT force dynamic rendering (all routes stay SSG).
+- **Server-only boundary:** `lib/posts`, `lib/taxonomy`, `lib/site-config`, `lib/github`, `lib/search`, `lib/seo`, `lib/feed`, `lib/llms-txt` all `import 'server-only'` and use `node:fs`/`fetch`. Client components MUST NOT import them - pass server-rendered content as RSC `children`/props (see `app/[lang]/layout.tsx` -> `MobileHeader` -> `MobileDrawer`). `fs.readFileSync` in these modules does NOT force dynamic rendering (all routes stay SSG).
 - **`lib/` module patterns:** fail-fast validation (throw on missing/invalid data at module eval or call time), module-level singleton caches (prod-only in `posts.ts` via `process.env.NODE_ENV === 'production'`), `getCategory`/`getTag` throw on missing ID (wrap in try/catch + `notFound()` in pages).
 - **Search:** `lib/search.ts` (server-only) builds a localized `SearchIndexItem[]` per locale (markdown stripped via `stripMarkdown`, category/tag names pre-localized so the client never imports the server-only taxonomy module) and inlines it into RSC props for `components/search/SearchProvider`. Fuse.js fuzzy matching runs entirely client-side; the dialog is triggered via `components/search/SearchContext` + `SearchTrigger`.
 - **Comments:** `components/posts/Comments.tsx` (client) renders `@giscus/react`; the full `giscus` config block (repo, repoId, category, categoryId, mapping, etc.) lives in `content/site.yaml` and is committed to Git. Locale `zh` maps to Giscus `zh-CN`; theme is synced from `next-themes` via `postMessage` to the Giscus iframe.
 - **Media:** post images are served from Cloudflare R2 at `blog-assets.ruixe.net` (configured in `next.config.ts` `images.remotePatterns`); binary assets are NEVER committed to Git. `mdx-components.tsx` `MDXImage` uses `sizes="(max-width: 1023px) 100vw, 690px"` (desktop body container ~690px).
 - **i18n message keys:** all levels PascalCase (e.g. `Nav.Home`, `PostDetail.TableOfContents`). Namespaces: `Nav`, `Header`, `Theme`, `Sidebar`, `PostList`, `PostDetail`, `Categories`, `Tags`, `About`, `NotFound`. Use `next-intl/navigation` (`Link`, `usePathname`, `useRouter`) over raw `next/link`/`next/navigation`.
 - **Env vars:** only `NEXT_PUBLIC_SITE_URL` (SEO `metadataBase`, falls back to Vercel URL). All other site config lives in `content/site.yaml` - no `.env` needed for a fresh clone.
+- **SEO:** `lib/seo.ts` (server-only) centralizes URL building (`buildPageUrl`/`buildPostUrl`/`buildPostMarkdownUrl`) and Schema.org JSON-LD (`buildWebsiteJsonLd`/`buildPersonJsonLd`). `app/sitemap.ts` + `app/robots.ts` are static route handlers. `generateMetadata` in `app/[lang]/layout.tsx` emits per-locale `hreflang` alternates + OpenGraph; `metadataBase` comes from `siteConfig.siteUrl`.
+- **RSS feed:** `lib/feed.ts` (server-only) builds RSS 2.0 XML via the `feed` package (newest 20 posts per locale); served at `app/[lang]/feed.xml/route.ts`. Feed URL helper: `buildFeedUrl(locale)`. The header `RssButton` links to the active locale's feed.
+- **llms.txt:** `lib/llms-txt.ts` (server-only) builds the llms.txt v2 index (H1 title, blockquote summary, one H2 section per locale listing posts as `- [title](markdownUrl): description`); served at `app/[lang]/llms.txt/route.ts`. Only posts that exist in a locale appear under that locale's section.
+- **PWA:** no-op service worker at `public/sw.js` (registered by `components/pwa/ServiceWorkerRegister.tsx`); web manifest at `app/manifest.ts`; icons in `public/` generated by `pnpm generate-pwa-icons` (deterministic via `sharp` composite). `themeColor` MUST live in the `viewport` export, NOT `generateMetadata` (Next.js 16 moved it - configuring it in metadata emits a build warning and the `<meta name="theme-color">` tags are not rendered).
 
 ## Critical pitfalls
 
 Non-obvious issues that broke during development - heed them:
 
 - **`proxy.ts` matcher must be a plain string array** - Prettier converts it to `String.raw` tagged template, which Next.js 16's static analyzer rejects ("Invalid segment configuration export"). Verify after `pnpm format-lint`.
-- **Root layout `getLocale()` breaks SSG** - forces all pages dynamic (`ƒ`). Use `routing.defaultLocale` as a static `<html lang>`; per-locale `lang` is an accepted trade-off (`hreflang` comes from `generateMetadata`).
+- **Locale via `next/root-params`, not `getLocale()`/`setRequestLocale`** - the root layout is a single file at `app/[lang]/layout.tsx` (no two-layout split). `i18n/request.ts` resolves the locale with `rootParams.lang()` from `next/root-params` (Next.js 16.3+), which works with static rendering and needs no per-page calls. `next-intl`'s `setRequestLocale` is deprecated (SonarQube S1874) - do NOT re-add it or its imports. `<html lang>` is dynamic (correct per-locale) and SSG is preserved (`●`, not `ƒ`). Never call `getLocale()` from `next-intl/server` in the root layout - it forces ALL pages dynamic.
 - **`transition-colors` + next-themes = stuck background** on live theme switch. Use `transition-[color]` on theme-aware elements so `background-color`/`border-color` update instantly.
 - **Prettier plugin order:** `prettier-plugin-tailwindcss` MUST be last in `.prettierrc.json` `plugins` array (with `"tailwindStylesheet": "./app/globals.css"`), or Tailwind class sorting silently no-ops.
 - **`dynamicParams = false` bypasses segment `not-found.tsx`** - unmatched slugs hit the root 404 boundary. Omit it so the page runs `notFound()` and triggers the localized 404.
@@ -153,11 +159,13 @@ This project uses [OpenSpec](https://openspec.dev) (`spec-driven` schema) for sp
 ## MCP servers (`.vscode/mcp.json`)
 
 - `next-devtools` — runtime introspection of the dev server (routes, errors, build status). Call `nextjs_index` before editing app code to understand the current state.
-- `heroui-react` — HeroUI v3 docs, source, theme variables. Call `list_components` → `get_component_docs` before writing UI.
+- `heroui-react` - HeroUI v3 docs, source, theme variables. Call `list_components` -> `get_component_docs` before writing UI.
+- `sonarqube` - code quality/security analysis. Follow `.github/instructions/sonarqube_mcp.instructions.md`: disable auto-analysis while editing, analyze modified files when done; look up project keys via `search_my_sonarqube_projects` (don't guess).
+- `context7` - current library/framework docs. Use for API questions about `next-intl`, `next`, HeroUI, etc. (`resolve-library-id` -> `query-docs`).
 
 ## Deployment
 
 - GitHub: [`RuixeWolf/ruixe-blog`](https://github.com/RuixeWolf/ruixe-blog) (branch `main`).
 - Vercel auto-deploys `main`; PRs get preview deploys.
 - Live: https://ruixe-blog.vercel.app (custom domain planned post-MVP).
-- Analytics & Speed Insights are enabled — keep the `<Analytics />` / `<SpeedInsights />` tags in `app/layout.tsx`.
+- Analytics & Speed Insights are enabled - keep the `<Analytics />` / `<SpeedInsights />` tags in `app/[lang]/layout.tsx`.

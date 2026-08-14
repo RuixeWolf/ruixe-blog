@@ -88,6 +88,37 @@ const nextConfig: NextConfig = {
   async redirects() {
     return readRedirectRules()
   },
+  /**
+   * Sets HTTP response headers for special routes.
+   *
+   * `/sw.js` receives three headers per Next.js PWA documentation
+   * recommendations:
+   *   - `Content-Type: application/javascript; charset=utf-8` ensures the
+   *     browser parses the file as JS (some servers default to
+   *     `text/plain` for extensionless/unknown types under `public/`).
+   *   - `Cache-Control: no-cache, no-store, must-revalidate` ensures the
+   *     browser always fetches the latest SW so updates propagate without the
+   *     24-hour spec delay.
+   *   - `Content-Security-Policy: default-src 'self'; script-src 'self'`
+   *     hardens the SW against loading off-origin scripts.
+   *
+   * @returns Array of `{ source, headers }` route-header mappings.
+   */
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self'",
+          },
+        ],
+      },
+    ]
+  },
 }
 
 /** MDX compilation wrapper with remark/rehype plugins (string names for Turbopack). */
