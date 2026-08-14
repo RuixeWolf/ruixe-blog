@@ -335,6 +335,16 @@ typescript:
 Creating a new Next.js app in ruixe-blog.
 ```
 
+使用 PNPM `next-app` 创建项目时有个坑需要注意，项目模板创建完成后 `next-app` 会自动使用 PNPM 安装依赖，但是 PNPM 安装依赖结束后默认拦截第三方依赖的预安装脚本运行，直接报错终止 `next-app` 的后续任务，导致 `AGENTS.md` 创建失败。
+
+我的解决方法是给 `next-app` 添加参数 `--skip-install`，又因为只要给 `next-app` 添加了参数，其他选项就会默认也由 `next-app` 处理，无法自定义选项了，因此我直接在命令行中指定所有选项。
+
+```bash
+pnpm create next-app@latest --skip-install --ts --eslint --react-compiler --tailwind --no-src-dir --app --agents-md
+```
+
+项目模板创建完成后，运行 `pnpm install` 安装依赖，运行 `pnpm approve-builds` 允许运行预安装脚本，运行 `pnpm dev` 启动项目，访问 `http://localhost:3000`，页面显示 Next.js 欢迎页面。
+
 初始化 OpenSpec 工作流，使用 `openspec init`
 
 ```

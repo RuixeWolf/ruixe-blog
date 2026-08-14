@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
@@ -11,6 +11,7 @@ import { NavLinks } from '@/components/layout/NavLinks'
 import { RssButton } from '@/components/layout/RssButton'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
 import { SearchProvider } from '@/components/search/SearchProvider'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { routing } from '@/i18n/routing'
@@ -38,6 +39,22 @@ export function generateStaticParams() {
 }
 
 /**
+ * Viewport options. `themeColor` lives here (not in `generateMetadata`)
+ * because Next.js 16 moved it to the viewport export - configuring it in
+ * metadata emits a build warning and the `<meta name="theme-color">` tags
+ * are NOT rendered. Uses a `ThemeColorDescriptor[]` array so the browser
+ * chrome (e.g. Android Chrome status bar) switches with the OS color scheme
+ * at runtime. The manifest `theme_color` is a single value used only for the
+ * install splash screen (see `app/manifest.ts`).
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    { color: '#f4f5f6', media: '(prefers-color-scheme: light)' },
+    { color: '#050606', media: '(prefers-color-scheme: dark)' },
+  ],
+}
+
+/**
  * Root + locale metadata. Merges site-wide defaults (formerly in the deleted
  * `app/layout.tsx`) with locale-specific `hreflang` alternates and OpenGraph
  * locale. `metadataBase` is inherited from `siteConfig.siteUrl`.
@@ -56,6 +73,14 @@ export async function generateMetadata({
       template: `%s | ${siteConfig.siteTitle}`,
     },
     description: siteConfig.siteDescription,
+    // Generates the iOS standalone App meta tags
+    // (`apple-mobile-web-app-capable`, `apple-mobile-web-app-title`) so
+    // "Add to Home Screen" launches a full-screen standalone experience.
+    appleWebApp: {
+      capable: true,
+      title: siteConfig.siteTitle,
+      statusBarStyle: 'default',
+    },
     metadataBase: new URL(siteConfig.siteUrl),
     alternates: {
       languages: {
@@ -178,6 +203,7 @@ export default async function LocaleLayout({
             </SearchProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
+        <ServiceWorkerRegister />
         <Analytics />
         <SpeedInsights />
       </body>
