@@ -178,6 +178,11 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
+      // Next.js 16 no longer overrides `scroll-behavior: smooth` during route
+      // transitions by default. `data-scroll-behavior="smooth"` opts back into
+      // that override (snappy navigation) and silences the missing-data-scroll-
+      // behavior dev warning. See globals.css `html { scroll-behavior: smooth }`.
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
