@@ -9,6 +9,7 @@
     "format-lint": "npm run format && npm run lint",
     "build": "next build",
     "start": "next start",
+    "validate-post": "node scripts/validate-post.mjs",
     "delete-post": "node scripts/delete-post.mjs",
     "generate-pwa-icons": "node scripts/generate-pwa-icons.mjs"
   },
