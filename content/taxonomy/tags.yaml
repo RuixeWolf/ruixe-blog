@@ -10,3 +10,27 @@ typescript:
   name:
     zh: TypeScript
     en: TypeScript
+nginx:
+  name:
+    zh: Nginx
+    en: Nginx
+certbot:
+  name:
+    zh: Certbot
+    en: Certbot
+ssl:
+  name:
+    zh: SSL
+    en: SSL
+vscode:
+  name:
+    zh: VS Code
+    en: VS Code
+copilot:
+  name:
+    zh: GitHub Copilot
+    en: GitHub Copilot
+openspec:
+  name:
+    zh: OpenSpec
+    en: OpenSpec

@@ -431,7 +431,7 @@ Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog
 - 实现 RSS 功能
 - 实现 llms.txt 功能
 - 实现 PWA 功能
-- 创建 `create-post` Agent Skill，用于 AI 辅助快捷创建文章文件
+- 创建 `publish-post` Agent Skill，用于 AI 辅助快捷发布新文章或更新文章
 
 **网站图标与 OpenGraph 图片**
 
@@ -444,3 +444,24 @@ Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog
 **llms.txt**
 
 截止我开发 llms.txt 功能时，[llms.txt 规范](https://llmstxt.org/) 已经升级至 v2，推荐网站根路径可访问 `/llms.txt` + `/xxx/xxx.md` 的方式，不再使用 `llms-full.txt`，让 AI Agents 访问网站时精简化按需读取。
+
+**PWA**
+
+网站首版 PWA 功能仅限能安装到桌面，提供基础的 `manifest.json` 配置与 App Icon。浏览器获取 `manifest.json` 时使用 `app/manifest.ts` 动态生成，生成不同尺寸的 App Icon 使用 `scripts/generate-pwa-icons.mjs` 脚本。
+
+**`publish-post` Agent Skill**
+
+- 用户创建或编辑 `/content/posts` 或 `/drafts` 的文章文件后，可以在 Agents 工具对话使用 `publish-post` skills 辅助快捷发布新文章或更新文章
+- Skills 可支持不同的 Agents，如 Copilot, OpenCode, Codex 等
+
+`publish-post` skills 流程设计：
+
+- 用户使用该 Skills 需要明确指定要新建或更新位于 `/content/posts` 或 `/drafts` 的指定文件，如果用户没有指定则需要读取 Git 变更然后使用 Agent 工具内置的询问用户工具让用户选择本次发布任务的文章文件
+- 对目标文章文件读取当前 Git 变更，区分是新增文章还是更改已有的文章
+- 发布文章流程：
+  - 补全或完善 Fontmatter
+  - 为文章使用合适的分类或标签（如果不确定请向用户提问），如果新增分类或标签，需要更改 `categories.yaml` 与 `tags.yaml`
+  - 新增文章：为这篇文章补全创建多语言版本的文章文件
+  - 更新文章：按目标文件的改动内容，更改这篇文章的其他语言版本的内容
+
+同时还添加了文章校验工具 `scripts/validate-posts.mjs`，用于校验文章文件的 Fontmatter 是否符合规范，是否缺少多语言版本的文章文件，是否缺少分类或标签的翻译等。

@@ -1,6 +1,15 @@
-# 首次使用 VS Code Agents Window
+---
+title: 首次使用 VS Code Agents Window
+description: 在 VS Code Agents Window 中结合 OpenSpec 工作流为个人博客开发文章搜索功能，记录从 Copilot Chat 迁移到 Agents Window 的上手过程、多对话会话管理、本地 Code Review 的使用体验，以及遇到的 Bug 与总结。
+publishedTime: '2026-08-18'
+category: ai-coding
+tags:
+  - vscode
+  - copilot
+  - openspec
+---
 
-记录一篇使用 VSCode Angents Window + OpenSpec 工作流的使用体验。
+记录一篇使用 VS Code Agents Window + OpenSpec 工作流的使用体验。
 
 VS Code 的 **Agents Window（代理窗口）** 功能发布于 **2026年5月13日**。该功能随着 **VS Code 1.120** 版本更新正式进入 Stable（稳定版）的预览阶段。
 
@@ -81,7 +90,7 @@ Please complete only the following tasks:
 
 将代码提交并推送远程分支，创建 PR 后可以使用 Agents Window 的 Code Review 功能自动评审代码变更。
 
-在 Agents Window 右侧的代码变更视图上方有一个 `Run Code Review` 按钮，点击后会自动新建 Chat 并发送 `/code-review`，调用内置的 Code Review skill，这是 VSCode Editor Copilot Chat 没有的功能，用起来很方便。
+在 Agents Window 右侧的代码变更视图上方有一个 `Run Code Review` 按钮，点击后会自动新建 Chat 并发送 `/code-review`，调用内置的 Code Review skill，这是 VS Code Editor Copilot Chat 没有的功能，用起来很方便。
 
 我曾经为 Github Copilot 开启了 PR 自动触发云端 Agent code review，响应结果质量一般，还要消耗不少的 Token Credits，因此我关闭了这个功能。
 
@@ -91,14 +100,13 @@ Code Review 结束后，查看生成的代码评论，可以编辑与删除评�
 
 ## Agents Window 使用体验
 
-总体来看 Agents Window 体验还不错，像是介于代码编辑器 IDE + Agent Chat 的产品（如 VSCode、JetBrains IDEA 等）与纯 Vibe Coding Agent 的产品（如 Codex、Claude Code 等）之间。
+总体来看 Agents Window 体验还不错，像是介于代码编辑器 IDE + Agent Chat 的产品（如 VS Code、JetBrains IDEA 等）与纯 Vibe Coding Agent 的产品（如 Codex、Claude Code 等）之间。
 
-但还目前有很多 Bug 影响体验，可能是大量使用 Vibe Coding 又没有严格测试导致的，以下是我在 VSCode 1.130.0 版本的 Agents Window 遇到的一些 Bug
+但目前还有很多 Bug 影响体验，可能是大量使用 Vibe Coding 又没有严格测试导致的，以下是我在 VS Code 1.130.0 版本的 Agents Window 遇到的一些 Bug
 
-- 必须先启动 VSCode 编辑器窗口等待 OAICopilot 插件加载后再打开 Agents Window 才能使用 OAICopilot 注册的自定义模型，只打开 Agents Window 无法使用自定义模型。
-
+- 必须先启动 VS Code 编辑器窗口等待 OAICopilot 插件加载后再打开 Agents Window 才能使用 OAICopilot 注册的自定义模型，只打开 Agents Window 无法使用自定义模型。
 - 点击 `Create Pull Request` 按钮没有反应，按钮没有禁用，但是点击后没有操作也没有报错提示。我的预期是像 Claude Code Desktop 那样，自动使用创建 PR 工作流，提交代码 + 推送 + 创建 PR 一条龙，搜了下发现需要我自己先提交代码推送到远程。
 - 运行 Code Review 后点击提交 Agent comments 按钮没有反应，具体情况同上。
 - 重启窗口后右上方的操作按钮会改变，可能是 `Create Pull Request` ，也可能是 `Run Code Review`，又或者是其他功能。
 
-希望未来能够解决这些问题，完善用户体验。我之后应该会混合使用 VSCode Copilot Chat 与 Agents Window 两种模式，可能还会有新的使用体验。
+希望未来能够解决这些问题，完善用户体验。我之后应该会混合使用 VS Code Copilot Chat 与 Agents Window 两种模式，可能还会有新的使用体验。
