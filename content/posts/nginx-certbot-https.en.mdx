@@ -1,0 +1,166 @@
+---
+title: Configuring a Free SSL Certificate for a Web Server
+description: Serve frontend static assets with Nginx and reverse-proxy the backend API, then use Certbot with Let's Encrypt to automatically issue and renew free SSL certificates for full-site HTTPS.
+publishedTime: '2026-08-18'
+category: devops
+tags:
+  - nginx
+  - certbot
+  - ssl
+---
+
+A while ago I discovered another "cyber benefactor": [Let's Encrypt](https://letsencrypt.org/), which provides free SSL certificates. Buying an SSL certificate from [GlobalSign](https://www.globalsign.com/) costs several thousand RMB per year, yet Let's Encrypt offers them for free - and paired with Certbot, certificate provisioning and renewal can be fully automated.
+
+This post documents how I configured Nginx and a free SSL certificate for a web server hosting a frontend/backend-separated deployment.
+
+## Server Status and Goals
+
+### Current Setup
+
+Two projects deployed separately: the frontend uploads its Vue.js build output (pure static files) to the server, where a Node.js CLI HTTP tool serves it on port 80.
+
+The backend is built with Nest.js. The server clones the full repository, runs the build, and executes the entry JS file of the build output, with the backend bound to port 8080.
+
+### Goals
+
+Use Nginx to serve the frontend build output as static files and act as a reverse proxy for the backend.
+
+Use Certbot + Let's Encrypt to configure a free SSL certificate.
+
+The end state: the server only exposes port 443. Users access the frontend at `https://example.com` and the backend API at `https://example.com/api`.
+
+## Installing and Configuring Nginx
+
+**Install Nginx on Ubuntu**
+
+```bash
+sudo apt update
+sudo apt install nginx
+```
+
+**Start Nginx**
+
+```bash
+sudo systemctl enable nginx
+sudo systemctl start nginx
+```
+
+**Check the Nginx status**
+
+```bash
+systemctl status nginx
+```
+
+Visiting `http://example.com` in a browser now shows the default Nginx page.
+
+Store the frontend build output at `/var/www/frontend`
+
+```
+/var/www/frontend
+├── index.html
+├── assets
+└── favicon.ico
+```
+
+**Create the Nginx config file** `/etc/nginx/sites-available/my-site`
+
+```nginx
+server {
+    listen 80;
+
+    server_name example.com;
+
+    root /var/www/frontend;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080/;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+**Enable the new Nginx config file**
+
+```bash
+sudo ln -s /etc/nginx/sites-available/my-site /etc/nginx/sites-enabled/
+```
+
+**Validate the Nginx config and reload**
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Visiting the site again, the frontend URL is `http://example.com` and the backend URL is `http://example.com/api/xxx`. At this point Nginx lets both services be reached through a single port 80.
+
+## Installing Certbot and Configuring the SSL Certificate
+
+Because Certbot and Let's Encrypt update frequently, traditional apt package repositories lag behind - so installing Certbot via Snap is recommended.
+
+**Install Snap**
+
+```bash
+sudo apt install snapd
+sudo snap install core
+sudo snap refresh core
+```
+
+**Install Certbot**
+
+```bash
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+certbot --version
+```
+
+> The snap `--classic` flag disables Snap's default sandbox isolation and grants the program full access to the host system
+
+**Request an SSL certificate with Certbot**
+
+```bash
+sudo certbot --nginx
+```
+
+Certbot will:
+
+1. Detect Nginx automatically
+2. Modify the config automatically
+3. Request the certificate automatically
+4. Configure HTTPS automatically
+5. Set up the HTTP -> HTTPS redirect (optional)
+
+> Certbot adds an extra port-80 listener to the Nginx config for Let's Encrypt domain validation
+
+**Automatic certificate renewal**
+
+Certbot installed via Snap automatically installs a systemd timer. Once the SSL certificate is configured, Certbot creates a scheduled task that periodically checks and re-issues certificates.
+
+**View the Certbot timer**
+
+```bash
+systemctl list-timers | grep certbot
+```
+
+**Test certificate renewal**
+
+```bash
+sudo certbot renew --dry-run
+```
+
+On success it prints `Congratulations, all simulated renewals succeeded`
+
+---
+
+With that, Nginx proxies both the frontend and backend through a single port, and Certbot + Let's Encrypt issues and deploys SSL certificates automatically - no more manual work needed.

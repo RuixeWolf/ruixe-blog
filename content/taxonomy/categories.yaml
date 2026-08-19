@@ -10,3 +10,7 @@ devops:
   name:
     zh: 运维与部署
     en: DevOps
+ai-coding:
+  name:
+    zh: AI 编程
+    en: AI Coding

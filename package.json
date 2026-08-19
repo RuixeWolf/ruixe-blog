@@ -2,6 +2,7 @@
   "name": "ruixe-blog",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
     "dev": "next dev",
     "format": "prettier --write .",
@@ -9,6 +10,7 @@
     "format-lint": "npm run format && npm run lint",
     "build": "next build",
     "start": "next start",
+    "validate-post": "node scripts/validate-post.mjs",
     "delete-post": "node scripts/delete-post.mjs",
     "generate-pwa-icons": "node scripts/generate-pwa-icons.mjs"
   },
