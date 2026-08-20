@@ -384,7 +384,7 @@ pnpm create next-app@latest --skip-install --ts --eslint --react-compiler --tail
 
 Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog
 
-在 Vercel 导入 Github 项目仓库一键部署，网站访问地址 https://ruixe-blog.vercel.app，我计划等待首版业务功能开发完成后再为 Vercel 部署添加自定义域名。
+在 Vercel 导入 Github 项目仓库一键部署，网站访问地址 https://ruixe-blog.vercel.app，之后为 Vercel 部署添加了自定义域名 https://blog.ruixe.net 作为博客网站的正式访问域名，新老域名都可以访问。
 
 在 Vercel 的项目管理页面可以启用访问分析与速度洞察，启用后需要在项目中添加相应的代码才能生效。Vercel 提供了很方便的功能，可以实现一键让 Vercel 的云端 AI Agent 实现代码改动，然后自动提交 Github PR，我只需要 Code Review 然后合并。等待 Vercel 重新构建部署后，访问博客网站就能在 Vercel 后台看到访问分析与速度洞察了。
 

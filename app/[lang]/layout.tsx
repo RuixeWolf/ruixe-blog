@@ -55,6 +55,25 @@ export const viewport: Viewport = {
 }
 
 /**
+ * Builds the `verification` metadata for search-engine site verification.
+ *
+ * Emits Google/Yahoo/Yandex/IndieAuth/Bing `<meta>` tags only for tokens
+ * configured in `content/site.yaml`; empty or unset tokens render nothing.
+ *
+ * @returns Verification metadata consumed by Next.js metadata routing.
+ */
+function buildVerification(): Metadata['verification'] {
+  const { google, yahoo, yandex, me, bing } = siteConfig.verification ?? {}
+  return {
+    google: google || undefined,
+    yahoo: yahoo || undefined,
+    yandex: yandex || undefined,
+    me: me || undefined,
+    other: bing ? { 'msvalidate.01': bing } : undefined,
+  }
+}
+
+/**
  * Root + locale metadata. Merges site-wide defaults (formerly in the deleted
  * `app/layout.tsx`) with locale-specific `hreflang` alternates and OpenGraph
  * locale. `metadataBase` is inherited from `siteConfig.siteUrl`.
@@ -73,6 +92,9 @@ export async function generateMetadata({
       template: `%s | ${siteConfig.siteTitle}`,
     },
     description: siteConfig.siteDescription,
+    // Renders the search-engine site verification `<meta>` tags (Google Search
+    // Console / Bing Webmaster Tools) when tokens are configured.
+    verification: buildVerification(),
     // Generates the iOS standalone App meta tags
     // (`apple-mobile-web-app-capable`, `apple-mobile-web-app-title`) so
     // "Add to Home Screen" launches a full-screen standalone experience.

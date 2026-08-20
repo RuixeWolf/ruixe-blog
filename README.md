@@ -4,7 +4,7 @@
 > **Markdown/MDX file-driven** architecture — no CMS, no database. Posts are
 > files in `content/`, parsed and rendered at request time.
 
-**Live:** https://ruixe-blog.vercel.app ·
+**Live:** https://blog.ruixe.net ·
 **Source:** [RuixeWolf/ruixe-blog](https://github.com/RuixeWolf/ruixe-blog)
 
 ## About
@@ -94,7 +94,7 @@ Only one optional env var:
 
 ```bash
 # .env.local
-NEXT_PUBLIC_SITE_URL=https://ruixe-blog.vercel.app  # SEO metadataBase; falls back to the Vercel URL
+NEXT_PUBLIC_SITE_URL=https://blog.ruixe.net  # SEO metadataBase; falls back to the custom domain
 ```
 
 Site identity (GitHub username, title, description) lives in
@@ -203,7 +203,7 @@ preview and production deployments resolve to different URLs.
 
 The `main` branch auto-deploys to Vercel; PRs get preview deploys.
 
-- **Live:** https://ruixe-blog.vercel.app
+- **Live:** https://blog.ruixe.net (also reachable via https://ruixe-blog.vercel.app)
 - **Repo:** [RuixeWolf/ruixe-blog](https://github.com/RuixeWolf/ruixe-blog)
 - **Branch:** `main` (default); feature work happens on `feat/*` branches
 
