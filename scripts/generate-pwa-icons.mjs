@@ -8,13 +8,13 @@
  *   - `icon-192.png`           (192×192, purpose: any)
  *   - `icon-512.png`           (512×512, purpose: any)
  *   - `icon-512-maskable.png`  (512×512, purpose: maskable, content scaled to
- *                               the central 80% safe zone with `#f4f5f6`
+ *                               the central 80% safe zone with `#03142E`
  *                               padding so Android adaptive masks do not clip
  *                               the logo)
  *
  * The maskable safe zone follows the W3C maskable spec (central 80%). The
- * background fill `#f4f5f6` is the sRGB hex of the light `--background` oklch
- * token (`oklch(97.02% 0.0015 243.6)`), matching the site's light theme.
+ * background fill `#03142E` is a dark navy (sRGB 3, 20, 46), matching the
+ * site's dark theme accent for a cohesive maskable splash background.
  *
  * `sharp` is a devDependency (already a transitive dep of `next` for
  * `next/image` optimization); pnpm's strict `node_modules` requires the
@@ -42,8 +42,8 @@ const SOURCE = path.join(root, 'app', 'icon.png')
 /** Absolute path to the `public/` output directory. */
 const PUBLIC = path.join(root, 'public')
 
-/** Light-theme background fill for the maskable safe-zone padding (`#f4f5f6`). */
-const BG = { r: 244, g: 245, b: 246, alpha: 1 }
+/** Dark navy background fill for the maskable safe-zone padding (`#03142E`). */
+const BG = { r: 3, g: 20, b: 46, alpha: 1 }
 
 /** W3C maskable safe-zone ratio (central 80% of the canvas). */
 const SAFE_RATIO = 0.8

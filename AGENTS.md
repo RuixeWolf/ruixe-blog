@@ -169,5 +169,5 @@ This project uses [OpenSpec](https://openspec.dev) (`spec-driven` schema) for sp
 
 - GitHub: [`RuixeWolf/ruixe-blog`](https://github.com/RuixeWolf/ruixe-blog) (branch `main`).
 - Vercel auto-deploys `main`; PRs get preview deploys.
-- Live: https://ruixe-blog.vercel.app (custom domain planned post-MVP).
+- Live: https://blog.ruixe.net (custom domain; the default https://ruixe-blog.vercel.app remains reachable).
 - Analytics & Speed Insights are enabled - keep the `<Analytics />` / `<SpeedInsights />` tags in `app/[lang]/layout.tsx`.
