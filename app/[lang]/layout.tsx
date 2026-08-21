@@ -13,6 +13,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
 import { SearchProvider } from '@/components/search/SearchProvider'
+import { ThemeColorSync } from '@/components/theme/ThemeColorSync'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
@@ -210,6 +211,7 @@ export default async function LocaleLayout({
     >
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
+          <ThemeColorSync />
           <WebSiteJsonLd />
           <PersonJsonLd />
           <NextIntlClientProvider locale={locale} messages={messages}>

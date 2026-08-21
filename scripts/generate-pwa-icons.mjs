@@ -90,7 +90,9 @@ async function generatePwaIcons() {
   console.log('✓ PWA icons generated in public/')
 }
 
-generatePwaIcons().catch((error) => {
+try {
+  await generatePwaIcons()
+} catch (error) {
   console.error(error)
   process.exit(1)
-})
+}

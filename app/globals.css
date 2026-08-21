@@ -29,3 +29,23 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/*
+ * Markdown code styling (pairs with `mdx-components.tsx`).
+ *
+ * Inline vs block code is distinguished structurally (`:not(pre) > code`)
+ * instead of by the `language-*` class: remark only emits that class when a
+ * fenced block declares its language, so bare ``` fences must not receive
+ * inline-code styling. Selectors mirror the typography plugin's own shape
+ * (zero-specificity `:where()`, honoring `not-prose` escapes) so they win by
+ * source order while keeping the same escape hatch semantics.
+ */
+.prose :where(code):not(:where([class~='not-prose'] *))::before,
+.prose :where(code):not(:where([class~='not-prose'] *))::after {
+  /* Disable the GitHub-style decorative backticks painted around inline code. */
+  content: none;
+}
+
+.prose :where(:not(pre) > code):not(:where([class~='not-prose'] *)) {
+  @apply rounded bg-muted/20 px-1.5 py-0.5 text-sm;
+}
