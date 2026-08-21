@@ -121,10 +121,21 @@ const nextConfig: NextConfig = {
   },
 }
 
+/**
+ * Absolute path to the CJK autolink terminator remark plugin.
+ *
+ * `@next/mdx` under Turbopack only accepts plugins as serializable string
+ * specifiers, resolved against the compiled MDX file's directory - so a
+ * relative path would resolve differently per file. An absolute path
+ * (computed from `process.cwd()`, where `next dev/build` runs) resolves
+ * identically for every MDX resource.
+ */
+const cjkAutolinkPluginPath = path.join(process.cwd(), 'plugins', 'remark-cjk-autolink.mjs')
+
 /** MDX compilation wrapper with remark/rehype plugins (string names for Turbopack). */
 const withMDX = createMDX({
   options: {
-    remarkPlugins: ['remark-gfm', 'remark-frontmatter'],
+    remarkPlugins: ['remark-gfm', cjkAutolinkPluginPath, 'remark-frontmatter'],
     rehypePlugins: ['rehype-slug'],
   },
 })
