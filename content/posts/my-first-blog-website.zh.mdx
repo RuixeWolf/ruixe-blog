@@ -1,4 +1,13 @@
-# 我的第一个个人博客网站
+---
+title: 我的个人博客网站的诞生
+description: 从大学时的构想到正式上线，记录我的个人博客网站从需求规划、技术选型、三阶段开发到正式上线的完整历程，以及 AI Coding 工作流在其中的实践。
+publishedTime: '2026-08-21'
+category: frontend
+tags:
+  - next-js
+  - openspec
+  - copilot
+---
 
 记录我开发第一个属于自己的博客网站的过程与想法，这篇文章就作为我博客的第一篇文章吧！
 
@@ -39,12 +48,12 @@ AI Coding 时代更是如此，明确且详细的目标与需求会让 AI 产出
 - 技术栈使用 Next.js，源码托管在 Github，运行部署在 Vercel
 - UI 框架使用 HeroUI，图标库使用 Lucide
 - 页面支持不同屏幕宽度的响应式布局
-- 页面支持多语言国际化
+- 页面与文章支持多语言国际化
 - 页面支持深浅色主题切换
 - 良好的 SEO 能力，博客文章列表和内容能被收录至搜索引擎
-- 支持 RSS 订阅
+- 支持 RSS 订阅，可以使用第三方文章阅读器订阅网站博客内容的变更
 - 支持 PWA，可将网站添加至操作系统桌面，实现快捷打开，不需要过多缓存数据
-- 支持 llms.txt，提升网站内容 AI 友好度
+- 支持 llms.txt，提升网站内容 AI 访问的友好度
 - 尽量降低运维部署成本
 
 ## 技术选型
@@ -53,7 +62,7 @@ AI Coding 时代更是如此，明确且详细的目标与需求会让 AI 产出
 
 我预期这个博客项目的技术栈为 Next.js，UI 框架使用 HeroUI，部署方式通过 Github 开源仓库 + Vercel。
 
-> 试用了 Vercel 部署 Next.js 项目后，我觉得这简直是太方便了，几乎解决了 Next.js 全栈项目全部的后端服务器相关功能的需求，不需要自己搭建服务器、管理数据库、处理请求分析等操作
+> 试用了 Vercel 部署 Next.js 项目后，我觉得这简直是太方便了，几乎解决了 Next.js 全栈项目全部的后端服务器相关功能的需求，不需要自己搭建服务器、管理数据库、处理请求分析等操作。
 
 ### 文章数据管理
 
@@ -114,7 +123,7 @@ AI Coding 时代更是如此，明确且详细的目标与需求会让 AI 产出
 
 ### 文章内容图片资源托管
 
-我计划使用 CDN 云服务，不把图片等媒体资源存放在 Git 仓库，且考虑全球范围的可访问性，以下是两个云服务厂商的方案：
+我计划使用 CDN 云服务，不把图片等媒体资源存放在 Git 仓库，且考虑全球范围的可访问性，以下是几个云服务厂商的方案：
 
 - **CloudFlare R2** - ClaudeFlare 对象存储服务，免费存储数据量 10 GB
 - **Amazon S3** - 亚马逊 S3 对象存储服务，无免费额度
@@ -382,9 +391,9 @@ pnpm create next-app@latest --skip-install --ts --eslint --react-compiler --tail
 
 项目基础框架完成，dev 启动后页面展示了 HeroUI 与 Lucide 示例，Prettier 与 ESLint 运行正常后，正式创建 Github 项目仓库。
 
-Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog
+Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog。
 
-在 Vercel 导入 Github 项目仓库一键部署，网站访问地址 https://ruixe-blog.vercel.app，之后为 Vercel 部署添加了自定义域名 https://blog.ruixe.net 作为博客网站的正式访问域名，新老域名都可以访问。
+在 Vercel 导入 Github 项目仓库一键部署，网站访问地址 https://ruixe-blog.vercel.app，正式上线前为 Vercel 部署添加了自定义域名 https://blog.ruixe.net 作为博客网站的正式访问域名，新老域名都可以访问。
 
 在 Vercel 的项目管理页面可以启用访问分析与速度洞察，启用后需要在项目中添加相应的代码才能生效。Vercel 提供了很方便的功能，可以实现一键让 Vercel 的云端 AI Agent 实现代码改动，然后自动提交 Github PR，我只需要 Code Review 然后合并。等待 Vercel 重新构建部署后，访问博客网站就能在 Vercel 后台看到访问分析与速度洞察了。
 
@@ -417,7 +426,7 @@ Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog
 
 接入 CloudFlare R2 的功能主要是为了配置 PicGo 工具，实现 Typora 等 Markdown 编辑工具粘贴图片自动上传。项目的代码改动不多，主要是使用 `next/image` 做一层图片转换处理，访问博客文章页面获取图片时匹配更合适的尺寸与自动压缩图片文件大小。
 
-以上是为博客网站的增强功能，开发过程中总共创建了 4 个 OpenSpec Changes
+二阶段是博客网站的增强功能，开发过程中总共创建了 4 个 OpenSpec Changes
 
 - **2026-07-29-add-post-search** - 实现文章搜索功能，使用 Fuze.js 静态搜索库
 - **2026-07-29-add-post-comments** - 实现文章评论功能，使用 Giscus 第三方评论工具
@@ -449,7 +458,7 @@ Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog
 
 网站首版 PWA 功能仅限能安装到桌面，提供基础的 `manifest.json` 配置与 App Icon。浏览器获取 `manifest.json` 时使用 `app/manifest.ts` 动态生成，生成不同尺寸的 App Icon 使用 `scripts/generate-pwa-icons.mjs` 脚本。
 
-**`publish-post` Agent Skill**
+**Agent Skill `publish-post`**
 
 - 用户创建或编辑 `/content/posts` 或 `/drafts` 的文章文件后，可以在 Agents 工具对话使用 `publish-post` skills 辅助快捷发布新文章或更新文章
 - Skills 可支持不同的 Agents，如 Copilot, OpenCode, Codex 等
@@ -459,9 +468,42 @@ Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog
 - 用户使用该 Skills 需要明确指定要新建或更新位于 `/content/posts` 或 `/drafts` 的指定文件，如果用户没有指定则需要读取 Git 变更然后使用 Agent 工具内置的询问用户工具让用户选择本次发布任务的文章文件
 - 对目标文章文件读取当前 Git 变更，区分是新增文章还是更改已有的文章
 - 发布文章流程：
-  - 补全或完善 Fontmatter
+  - 补全或完善文章 Markdown 文件的 Fontmatter
   - 为文章使用合适的分类或标签（如果不确定请向用户提问），如果新增分类或标签，需要更改 `categories.yaml` 与 `tags.yaml`
   - 新增文章：为这篇文章补全创建多语言版本的文章文件
   - 更新文章：按目标文件的改动内容，更改这篇文章的其他语言版本的内容
 
 同时还添加了文章校验工具 `scripts/validate-posts.mjs`，用于校验文章文件的 Fontmatter 是否符合规范，是否缺少多语言版本的文章文件，是否缺少分类或标签的翻译等。
+
+三阶段实现了博客网站锦上添花的功能，开发过程中总共创建了 4 个 OpenSpec Changes
+
+- **2026-08-12-add-seo-optimization** - 实现 SEO 优化，包含 sitemap 等功能
+- **2026-08-13-add-rss-feed** - 实现 RSS 功能
+- **2026-08-14-add-llms-txt** - 实现 llms.txt 功能
+- **2026-08-14-add-pwa** - 实现 PWA 功能
+
+### 正式上线
+
+**自定义域名配置**
+
+在 Vercel 的控制台添加了博客网站自定义访问域名 `blog.ruixe.net`，并在 CloudFlare 配置 DNS 解析。在 CloudFlare 配置 Vercel 项目的 DNS 解析时，Vercel 推荐不要开启 CloudFlare 的代理服务（小黄云），使用 DNS only 模式，否则 Vercel 无法完成域名 SSL 证书签发，影响流量统计等功能。
+
+**正式文章创建**
+
+删除了开发阶段的测试文章 `hello-world`，使用 Agent Skill `publish-post` 让 AI 辅助将草稿文章创建为正式文章。
+
+**SEO 站长配置**
+
+实现在 `site.yaml` 配置不同搜索引擎的站长管理的网站归属验证 Token 自动渲染 HTML meta 标签，并在 Google Search Console 与 Microsoft Bing Webmaster 添加了我的博客网站。
+
+## 总结与展望
+
+历时一个月，从写这篇文章到博客网站正式上线，中途利用空闲时间断断续续推进项目开发。终于将一个我还是学生时的理想实现了，我现在有了一个属于自己的技术博客网站，不再受大平台的内容审查限制，也不需要担心自己的博客文章被大平台用于作者不知情的付费阅读营收。当然，不在大平台发布文章意味着我需要自己维护博客网站的项目，需要自己处理博客内容曝光率和用户流量，但这也能让我学到很多新的知识。
+
+在这个博客网站规划与开发的过程中，我了解到了 Next.js 开发与部署 Markdown 文件驱动型网站的全流程，了解了新的技术栈和很多博客网站相关的知识，也积累了 Next.js 开发、Vercel 部署、CloudFlare 操作等实践经验，还开始培养自己记录知识库文章的习惯。
+
+后续我会在我的博客网站继续发布新的文章，分享技术内容的同时也作为我自己的知识库。未来我也会持续完善这个博客网站，与时俱进。
+
+### 感谢
+
+在博客的功能与 UI 设计阶段参考了 [碳苯 Carbon](https://github.com/CoderSerio) 的博客网站 https://furrycoder.com 和 阮一峰 的博客网站 https://www.ruanyifeng.com/blog，当然还有我和 [RylinWolf](https://github.com/RylinWolf) 共同开发的 CMS 博客系统 Wolf Blog https://wolfblog.cn。我也非常感谢整个开源技术社区，我们站在巨人的肩膀上前行，共同创造新世界。

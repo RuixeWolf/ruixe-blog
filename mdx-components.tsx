@@ -79,9 +79,12 @@ function MDXImage({ alt, src, ...rest }: ImageProps) {
  * - `a` -> external links open in a new tab with `rel="noopener noreferrer"`
  * - `pre` -> `CodeBlock` client component (theme-aware `bg-surface-tertiary`
  *   background + copy-to-clipboard button)
- * - `code` -> inline code highlighted with `bg-muted`; block code (inside `pre`,
- *   detected via `language-xxx` className) is transparent so the `CodeBlock`
- *   background shows through
+ * - `code` -> rendered as-is (the `language-xxx` class is preserved for future
+ *   syntax highlighting); inline vs block styling is decided structurally in
+ *   `app/globals.css` (`:not(pre) > code`) because remark only emits a
+ *   `language-*` class when a fence declares its language - bare ``` fences
+ *   would otherwise be misclassified as inline code. The typography plugin's
+ *   decorative backtick pseudo-elements are disabled there as well.
  *
  * All remaining HTML elements use their default tags; prose typography is
  * applied at the page level via the `prose` class.
@@ -97,23 +100,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     pre: ({ children, ...rest }: React.HTMLAttributes<HTMLPreElement>) => (
       <CodeBlock {...rest}>{children}</CodeBlock>
     ),
-    code: ({ className, children, ...rest }: React.HTMLAttributes<HTMLElement>) => {
-      const isBlockCode = typeof className === 'string' && className.startsWith('language-')
-      // Block <code> lives inside <pre>; preserve the language-xxx class for
-      // future syntax highlighting and let the CodeBlock background show through.
-      if (isBlockCode) {
-        return (
-          <code className={className} {...rest}>
-            {children}
-          </code>
-        )
-      }
-      // Inline <code>: highlighted background for inline code references.
-      return (
-        <code className="rounded bg-muted px-1.5 py-0.5 text-sm" {...rest}>
-          {children}
-        </code>
-      )
-    },
+    // No inline/block branching here: inline-code styling lives in
+    // `app/globals.css` under a structural `:not(pre) > code` selector, since
+    // bare fenced blocks emit no `language-*` class to branch on.
+    code: ({ className, children, ...rest }: React.HTMLAttributes<HTMLElement>) => (
+      <code className={className} {...rest}>
+        {children}
+      </code>
+    ),
   }
 }

@@ -1,0 +1,508 @@
+---
+title: The Birth of My Personal Blog Website
+description: From a college-day idea to a live site - the full journey of planning, tech selection, and three phases of development behind my personal blog website, with AI coding workflow practices along the way.
+publishedTime: '2026-08-21'
+category: frontend
+tags:
+  - next-js
+  - openspec
+  - copilot
+---
+
+A record of the process and thoughts behind building my very first blog website - and what better first post for this blog than that story?
+
+## Background
+
+Back in college, I already wanted to build a blog website of my own - an unconstrained platform to publish my technical articles, one that could also serve as a "business card" showcasing my web development skills. The idea was lovely, but I never acted on it for one reason or another: college was busy with coursework and my thesis, and after graduation, work took over. But now, in mid-2026, AI coding has matured and become part of my daily workflow, dramatically boosting my development efficiency. So my personal blog project finally started - ~~new folder created~~.
+
+## Initial Requirements
+
+I believe that in any software project, investing significant time and effort early on to clarify goals and requirements is worthwhile. It clearly improves project quality and how closely the final product matches expectations, and it makes the development process smoother.
+
+This is even more true in the age of AI coding. Clear and detailed goals and requirements lead to AI output that matches your expectations. If you don't know what you want when you ask the AI to start writing code, the AI certainly won't know either.
+
+I believe that in the future era of AI coding, a programmer's role will shift to something between a "code farmer" and a "product manager". The ability to communicate clear goals and requirements to AI will become more important than the ability to write good code yourself.
+
+> These are my thoughts on AI coding as of mid-2026, and they will likely evolve as AI model capabilities and toolchains improve. Who knows - maybe one day a brain-computer interface will read our thoughts directly, and we'll skip prompt-based interaction entirely. We could produce several versions of a project at N times today's speed, pick whichever best matches expectations, then think and iterate a few more rounds 🤣
+
+### Blog Posts
+
+- The site is a personal blog that publishes only my own articles; other users cannot publish
+- Each post has a title, description/summary, publish time, modified time, category, tags, and other metadata
+- Posts may include images and other media assets
+- Posts have a simple comment feature so visitors can leave comments
+- Posts are multilingual: users can access different language versions of the same post via the language path parameter in the URL
+- Post content is searchable: click the search icon in the menu bar to open a search dialog for keyword search
+
+### Page Layout Design
+
+The page layout resembles a GitHub profile page, structured as follows:
+
+- Header menu bar
+- Main content below the menu bar
+  - Sidebar (persistent), showing my personal profile card
+  - Page content (dynamic, follows the URL path), rendering the page for the current URL
+
+### Other Requirements
+
+- Tech stack: Next.js; source hosted on GitHub; deployed on Vercel
+- UI framework: HeroUI; icon library: Lucide
+- Responsive layout across different screen widths
+- Internationalization for both the UI and posts
+- Light/dark theme toggle
+- Good SEO so post lists and content can be indexed by search engines
+- RSS support, so readers can subscribe to blog updates with third-party readers
+- PWA support, so the site can be added to the OS home screen for quick access, without caching too much data
+- llms.txt support to make the site more friendly to AI access
+- Keep operational and deployment costs as low as possible
+
+## Tech Selection
+
+In my current AI coding workflow, tech selection for a brand-new project happens in web-based AI chats such as Gemini or ChatGPT; for existing projects, OpenSpec Explore plus web search is an option. These help me quickly learn unfamiliar tech stacks and find solutions that best fit my needs.
+
+My expected stack for this blog project was Next.js with the HeroUI UI framework, deployed via an open-source GitHub repository plus Vercel.
+
+> After trying Vercel for deploying a Next.js project, I found it incredibly convenient - it covers virtually all backend/server needs of a full-stack Next.js project. No server to set up, no database to manage, no traffic analytics plumbing to build.
+
+### Post Data Management
+
+This is the big architectural decision for the whole blog: store posts as files or in a database. Every other tech decision builds on top of this one.
+
+#### Option 1: Markdown / MDX file-driven
+
+No custom CRUD backend. Posts are saved as Markdown files and rendered by Next.js. Metadata such as title, description, category, and tags lives in the frontmatter (the YAML block at the top of each Markdown file).
+
+**Pros**
+
+- Lower development cost - no separate frontend/backend split, no complex backend or database to manage, so you don't end up with a half-built website and still zero published posts
+
+- Extremely low operational cost - no server to rent for a backend
+
+**Cons**
+
+- Every edit requires a Git commit; no direct online editing ~~(arguably not even a con - it pads your GitHub commit graph)~~
+- Limited extensibility - features like post "likes" would be hard to add later
+
+#### Option 2: CMS database-driven
+
+Use an existing CMS framework or build one. Since I wanted to build the blog website myself, choosing this path meant building a CRUD backend and managing a database.
+
+**Pros**
+
+- Flexible for future features
+- Online editing with instant publishing
+
+**Cons**
+
+- High development and operational cost
+
+I ultimately chose Option 1: a **Markdown file-driven** architecture.
+
+### Markdown Rendering
+
+Having chosen the file-driven approach, the next question was how to render Markdown content. Next.js offers these options:
+
+- **@next/mdx** - the officially maintained MDX rendering tool, integrates well with the Next.js App Router, but requires manual handling of reading per-locale post files; a good fit for file-driven blogs
+- **next-mdx-remote** - a community tool for remotely loading and rendering MDX in Next.js, suited to CMS setups; its GitHub repository was marked read-only/archived on April 10, 2026, and is no longer maintained
+- **@mdx-js/mdx** - an MDX compiler usable beyond Next.js; `@next/mdx` is a wrapper around it
+
+After weighing the options, I chose **@next/mdx**.
+
+### Post Comments
+
+I planned to use a third-party comment tool embedded directly in the post detail page, rather than building complex user authentication and comment moderation backends. While exploring with AI, I learned about a low-cost solution: Giscus (backed by GitHub Discussions). So the comments feature is built on **Giscus**.
+
+### Post Search
+
+A file-driven personal blog can use a static search solution. Two candidates:
+
+- **Fuse.js** - a lightweight fuzzy-search library implemented in JS/TS, friendly to Next.js projects, 20k+ GitHub stars, active repo and community
+- **Pagefind** - a fully static search library implemented in Rust, 5k+ GitHub stars, active repo and community
+
+I also compared dynamic search tools like Algolia and Meilisearch. In the end, I chose **Fuse.js**.
+
+### Media Asset Hosting for Post Images
+
+I planned to use a CDN cloud service and keep images and other media out of the Git repository, with global accessibility in mind. Candidates:
+
+- **Cloudflare R2** - Cloudflare object storage, 10 GB free tier
+- **Amazon S3** - AWS object storage, no free tier
+- **Vercel Blob** - Vercel object storage, 250 MB free tier
+- **Alibaba Cloud OSS** - Alibaba Cloud object storage, no free tier
+
+After comparison, I went with the cyber saint **Cloudflare R2** - and while I was there, I bought the domain for this blog on Cloudflare too.
+
+### UI and Post Localization
+
+**UI localization**
+
+I planned to use a mature Next.js i18n solution:
+
+- **next-intl** - the first choice for App Router (Next.js 13+). Designed for React Server Components (RSC) with seamless streaming support; currently the officially recommended and most popular option in the community
+- **next-i18next** - the first choice for Pages Router (Next.js 12 and below). A dedicated Next.js plugin built on the classic i18next ecosystem, mature and stable
+
+I chose **next-intl**.
+
+**Post localization**
+
+Post Markdown filenames include the locale code, e.g. `hello-world.zh.mdx`. After writing a post, I translate it manually or use AI to generate the Markdown files for other languages.
+
+## Detailed Requirements
+
+With the initial requirements settled and tech selected, I expanded them into a detailed specification.
+
+### Page Layout Design
+
+**Wide screen / desktop**
+
+- Header menu bar (persistent)
+  - Left: site title and navigation. Site title is `Ruixe Blog`; nav items: Home, About, GitHub profile link
+  - Right: function bar - post search button, language switcher, theme toggle
+
+- Left sidebar in the body (persistent)
+  - Personal profile card: my GitHub avatar, GitHub username, GitHub link, editable bio and contact info
+  - Post category list
+  - Tag cloud
+- Main page content (dynamic, follows the URL path)
+  - Home - post list
+  - Post detail - post info and content in the center, table of contents on the right. No header nav entry; reached from the post list
+  - About - about me and about this blog
+
+**Narrow screen / mobile**
+
+- Header menu bar (persistent)
+  - Left: "open sidebar menu" button, which opens a menu drawer
+  - Center: site title
+  - Right: function bar with a search button and a settings button. The search button opens a fullscreen search component; the settings popover contains the language switcher and theme toggle
+- Menu drawer (hidden; opened from the header button)
+  - Personal profile card
+  - Navigation, same as desktop
+  - Category list and tag cloud
+- Main page content (dynamic, follows the URL path)
+  - Home - compact profile card, post list
+  - Post detail - post info and content, with the table of contents rendered between the meta and the body in a collapsed Accordion. No header nav entry; reached from the post list
+  - About - about me and about this blog
+
+### URL Design
+
+This determines the App Router structure of the Next.js project. Considering i18n, post slugs, and SEO friendliness - and referencing sites like the Microsoft docs and Apple developer docs - the URL design is:
+
+- `/` - root path; visiting it redirects to the locale path matching the browser's language setting
+- `/[lang]` - home content path with a locale code segment such as `en` or `zh`, e.g. `/zh`; visitors hitting the root path are redirected here, and the home page shows the post list
+- `/[lang]/posts` - post list path, e.g. `/zh/posts`; shows all posts, same as home
+- `/[lang]/posts/<article slug>` - post detail page, e.g. `/zh/posts/hello-world` maps to the file `hello-world.zh.mdx`; shows the post in the matching locale
+- `/[lang]/categories/[categoryId]` - category listing page, e.g. `/zh/categories/frontend`
+- `/[lang]/tags/[tagId]` - tag listing page, e.g. `/zh/tags/next-js`
+- `/[lang]/about` - about page
+
+### Post Metadata
+
+Metadata uses Markdown frontmatter. Schema design:
+
+| Field         | Description     |
+| ------------- | --------------- |
+| title         | Title           |
+| description   | Summary         |
+| publishedTime | Publish time    |
+| modifiedTime  | Modified time   |
+| category      | Category ID     |
+| tags          | List of tag IDs |
+
+Frontmatter schema example:
+
+```markdown
+---
+title: 'Hello World'
+description: 'My first blog post'
+publishedTime: '2026-01-01'
+modifiedTime: '2026-01-05'
+category: 'frontend'
+tags:
+  - next-js
+  - react
+---
+```
+
+### Post Content and Metadata Localization
+
+**Content:** locale variants of a post share one slug, distinguished by filename extension: `{slug}.{locale}.mdx`, e.g. `hello-world.zh.mdx`.
+
+**Categories and tags:** frontmatter stores taxonomy IDs; localization is handled through taxonomy translation files.
+
+Directory layout:
+
+```
+content/
+├── posts/
+│   ├── hello-world.zh.mdx
+│   ├── hello-world.en.mdx
+│
+└── taxonomy/
+    ├── categories.yaml
+    └── tags.yaml
+```
+
+**categories.yaml**
+
+Example:
+
+```yaml
+frontend:
+  name:
+    zh: 前端开发
+    en: Frontend Development
+
+backend:
+  name:
+    zh: 后端开发
+    en: Backend Development
+
+devops:
+  name:
+    zh: DevOps
+    en: DevOps
+```
+
+Rules:
+
+- IDs are unique
+- No hierarchy
+- Translations must exist for every supported locale
+- Deleting/changing an ID requires URL-compatibility handling (redirects)
+
+**tags.yaml**
+
+```yaml
+next-js:
+  name:
+    zh: Next.js
+    en: Next.js
+
+react:
+  name:
+    zh: React
+    en: React
+
+typescript:
+  name:
+    zh: TypeScript
+    en: TypeScript
+```
+
+Rules:
+
+- IDs are unique
+- No grouping
+- Translations must be complete
+- There can be many tags
+
+### Post Deletion
+
+When a post is deleted, a redirect is created for its original URL, keeping things SEO-friendly and avoiding dead links.
+
+I implemented a deletion script that takes a post slug as an argument and:
+
+- Checks whether the post exists; errors if not, otherwise asks for confirmation
+- Deletes the post files
+- Creates the redirect for the original URL
+- Locks the post's Giscus discussion
+
+### Personal Profile Card
+
+- GitHub account info (configurable username; fetched live from the GitHub API on each visit)
+  - Username
+  - Avatar
+- Configurable personal info
+  - GitHub username (used to fetch the GitHub profile)
+  - Bio
+  - Contact details - multiple entries, each with a type (email, phone, etc.) and a value
+
+## Development Process
+
+With the detailed requirements done, it was time to build. VS Code, launch!
+
+My current AI coding workflow is mainly VS Code Copilot paired with the OpenSpec Opsx workflow - spec-driven and intent-driven. I'll share more about my AI coding workflow in another post.
+
+### Creating the Project and Base Framework
+
+Created the Next.js project with `create-next-app`:
+
+```
+❯ pnpm create next-app@latest ruixe-blog
+
+√ Would you like to use the recommended Next.js defaults? » No, customize settings
+√ Would you like to use TypeScript? ... Yes
+√ Which linter would you like to use? » ESLint
+√ Would you like to use React Compiler? ... Yes
+√ Would you like to use Tailwind CSS? ... Yes
+√ Would you like your code inside a `src/` directory? ... No
+√ Would you like to use App Router? (recommended) ... Yes
+√ Would you like to customize the import alias (`@/*` by default)? ... No
+√ Would you like to include AGENTS.md to guide coding agents to write up-to-date Next.js code? ... Yes
+
+Creating a new Next.js app in ruixe-blog.
+```
+
+One gotcha when using pnpm with `next-app`: after the template is created, `next-app` automatically installs dependencies with pnpm - but pnpm blocks postinstall scripts of third-party dependencies by default, which aborts the rest of `next-app`'s tasks with an error, so `AGENTS.md` never gets created.
+
+My workaround was to pass `--skip-install` to `next-app`. Since passing any argument makes `next-app` default the remaining prompts instead of letting you customize them, I specified every option on the command line:
+
+```bash
+pnpm create next-app@latest --skip-install --ts --eslint --react-compiler --tailwind --no-src-dir --app --agents-md
+```
+
+After the template was created: `pnpm install` to install dependencies, `pnpm approve-builds` to allow postinstall scripts, then `pnpm dev` - visiting `http://localhost:3000` showed the Next.js welcome page.
+
+Initialized the OpenSpec workflow with `openspec init`:
+
+```
+❯ openspec init
+
+✔ Select tools to set up (31 available) GitHub Copilot
+▌ OpenSpec structure created
+✔ Setup complete for GitHub Copilot
+```
+
+Configured the VS Code Copilot MCP servers by creating `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "next-devtools": {
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "heroui-react": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@heroui/react-mcp@latest"]
+    }
+  }
+}
+```
+
+Then I had the AI help with:
+
+- Installing and configuring the HeroUI UI framework
+- Installing and configuring the `lucide-react` icon library
+
+### GitHub Repository and Vercel Deployment
+
+With the base framework done - the dev server showed HeroUI and Lucide demos, and Prettier and ESLint ran cleanly - I created the GitHub repository.
+
+Repository: https://github.com/RuixeWolf/ruixe-blog.
+
+I imported the repository into Vercel for one-click deployment at https://ruixe-blog.vercel.app, and before going live added the custom domain https://blog.ruixe.net as the official blog address. Both domains work.
+
+Vercel's project dashboard lets you enable Analytics and Speed Insights; you have to add the corresponding code to the project for them to take effect. Vercel also offers a handy feature: with one click, Vercel's cloud AI agent can make the code changes and open a GitHub PR automatically - I just code-review and merge. After Vercel rebuilds and redeploys, Analytics and Speed Insights show data in the Vercel dashboard.
+
+So my blog project finally went from "new folder" to its first deployment (even if it was still just a Next.js demo). Time to build the actual features.
+
+### Development Phase 1
+
+- URL design
+- Page layout for wide desktop and narrow mobile screens
+- Core post architecture: the content directory structure, MDX file rendering, table of contents on post pages
+- UI and post localization
+- Theme toggle
+
+These are the core features and architecture of the whole blog. This phase produced 5 OpenSpec changes, archived under `openspec/changes/archive`:
+
+- **2026-07-22-phase1-core-foundation** - core features: URL design, page layout, post architecture, localization, theme toggle
+- **2026-07-22-fix-phase1-nav-and-notfound** - fixed the nav bar and the 404 page
+- **2026-07-23-optimize-page-ui** - UI polish
+- **2026-07-24-add-sidebar-category-counts** - per-category post counts in the sidebar
+- **2026-07-24-site-config-from-yaml** - site config loaded from YAML
+
+### Development Phase 2
+
+- Post search
+- Post comments
+- Post deletion
+- Cloudflare R2 object storage for images and other media in posts
+
+For Giscus comments, I first enabled Discussions on the GitHub repository and created a suitable category, then entered the repo name and discussion category at [giscus.app](https://giscus.app) to obtain the `repo-id`, `category`, and `category-id` needed for the Giscus config.
+
+The Cloudflare R2 integration mostly served to configure the PicGo tool, so that pasting an image in Markdown editors like Typora uploads it automatically. The code changes were small - mainly a `next/image` wrapper that serves appropriately sized, automatically compressed images when blog pages load them.
+
+Phase 2 delivered the blog's enhancement features across 4 OpenSpec changes:
+
+- **2026-07-29-add-post-search** - post search with the Fuse.js static search library
+- **2026-07-29-add-post-comments** - post comments with Giscus
+- **2026-07-31-add-post-deletion** - post deletion with a deletion script
+- **2026-07-31-add-media-hosting** - Cloudflare R2 via `next/image`, responsive sizing and CLS handling for MDX images
+
+### Development Phase 3
+
+- Favicon and OpenGraph images
+- SEO improvements, including sitemap
+- RSS feed
+- llms.txt
+- PWA
+- A `publish-post` agent skill for AI-assisted publishing and updating of posts
+
+**Favicon and OpenGraph images**
+
+For the favicon, I used ChatGPT to generate a square app icon and a default static OpenGraph source image, then used an online favicon converter to produce a 32x32 `favicon.ico`.
+
+For the static OpenGraph image, I needed to crop to the magic `1.91:1` `1200 x 630 px` size, which the OS built-in image editor couldn't do. After some exploration I found the excellent open-source editor [ShareX](https://getsharex.com/): create a blank `1200 x 630 px` canvas, import the source image, crop, and save `opengraph-image.png`.
+
+The OpenGraph image for post detail pages is generated dynamically with `next/og`, rendering the post title, author info, and publish time.
+
+**llms.txt**
+
+As of when I built the llms.txt feature, the [llms.txt spec](https://llmstxt.org/) had been upgraded to v2, recommending `/llms.txt` + `/xxx/xxx.md` accessible at the site root, replacing `llms-full.txt`, so AI agents can read on demand in a leaner way.
+
+**PWA**
+
+The first version of PWA support is limited to being installable to the desktop, providing a basic `manifest.json` and app icons. The manifest is generated dynamically by `app/manifest.ts`; the various icon sizes are produced by the `scripts/generate-pwa-icons.mjs` script.
+
+**The `publish-post` agent skill**
+
+- After creating or editing files in `/content/posts` or `/drafts`, users can invoke the `publish-post` skill in their agent tool to quickly publish or update posts
+- The skill supports different agents such as Copilot, OpenCode, Codex, etc.
+
+`publish-post` skill flow:
+
+- The user must explicitly name the target file in `/content/posts` or `/drafts`; otherwise the skill reads the Git changes and asks the user (via the agent's built-in ask tool) to choose the post to publish
+- Read the current Git changes for the target file to distinguish new posts from updates
+- Publishing flow:
+  - Complete or improve the post's Markdown frontmatter
+  - Assign a suitable category and tags (ask the user when unsure); adding new categories or tags means updating `categories.yaml` and `tags.yaml`
+  - New post: create the post's other locale variant files
+  - Update: apply the target file's changes to the post's other locale variants
+
+I also added a validation tool, `scripts/validate-posts.mjs`, which checks that frontmatter conforms to the schema, that locale variants aren't missing, and that category/tag translations exist.
+
+Phase 3 delivered the finishing touches across 4 OpenSpec changes:
+
+- **2026-08-12-add-seo-optimization** - SEO improvements including sitemap
+- **2026-08-13-add-rss-feed** - RSS feed
+- **2026-08-14-add-llms-txt** - llms.txt
+- **2026-08-14-add-pwa** - PWA
+
+### Going Live
+
+**Custom domain**
+
+I added the custom domain `blog.ruixe.net` in the Vercel dashboard and configured DNS on Cloudflare. When setting up DNS for a Vercel project on Cloudflare, Vercel recommends NOT enabling Cloudflare's proxy (the orange cloud) - use DNS-only mode, or Vercel cannot issue the SSL certificate and features like traffic analytics break.
+
+**First real post**
+
+I deleted the dev-stage test post `hello-world` and used the `publish-post` agent skill to have AI help turn a draft into the first real post.
+
+**Search Console setup**
+
+I implemented site-verification tokens for search engine webmaster tools configured in `site.yaml`, rendered automatically as HTML meta tags, and added my blog to Google Search Console and Microsoft Bing Webmaster.
+
+## Wrap-up and Outlook
+
+It took a month from writing this post to the blog going live, worked on bit by bit in my spare time. A dream I had since my student days has finally come true: I now have a technical blog of my own - free from the content moderation of big platforms, and no worrying about my articles being monetized into paid reading without my knowledge. Of course, publishing outside the big platforms means I maintain this project myself and handle discoverability and traffic on my own - but that teaches me plenty of new things too.
+
+Through planning and building this blog, I learned the full process of developing and deploying a Markdown file-driven site with Next.js, got to know new tech stacks and a lot of blog-related knowledge, gained hands-on experience with Next.js development, Vercel deployment, and Cloudflare operations, and started building the habit of writing knowledge-base articles.
+
+I'll keep publishing on this blog - sharing technical content while also using it as my personal knowledge base. And I'll keep improving it as time goes on.
+
+### Thanks
+
+During the feature and UI design phase I referenced the blog of [Carbon / 碳苯](https://github.com/CoderSerio) at https://furrycoder.com and Ruan Yifeng's blog at https://www.ruanyifeng.com/blog - and of course Wolf Blog https://wolfblog.cn, the CMS blog system I built together with [RylinWolf](https://github.com/RylinWolf). My heartfelt thanks to the open-source community as well - we stand on the shoulders of giants, building a new world together.
