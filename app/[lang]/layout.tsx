@@ -45,13 +45,16 @@ export function generateStaticParams() {
  * metadata emits a build warning and the `<meta name="theme-color">` tags
  * are NOT rendered. Uses a `ThemeColorDescriptor[]` array so the browser
  * chrome (e.g. Android Chrome status bar) switches with the OS color scheme
- * at runtime. The manifest `theme_color` is a single value used only for the
- * install splash screen (see `app/manifest.ts`).
+ * at runtime. The values match `ThemeColorSync`'s `THEME_COLOR_BY_THEME`
+ * (the header `--surface` background), so the pre-hydration / no-JS fallback
+ * is identical to the runtime-synced color and never flashes the body
+ * `--background` color. The manifest `theme_color` is a single value used
+ * only for the install splash screen (see `app/manifest.ts`).
  */
 export const viewport: Viewport = {
   themeColor: [
-    { color: '#f4f5f6', media: '(prefers-color-scheme: light)' },
-    { color: '#050606', media: '(prefers-color-scheme: dark)' },
+    { color: '#FBFCFC', media: '(prefers-color-scheme: light)' },
+    { color: '#111314', media: '(prefers-color-scheme: dark)' },
   ],
 }
 
