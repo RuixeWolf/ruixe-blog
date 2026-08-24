@@ -34,3 +34,7 @@ openspec:
   name:
     zh: OpenSpec
     en: OpenSpec
+browser-automation:
+  name:
+    zh: 浏览器自动化
+    en: Browser Automation

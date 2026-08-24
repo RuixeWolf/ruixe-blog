@@ -135,7 +135,17 @@ const cjkAutolinkPluginPath = path.join(process.cwd(), 'plugins', 'remark-cjk-au
 /** MDX compilation wrapper with remark/rehype plugins (string names for Turbopack). */
 const withMDX = createMDX({
   options: {
-    remarkPlugins: ['remark-gfm', cjkAutolinkPluginPath, 'remark-frontmatter'],
+    // `remark-cjk-friendly/parseOnly` relaxes CommonMark's emphasis flanking
+    // rules around CJK punctuation so `**加粗：**后续中文` renders as <strong>
+    // (plain CommonMark rejects the closing `**` as not right-flanking when a
+    // full-width punctuation precedes it and a CJK letter follows). Registered
+    // after `remark-gfm`, mirroring the plugin's documented usage order.
+    remarkPlugins: [
+      'remark-gfm',
+      'remark-cjk-friendly/parseOnly',
+      cjkAutolinkPluginPath,
+      'remark-frontmatter',
+    ],
     rehypePlugins: ['rehype-slug'],
   },
 })
