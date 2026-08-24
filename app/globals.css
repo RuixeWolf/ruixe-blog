@@ -46,6 +46,12 @@ body {
   content: none;
 }
 
+.prose :where(blockquote p:first-of-type):not(:where([class~='not-prose'] *))::before,
+.prose :where(blockquote p:last-of-type):not(:where([class~='not-prose'] *))::after {
+  /* Disable the decorative curly quotes (“ ”) painted around blockquote text. */
+  content: none;
+}
+
 .prose :where(:not(pre) > code):not(:where([class~='not-prose'] *)) {
   @apply rounded bg-muted/20 px-1.5 py-0.5 text-sm;
 }

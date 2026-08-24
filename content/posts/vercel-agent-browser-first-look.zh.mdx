@@ -1,0 +1,125 @@
+---
+title: Vercel Agent Browser 初体验
+description: Vercel Labs 推出的 AI-First 无头浏览器自动化 CLI 工具 Agent Browser 上手体验，介绍其无障碍树快照、语义化 refs 机制、Web 仪表盘与 CDP 模式操作 Electron 渲染进程等特性，并与传统 Playwright 对比其优势。
+publishedTime: '2026-08-24'
+category: ai-coding
+tags:
+  - browser-automation
+---
+
+## Agent Browser 是什么
+
+**Vercel Agent Browser** 是 Vercel Labs 推出的一款专为 AI Agent（大模型智能体）设计的、基于 Rust 开发的原生无头浏览器自动化 CLI 工具。它不依赖庞大的 GUI 界面，而是专注于为 AI 提供极简、高效的网页交互能力，相当于给大模型装上了一双可以直接操纵网络现实的手。更多内容请访问 [Agent Browser 官方网站](https://agent-browser.dev/)。
+
+### 使用 Agent Browser 的原因
+
+在前端开发测试环节，通常会使用 [Playwright](https://playwright.dev/) 等传统浏览器自动化工具。这些工具诞生之初是为了人类程序员而设计的，虽然在 AI Coding 时代也会频繁使用 Playwright 让 AI 操作浏览器，但会有以下问题：
+
+- **上下文泛滥，Token 成本极高** - 传统工具会把冗长的 HTML 源码或庞大的 DOM 树塞给 AI，导致单次对话会**消耗极高的 Token 成本**，输入的提示词过多还会导致 LLM 注意力下降等问题。
+- **定位器容易崩溃** - 传统的 CSS 选择器或 XPath 极度依赖网页的前端结构。一旦网站稍微调整样式或重新排版，AI 编写的自动化脚本就会直接崩溃。
+- **繁琐的工具集成与命令集** - 传统自动化框架提供了上百个复杂的 API 接口，AI 学习和调用这些接口需要漫长的 Prompt 引导。
+
+Agent Browser 的核心设计哲学是 AI-First，以下是它解决传统浏览器自动化工具的方案：
+
+- 将网页简化为专为 AI 优化的**无障碍树快照（Accessibility Tree Snapshot）**。它抛弃了冗余的样式和嵌套，直接**减少了 82% - 93% 的上下文占用**，大幅降低 Token 消耗。
+- 采用**语义化 refs 机制（Semantic Locators）**和无障碍先行的元素选择。AI 不需要理解错综复杂的 class 命名，只需通过语义化的逻辑编号或元素功能进行稳定定位。
+- 它将浏览器彻底工具化，向 AI 交付**精简到极致的命令集**（如点击、输入、导航）。并原生支持扩展，可在无头（Headless）模式下静默加载防爬验证码解决插件。
+
+## 安装与配置
+
+### 安装 Agent Browser
+
+使用 NPM 全局安装 Agent Browser
+
+```bash
+# 允许 NPM 运行 agent-browser 的 postinstall 脚本
+npm config set allow-scripts=agent-browser --location=user
+
+# 全局安装 agent-browser
+npm install -g agent-browser
+
+# 为 agent-browser 安装 Chrome，仅需执行一次
+agent-browser install
+```
+
+或者选择不安装 Agent Browser，直接使用 NPX 运行
+
+```bash
+# 为 agent-browser 安装 Chrome，仅需执行一次
+npx agent-browser install
+
+# 通过 agent-browser 访问网站
+npx agent-browser open example.com
+```
+
+更多安装 Agent Browser 的内容请参考 [官方文档](https://agent-browser.dev/installation) 。
+
+### 为 Agents 添加 Agent Browser Skills
+
+Agent Browser 内置多种技能，支持 Cursor、Claude Code 或 Codex 等 Coding Agents 工具，技能安装后就可以让 Agents 自动执行浏览器任务，无需人工干预。
+
+使用 [skills.sh](https://www.skills.sh/) 安装 Agent Browser Skills：
+
+```bash
+npx skills add vercel-labs/agent-browser
+```
+
+## 推荐的功能
+
+### Web 仪表盘
+
+通过本地 Web 控制面板实时监控代理浏览器会话，该控制面板显示实时浏览器视口和命令活动流。更多内容请访问 [Observability Dashboard](https://agent-browser.dev/dashboard)。
+
+启动 Agent Browser 仪表盘
+
+```bash
+❯ agent-browser dashboard start
+
+Dashboard started at http://localhost:4848
+```
+
+访问网站用于测试
+
+```bash
+❯ agent-browser open blog.ruixe.net
+
+[agent-browser] launched browser
+✓ Ruixe Blog
+  https://blog.ruixe.net/en
+```
+
+访问 Agent Browser Web 仪表盘
+
+![image-20260824132249029](https://blog-assets.ruixe.net/2026-08/75e499e73b4bb09497fd75c2a829f3af-image-20260824132249029.png)
+
+### 通过 CDP 模式操作 Electron 渲染进程
+
+Agent Browser 可以通过 CDP 协议（Chrome DevTools Protocol）连接到正在运行的 Chromium 浏览器实例，只需要在启动 Electron 开发服务时启用 CDP，就能实现让 AI Agents 读取与操作 Electron 的渲染进程页面内容。
+
+以 Electron Vite 为例，修改 `package.json` 中的 `dev` 指令：
+
+```
+- "dev": "electron-vite dev --watch",
++ "dev": "electron-vite dev --watch --remote-debugging-port=9222",
+```
+
+Agent Browser 连接 Electron 渲染进程：
+
+```bash
+❯ agent-browser connect 9222
+
+[agent-browser] launched browser
+✓ Done
+```
+
+## 总结
+
+Agent Browser 给我的整体印象是，它把浏览器自动化从 "为人类程序员设计" 转向了 "为 AI 优先设计"。传统工具如 Playwright 需要 AI 去理解复杂的 DOM 结构和 CSS 选择器，而 Agent Browser 通过无障碍树快照和语义化 refs，让 AI 可以用接近自然语言的方式操作浏览器，Token 消耗相较于 Playwright 也大幅降低。
+
+在我目前的 AI Coding 工作流中，Agent Browser 主要用在以下场景：
+
+- **前端开发测试** - 让 AI 打开本地开发服务器，验证页面渲染、交互流程是否符合预期
+- **Electron 应用调试** - 通过 CDP 模式连接 Electron 渲染进程，让 AI 直接操作桌面应用的界面
+- **网站内容验证** - 比如打开我的博客网站，检查文章渲染、响应式布局是否符合预期
+
+总的来说，Agent Browser 代表了浏览器自动化工具在 AI Coding 时代的一个新方向。随着 AI 模型能力的提升，我相信这类 AI-First 的工具会越来越普及，未来 AI 操作浏览器的能力也会越来越强。

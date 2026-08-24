@@ -143,6 +143,7 @@ Non-obvious issues that broke during development - heed them:
 - **`usePathname()` returns locale-stripped path** (e.g. `/posts/hello-world`, not `/zh/posts/hello-world`). Use `useLocale()` + `router.push(pathname, { locale })` to switch locales.
 - **HeroUI v3 `Button` has no `href` prop** - use HeroUI `Link` (supports `href`/`target`/`rel`) or `next-intl/navigation` `Link` for internal routes.
 - **lucide-react v1.x removed brand icons** (e.g. `Github`) - use generic icons (`ExternalLink`, `Menu`, `Search`).
+- **CJK bold emphasis:** plain CommonMark rejects the closing `**` in `**加粗：**后续中文` (full-width punctuation before `**` + CJK letter after fails the right-flanking rule), rendering the asterisks literally. `remark-cjk-friendly/parseOnly` is registered in `next.config.ts` MDX options (after `remark-gfm`) to fix this. Do NOT remove it as an "unused" plugin.
 - **Editing `content/*.yaml` requires a dev server restart** (not in module graph, no HMR).
 - **PowerShell + bracket paths:** `Remove-Item 'path/[lang]/dir'` treats `[lang]` as a wildcard - use `-LiteralPath`.
 - **`next.config.ts` `images.dangerouslyAllowLocalIP: true` is INTENTIONAL** - a local network proxy (Clash-style) routes external domains through fake private IPs (198.18.x.x), which Next.js 16's SSRF guard would otherwise reject with 400 `upstream image ... resolved to private ip`. Do NOT revert it as a "security fix"; on Vercel prod R2 resolves to Cloudflare public IPs so it's a no-op there.
