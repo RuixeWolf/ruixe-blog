@@ -13,6 +13,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
 import { SearchProvider } from '@/components/search/SearchProvider'
+import { VibeCafeScript } from '@/components/telemetry/VibeCafeScript'
 import { ThemeColorSync } from '@/components/theme/ThemeColorSync'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { routing } from '@/i18n/routing'
@@ -212,6 +213,17 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      {/* Shared `<head>` for the whole site: hosts the VibeCafé telemetry
+          script (client component; rendered only when configured in
+          `content/site.yaml` - see `components/telemetry/VibeCafeScript` for
+          the remount semantics). Next.js metadata (title, meta, links) is
+          hoisted into this same head by React. */}
+      <head>
+        <VibeCafeScript
+          productId={siteConfig.vibecafe?.productId}
+          authKey={siteConfig.vibecafe?.authKey}
+        />
+      </head>
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <ThemeColorSync />

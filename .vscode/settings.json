@@ -14,7 +14,8 @@
     "placehold",
     "Stylesheet",
     "Turbopack",
-    "Typora"
+    "Typora",
+    "vibecafe"
   ],
   "i18n-ally.localesPaths": ["i18n", "i18n/messages"]
 }
