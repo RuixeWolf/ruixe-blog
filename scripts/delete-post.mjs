@@ -148,31 +148,6 @@ function scanLocales(slug) {
 }
 
 /**
- * Extracts the title from an MDX file's YAML frontmatter.
- *
- * Reads the file and parses the YAML block between opening and closing `---`
- * delimiters. Returns `null` when the frontmatter is missing or malformed.
- *
- * @param {string} filePath - Absolute path to the MDX file.
- * @returns {string|null} The post title, or `null` when unavailable.
- */
-function readPostTitle(filePath) {
-  const raw = fs.readFileSync(filePath, 'utf8')
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)
-  if (!match) return null
-
-  try {
-    const frontmatter = YAML.parse(match[1])
-    if (frontmatter && typeof frontmatter.title === 'string') {
-      return frontmatter.title
-    }
-  } catch {
-    // Fall through to null for malformed frontmatter.
-  }
-  return null
-}
-
-/**
  * Reads the redirect registry as an array of records.
  *
  * Returns an empty array when the file does not exist. Throws on parse errors
@@ -245,15 +220,15 @@ function renderRecordYaml(record) {
 /**
  * Prints the Giscus manual-lock guidance to stdout.
  *
- * Includes the Discussions category URL, a slug search URL, and the
- * pathname + title for each affected locale. Does not call the GitHub API
- * and does not require `GITHUB_TOKEN`.
+ * Comments for all locales of a post share one Discussion (mapping
+ * `specific` + slug `term` with strict hash matching), so the affected
+ * discussion is a single thread titled with the slug. Includes the
+ * Discussions category URL and a slug search URL. Does not call the GitHub
+ * API and does not require `GITHUB_TOKEN`.
  *
  * @param {string} slug - Post slug.
- * @param {string[]} locales - Affected locales.
- * @param {Map<string, string|null>} titles - Locale to title map (may contain nulls).
  */
-function printGiscusHints(slug, locales, titles) {
+function printGiscusHints(slug) {
   const repo = readGiscusRepo()
 
   process.stdout.write('\n--- Giscus Discussion lock (manual) ---\n')
@@ -269,14 +244,9 @@ function printGiscusHints(slug, locales, titles) {
     )
   }
 
-  process.stdout.write('Affected discussions:\n')
-  for (const locale of locales) {
-    const pathname = `/${locale}/posts/${slug}`
-    const title = titles.get(locale)
-    const titleLabel = title ? `"${title}"` : '(title unavailable)'
-    process.stdout.write(`  ${pathname}  ${titleLabel}\n`)
-  }
-  process.stdout.write('Lock each discussion in the GitHub UI to prevent new comments.\n')
+  process.stdout.write('Affected discussion:\n')
+  process.stdout.write(`  "${slug}" (shared by all locales of this post)\n`)
+  process.stdout.write('Lock this discussion in the GitHub UI to prevent new comments.\n')
 }
 
 /**
@@ -285,9 +255,8 @@ function printGiscusHints(slug, locales, titles) {
  * @param {string} slug - Post slug.
  * @param {string[]} locales - Affected locales.
  * @param {Object} record - Redirect record that would be appended.
- * @param {Map<string, string|null>} titles - Locale to title map.
  */
-function printDryRunPlan(slug, locales, record, titles) {
+function printDryRunPlan(slug, locales, record) {
   process.stdout.write('--- Dry-run execution plan ---\n')
   process.stdout.write('No files will be deleted and no registry will be written.\n\n')
 
@@ -300,7 +269,7 @@ function printDryRunPlan(slug, locales, record, titles) {
   process.stdout.write('\nRedirect record to append to content/redirects.yaml:\n')
   process.stdout.write(renderRecordYaml(record))
 
-  printGiscusHints(slug, locales, titles)
+  printGiscusHints(slug)
   process.stdout.write('\nDry-run complete. No changes were made.\n')
 }
 
@@ -419,18 +388,10 @@ async function main() {
     process.exit(1)
   }
 
-  // Cache titles before any deletion so Giscus hints stay accurate.
-  /** @type {Map<string, string|null>} */
-  const titles = new Map()
-  for (const locale of locales) {
-    const filePath = path.join(postsDir, `${slug}.${locale}.mdx`)
-    titles.set(locale, readPostTitle(filePath))
-  }
-
   const record = buildRecord(slug, locales, validatedTarget)
 
   if (dryRun) {
-    printDryRunPlan(slug, locales, record, titles)
+    printDryRunPlan(slug, locales, record)
     process.exit(0)
   }
 
@@ -445,7 +406,7 @@ async function main() {
 
   deletePostFiles(slug, locales)
   writeRedirects(record)
-  printGiscusHints(slug, locales, titles)
+  printGiscusHints(slug)
   process.stdout.write(`\nDeleted post '${slug}' and registered redirect.\n`)
   process.exit(0)
 }

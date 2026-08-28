@@ -66,8 +66,16 @@ function resolveGiscusTheme(resolvedTheme: string | undefined): string {
  *
  * @param config - Giscus configuration from `content/site.yaml`.
  * @param locale - Active blog locale code.
+ * @param term - Post slug; the cross-locale anchor shared by all language
+ *   versions of a post. With `mapping: 'specific'` and `strict: '1'`, Giscus
+ *   hashes this term (SHA-1) and matches it against a hash comment in the
+ *   Discussion body, so every locale of the same slug loads one Discussion.
  */
-export function Comments({ config, locale }: Readonly<{ config: GiscusConfig; locale: string }>) {
+export function Comments({
+  config,
+  locale,
+  term,
+}: Readonly<{ config: GiscusConfig; locale: string; term: string }>) {
   const { resolvedTheme } = useTheme()
   const t = useTranslations('Comment')
 
@@ -99,7 +107,8 @@ export function Comments({ config, locale }: Readonly<{ config: GiscusConfig; lo
           repoId={config.repoId}
           category={config.category}
           categoryId={config.categoryId}
-          mapping={config.mapping as 'pathname'}
+          mapping={config.mapping}
+          term={term}
           reactionsEnabled={config.reactionsEnabled}
           inputPosition={config.inputPosition}
           strict={config.strict}

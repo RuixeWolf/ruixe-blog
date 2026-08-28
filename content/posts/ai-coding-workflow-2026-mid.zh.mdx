@@ -1,0 +1,678 @@
+---
+title: 我在 2026 年中旬的 AI Coding 工作流
+description: 系统整理我在 2026 年中旬的 AI Coding 工作流：Coding Agent 项目初始化（Agents Skills、MCP 与 AGENTS.md）、常用 AI Coding 提示词模板，以及 OpenSpec 规范驱动开发的完整流程，并以博客 Giscus 评论功能改造为例记录完整实战。
+publishedTime: '2026-08-28'
+category: ai-coding
+tags:
+  - copilot
+  - openspec
+---
+
+从 2026 年中开始，AI Coding 已经深度融入我的日常开发工作流，无论是新项目的初始化、功能开发还是 Bug 排查，我都会借助 Coding Agent 完成。此前我已经在博客记录过 [我的个人博客网站的诞生](https://blog.ruixe.net/zh/posts/my-first-blog-website)、[首次使用 VS Code Agents Window](https://blog.ruixe.net/zh/posts/vscode-agents-window-first-look)、[Vercel Agent Browser 初体验](https://blog.ruixe.net/zh/posts/vercel-agent-browser-first-look) 等实践，这篇文章则是对我当前 AI Coding 工作流的系统整理，主要包括：
+
+- **Coding Agent 项目初始化工作流** - 为项目安装合适的 Agents Skills 与 MCP，生成 `AGENTS.md`
+- **AI Coding 提示词分享** - 我常用的提示词模板，持续更新中
+- **OpenSpec 工作流** - 规范驱动开发（SDD）的完整流程
+- **OpenSpec 工作流实践** - 以博客评论功能改造为例的完整实战记录
+
+希望我的工作流能给你一些参考。
+
+## Coding Agent 项目初始化工作流
+
+### 安装合适的 Agents Skills 与 MCP
+
+Coding Agent 的能力不仅取决于模型本身，还取决于它能获取的工具与知识。为项目安装合适的 Agents Skills 与 MCP，可以让 Coding Agent 在对应场景下自动按照最佳实践执行任务，而不需要每次从零摸索，这是 Coding Agent 项目初始化时最先要做的准备工作之一。
+
+- **Agents Skills** - 为 Coding Agent 提供特定领域的工作流与知识，当任务触发对应场景时自动加载
+- **MCP（Model Context Protocol）** - 让 Coding Agent 连接外部工具与数据源，获取实时的技术栈文档、进行联网搜索等
+
+在 [skills.sh](https://www.skills.sh/) 探索符合项目的 Agents skills，可以仅为项目安装，也可以把一些跨项目通用的 Skills 全局安装。
+
+#### 推荐的 Skills
+
+- **find-skills** - 为项目在 skills.sh 找寻合适的 Agents skills 并安装
+- **find-docs** - 使用 Context7 CLI 查找与获取某个技术栈的文档
+- **grill-me** - 意图驱动型工作流，先明确需求再干活
+- **frontend-design** - 前端设计技能，推荐为前端项目安装
+- **agent-browser** - 专为 AI 打造的浏览器自动化工具，详情可查看我的另一篇博客文章 [Vercel Agent Browser 初体验](https://blog.ruixe.net/zh/posts/vercel-agent-browser-first-look)
+
+#### 推荐的 MCP
+
+- **[Context7](https://context7.com/)** - 让 AI 获取最新最全面的技术栈文档，也可以使用 Context7 CLI + Skills 代替 MCP
+- **[Firecrawl](https://www.firecrawl.dev/)** - 让 AI 联网搜索，比如搜索最佳实践、文档等内容
+
+### 生成 `AGENTS.md`
+
+**目的：**生成 `AGENTS.md` 等文档，用于 Agent 每次对话更加了解项目，提升任务质量。
+
+初始化操作通常是在聊天窗口直接发送 `/init` 指令，建议选用高级模型，高级思考深度。
+
+以下时机需重新执行初始化：
+
+- Coding Agents 版本大更新
+- 项目功能或架构发生明显变化
+
+## AI Coding 提示词分享
+
+分享我现在常用的 AI Coding 提示词，持续更新中。
+
+**意图明确** - 常规对话时可选择添加至提示词末尾。
+
+```
+如果有不明确的需求决策问题，请向我提问，列出方案选项，并标明推荐的方案。
+```
+
+**Git 提交** - 提交、推送、创建 PR。
+
+```
+请将项目当前 Git 分支的改动全部提交，消息内容遵守 Conventional Commits，提交后推送到远程仓库，然后创建 Pull Request。
+```
+
+**Git 提交** - 先创建新分支，再提交、推送、创建 PR。
+
+```
+请为项目当前全部改动创建新的 Git 分支并提交，消息内容遵守 Conventional Commits，提交后推送到远程仓库，然后创建 Pull Request。
+```
+
+**OpenSpec Opsx 工作流** - 功能开发前期探索。
+
+```markdown
+/opsx-explore 请探索当前项目，整理功能实现方案，列出需要决策的问题与选项，标明推荐的选项。
+
+实现功能：
+```
+
+**OpenSpec Opsx 工作流** - 功能开发前期探索（IDE 同一个窗口同时打开前后端项目）。
+
+```markdown
+/opsx-explore 请探索前后端项目，整理功能实现方案，列出需要决策的问题与选项，标明推荐的选项。
+
+实现功能：
+```
+
+**OpenSpec Opsx 工作流** - 分析 Bug。
+
+```markdown
+/opsx-explore 请探索当前项目，排查并分析问题，整理解决方案。
+
+问题：
+```
+
+**OpenSpec Opsx 工作流** - 分析 Bug（IDE 同一个窗口同时打开前后端项目）。
+
+```markdown
+/opsx-explore 请探索前后端项目，排查并分析问题，整理解决方案。
+
+问题：
+```
+
+**OpenSpec Opsx 工作流** - 功能开发前期探索回答决策问题，继续探索。
+
+```markdown
+继续深入探索，暂时不要创建 OpenSpec 变更。
+
+其他决策问题使用你推荐的方案。（可选）
+```
+
+**OpenSpec Opsx 工作流** - 探索完成后对于小任务不创建 Proposal 直接改代码实现。
+
+```
+请退出 Explore 模式，不创建 OpenSpec 变更，直接改动代码进行实现。
+```
+
+**OpenSpec Opsx 工作流** - 探索完成后 Propose 任务提示词末尾。
+
+```markdown
+注意事项：
+
+- 请使用 MCP 或 Context7 等工具联网获取文档与最佳实践
+- 任务过程中遇到不明确的事物请向我提问，明确需求
+- 请将 task.md 任务清单详细拆分，用于多个 AI Session 执行实现 （如果任务复杂则添加这行）
+- 请在 propose 任务开始前创建并切换至新的 Git 分支 （如果想要在新的 Git 分支开发则添加这行）
+- 请分别为前后端项目创建独立的 OpenSpec Change，后端项目 change 名称以 `-be` 结尾，前端项目 change 名称以 `-fe` 结尾 （如果 IDE 同一个窗口同时打开前后端项目则添加这行）
+```
+
+**OpenSpec Opsx 工作流** - 功能实现时分阶段实现。
+
+```markdown
+/opsx-apply xxxxx
+
+Please complete only the following tasks:
+
+1. xxx
+2. xxx
+```
+
+## OpenSpec 工作流
+
+OpenSpec 是一个用于 AI Agents 规范驱动型开发流程（SDD spec-driven-development）框架，主要解决目前 LLM AI Agent 执行复杂任务时上下文长度限制问题 官网： https://openspec.dev
+
+Github 仓库： https://github.com/Fission-AI/OpenSpec
+
+OpenSpec Opsx 工作流文档： https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md
+
+### 开发或改动功能（feat）
+
+1. 使用 `/opsx-explore` 探索问题，建议使用旗舰模型，最大思考深度。
+
+```markdown
+/opsx-explore 请探索当前项目，整理功能实现方案，列出需要决策的问题与选项，标明推荐的选项。
+
+实现功能：XXX
+
+功能需求背景：XXX
+
+功能设计：
+
+- XXX
+- XXX
+```
+
+2. 依据探索结果完善需求，回答决策问题，可能需要 1 ~ 3 次完善探索，直到方案符合预期，没有新的待决策问题或者不清晰的内容。
+
+```markdown
+继续深入探索，暂时不要创建 OpenSpec 变更。
+
+决策问题 XXX
+采用方案 B XXX
+
+其他决策问题使用你推荐的方案。
+
+（其他追加完善内容）
+```
+
+3. 探索完成，如果认为功能比较简单，不值得创建 OpenSpec 变更，且当前会话的上下文长度还比较短，可以考虑在当前会话直接让 AI 实现功能改动。
+
+```
+请退出 Explore 模式，不创建 OpenSpec 变更，直接改动代码进行实现。
+```
+
+4. 探索完成，任务比较复杂时，在当前会话继续使用 `/opsx-propose` 创建代码改动计划。
+
+```markdown
+/opsx-propose 实现功能：XXX
+
+注意事项：
+
+- 请使用 MCP 或 Context7 等工具联网获取文档与最佳实践
+- 任务过程中遇到不明确的事物请向我提问，明确需求
+- 请将 task.md 任务清单详细拆分，用于多个 AI Session 执行实现 （如果任务复杂则添加这行）
+- 请在 propose 任务开始前创建并切换至新的 Git 分支 （如果想要在新的 Git 分支开发则添加这行）
+- 请分别为前后端项目创建独立的 OpenSpec Change，后端项目 change 名称以 `-be` 结尾，前端项目 change 名称以 `-fe` 结尾 （如果 IDE 同一个窗口同时打开前后端项目则添加这行）
+```
+
+5. 新开会话，使用 `/opsx-apply` 开始实现需求，如果任务复杂可以拆分多个新会话实现，建议使用旗舰或次旗舰模型。
+
+```markdown
+/opsx-apply xxx-xxx-xxx (/opsx-propose 在 openspec/changes 目录生成的改动名称)
+
+Please complete only the following tasks:
+
+1. （task.md 中的任务）
+2. （task.md 中的任务）
+3. （task.md 中的任务）
+```
+
+6. `task.md` 中的任务全部完成后，新开会话，使用 `/opsx-verify` 验证功能实现，建议使用次旗舰或性价比模型。
+
+```
+/opsx-verify xxx-xxx-xxx
+```
+
+如果验证结果有需要修复完善的问题，在同一个会话直接让 AI 解决。主要看验证结果是否有 `CRITICAL` 与 `WARNING` 级别的问题，如果有则需要解决。如果只有 `SUGGESTION` 级别的问题，可以不处理。
+
+```
+Please resolve the critical/warning issues.
+```
+
+7. 全部功能完成，人工测试通过，符合预期后，新开对话，使用 `/opsx-sync` 将本次需求规范同步至项目级规范，建议使用性价比模型。该操作可选，评估本次功能改动是否可能影响后续的开发，否则可以不执行同步。
+
+```
+/opsx-sync xxx-xxx-xxx
+```
+
+8. 使用 `opsx-archive` 归档 OpenSpec change，建议使用性价比模型。
+
+```
+/opsx-archive xxx-xxx-xxx
+```
+
+### 排查并解决问题（fix）
+
+1. 使用 `/opsx-explore` 探索问题，疑难杂症建议使用旗舰模型。
+
+```markdown
+/opsx-explore 请探索当前项目，排查并分析问题，整理解决方案。
+
+问题：XXX
+
+详细描述：XXX
+
+复现步骤：
+
+1. XXX
+2. XXX
+
+预期行为：XXX
+
+实际行为：XXX
+
+额外补充：
+
+- XXX
+- XXX
+```
+
+2. 依据探索结果选择解决方案或者补充更多信息，可能需要 1 ~ 3 次完善探索，直到方案符合预期，没有新的待决策问题或者不清晰的内容。
+
+3. 探索完成，退出 Explore 直接改动代码解决问题，或者使用 `/opsx-propose` 创建代码改动计划。
+
+4. 如果创建了 OpenSpec Change，则后续流程与开发或改动功能一致。
+
+## OpenSpec 工作流实践
+
+以改造我的博客网站 Giscus 评论功能为例，目标是将同一篇文章但不同语言的评论区聚合为同一篇文章的评论区不再区分语言。
+
+### 功能实现方案探索
+
+使用 VS Code Copilot，模型选择 GLM 5.3，高级思考深度，输入提示词：
+
+```markdown
+/opsx-explore 请探索当前项目，整理功能实现方案，列出需要决策的问题与选项，标明推荐的选项。
+
+实现功能：改造 Giscus 评论功能，将同一个 slug 文章的评论区按不同语言版本划分，更改为同一个 slug 文章的评论区不再按语言区分。
+
+功能需求背景：由于个人博客访问量较少，参与评论互动的用户数量也很少，且现在同一篇文章的评论内容无法跨语言。导致不同语言的访问者不容易相互交流，因此希望同一篇文章的评论区不再按语言划分。
+
+功能设计：
+
+- 调整 Giscus 的 mapping 策略
+- Giscus 按文章 slug 划分，不再直接按 pathname 划分
+```
+
+首次探索时 AI 梳理了项目文章评论功能的实现链路，并联网获取了 Giscus 的文档，列出了需要决策的问题，首次探索结果：
+
+````markdown
+好，进入探索模式。我已读取 `site.yaml` 的 giscus 块、`site-config.ts` 的校验逻辑、现有 `spec.md`，并核实了 giscus 官方的 mapping 机制。以下是完整的思考整理。
+
+---
+
+## 一、现状：评论是怎么"按语言分家"的
+
+```
+PostLayout (RSC, server-only)
+    |
+    |  config = siteConfig.giscus          <- content/site.yaml
+    |  locale = zh / en
+    v
+Comments (client)
+    |
+    |  mapping = 'pathname'   (来自 site.yaml)
+    |  <Giscus mapping="pathname" lang={zh-CN|en} .../>
+    v
+giscus.app 加载时:
+    用 GitHub Discussions Search API 按 "Discussion 标题包含页面 pathname" 搜索
+        /zh/posts/hello-world  ->  标题含 "/zh/posts/hello-world" 的 Discussion
+        /en/posts/hello-world  ->  标题含 "/en/posts/hello-world" 的 Discussion
+    找不到 -> 有人首次评论/点赞时 bot 自动创建（标题 = mapping 值）
+```
+
+关键机制：**giscus 的所有 mapping 策略本质上都是"按 Discussion 标题搜索"**，`pathname`、`specific` 等只是决定"拿什么字符串去匹配标题"。
+
+## 二、候选方案对比
+
+| 方案                              | 跨语言共享？          | 自动建帖？      | 评估               |
+| --------------------------------- | --------------------- | --------------- | ------------------ |
+| **A. `specific` + `term = slug`** | ✅                    | ✅              | **推荐**           |
+| B. `title` / C. `og:title`        | ❌ 各 locale 标题不同 | ✅              | 排除               |
+| D. `number`                       | ✅                    | ❌ 需维护映射表 | 排除               |
+| E. 保留 `pathname`                | —                     | —               | 无法伪造 URL，排除 |
+
+## 三、一个隐藏的坑：存量 Discussion 的迁移
+
+`pathname` 时代每篇文章每语言各建一条 Discussion。切换到 `specific + term: slug` 后，旧的两条标题都包含 slug，模糊搜索会随机命中，行为不确定。可选处理方式：
+
+| 迁移方式                 | 操作                                                        | 代价                                         |
+| ------------------------ | ----------------------------------------------------------- | -------------------------------------------- |
+| **M1. 手动合并（推荐）** | 保留评论多的一条，改名为 slug，搬运另一条评论后 lock/delete | 每篇几分钟，总量很小                         |
+| M2. 旧帖封存，新开线程   | 旧帖全部 lock，让 bot 按 slug 新建                          | 零工作量，但旧评论"隐身"，需配 `strict: '1'` |
+| M3. 逐条改标题不合并     | 做不到唯一                                                  | 排除                                         |
+
+## 四、需要决策的问题
+
+- **Q1：mapping 策略选哪个？** ✅ 推荐 `specific` + `term = slug`——唯一同时满足"跨语言共享 + 支持自动建帖"的方案。
+- **Q2：term 的取值格式？** ✅ 推荐裸 slug（`hello-world`）。giscus 搜索限定在 Comments 分类内，撞词空间极小，且标题可读。
+- **Q3：`strict` 从 `'0'` 改 `'1'` 吗？** ✅ 推荐改。精确匹配，杜绝旧 pathname 标题的模糊误命中。
+- **Q4：存量评论怎么迁移？** ✅ 推荐 M1 手动合并（4 篇文章 × 2 locale、评论量极少，一次性成本最低且不丢评论）。
+- **Q5：评论 UI 语言跟随谁？** ✅ 保持现状。`lang` 只影响 giscus 界面文案，不影响数据本身。
+
+---
+
+如果这个方向你觉得成立，我可以把它固化为一个 OpenSpec change（例如 `unify-post-comments-across-locales`）。**要现在创建这个 change 吗？（是/否）**
+````
+
+我觉得以上 5 个决策问题与推荐的方案都符合预期，让 AI 按推荐的方案进行第二次探索。
+
+在同一个 Session 继续输入提示词：
+
+```markdown
+继续深入探索，暂时不要创建 OpenSpec 变更。
+
+决策问题使用你推荐的方案。
+```
+
+第二次探索过程中 AI 联网获取并深入了解 Giscus 与 `@giscus/react` 的文档与用法，还访问了我的博客网站 Github 仓库的 Discussions。
+
+第二次探索结果输出：
+
+````markdown
+深挖完成。这一轮拿到了几个**改变此前判断**的硬事实，逐条整理如下。
+
+---
+
+## 一、新核实的事实（含对上一轮结论的修正）
+
+### 事实 1：`@giscus/react` v3 原生支持本方案 ✅
+
+`types.d.ts` 中 `GiscusProps` 直接支持 `term?: string` 与 `strict?: BooleanString`，方案 A 在组件层零阻力，现有的 `mapping as 'pathname'` 强转正好可以顺势清理。
+
+### 事实 2：`strict` 的真实语义是 SHA-1 哈希机制（修正我上一轮的描述）
+
+```
+strict = 0:  搜索词 = term（slug），GitHub 模糊搜索 Discussion 标题
+strict = 1:  搜索词 = SHA1(term)，在 Discussion 正文里搜这个哈希
+             新建 Discussion 时 giscus 自动在正文嵌入:
+             <!-- sha1: bed6968... -->
+```
+
+- **推荐 `strict: '1'` 的理由变得更硬**：本站有两个高相似度 slug——`vercel-agent-browser-first-look` 和 `vscode-agents-window-first-look`，strict=0 的模糊搜索有真实误命中风险。
+- **迁移多一个必做步骤**：被保留的旧 Discussion 必须手动在正文里注入 `<!-- sha1: <hash> -->`，否则 strict=1 永远搜不到它。
+
+### 事实 3：仓库 Discussion 实际存量——比预想少得多（抓取 GitHub 实况）
+
+`Comments` 分类下**只有 2 条 Discussion**（giscus 只在首条评论/点赞时才建帖）：
+
+| #   | 标题                             | 评论                           | 性质                                      |
+| --- | -------------------------------- | ------------------------------ | ----------------------------------------- |
+| #19 | `zh/posts/my-first-blog-website` | **1 条**（XinzheGao，8月21日） | 唯一有真实内容的                          |
+| #7  | `en/posts/hello-world`           | 0 条                           | **孤儿**——slug 已不存在（上线前测试遗留） |
+
+这把迁移成本压缩到**一条改名 + 一条清理**，且无需搬运任何评论。
+
+### 事实 4：SHA-1 哈希已算好
+
+`sha1('my-first-blog-website')` = `bed6968ea5cdf32f420fc2c15cfc620b6f9d7a86`
+
+## 二、修订后的完整方案（按你的决策：A / 裸 slug / strict=1 / M1）
+
+```
+                    现状 (pathname)                    目标 (specific + strict)
+  ┌──────────────────────────────────┐    ┌──────────────────────────────────┐
+  │ /zh/posts/foo ──> Discussion A   │    │         term = "foo"             │
+  │                    (标题含 zh路径) │    │      strict = SHA1(foo)          │
+  │ /en/posts/foo ──> Discussion B   │    │            │                     │
+  │                    (标题含 en路径) │    │            v                     │
+  └──────────────────────────────────┘    │  搜正文含 <!--sha1:...--> 的帖    │
+                                          │  zh/en 命中同一条 Discussion      │
+  评论互不可见                            │  找不到 -> 首评时 bot 自动建帖    │
+                                          │  (标题=slug, 正文自动带哈希)      │
+                                          └──────────────────────────────────┘
+```
+
+### 迁移操作（一次性，GitHub UI 手动，约 3 分钟）
+
+```
+步骤 1  改 Discussion #19:
+          标题: "zh/posts/my-first-blog-website"  ->  "my-first-blog-website"
+          正文追加: <!-- sha1: bed6968ea5cdf32f420fc2c15cfc620b6f9d7a86 -->
+          (保留 XinzheGao 的那条评论)
+
+步骤 2  处理孤儿 #7 "en/posts/hello-world" (0评论):
+          lock 或 delete 二选一 (见决策 D7)
+
+步骤 3  部署代码 (site.yaml mapping: specific, strict: '1')
+          其余 3 篇文章无存量帖, 首评时自动按新机制建帖
+
+顺序敏感: 步骤 1/2 必须先于步骤 3
+          (先部署 -> strict=1 搜不到哈希 -> 首评另建新帖 -> #19 的评论被遗弃)
+```
+
+### 代码改动面（全量清点，均未动手）
+
+| 文件              | 改动                                                              |
+| ----------------- | ----------------------------------------------------------------- |
+| `site.yaml`       | `mapping: pathname` → `specific`；`strict: '0'` → `'1'`；注释更新 |
+| `site-config.ts`  | `GiscusConfig.mapping` 类型收紧（见 D6）；校验升级                |
+| `Comments.tsx`    | 新增 `term` prop → `<Giscus term>`；删 `as 'pathname'` 强转       |
+| `PostLayout.tsx`  | 传 `term={meta.slug}`（一行改动）                                 |
+| `spec.md`         | Purpose 句 + 2 个 Requirement 重写，新增 strict 哈希场景          |
+| `delete-post.mjs` | 提示文案微调（见 D9）——新方案下"按 slug 搜索"反而**更准**         |
+
+## 三、深挖后浮现的新决策点
+
+- **D6：`site-config.ts` 里 `mapping` 的校验/类型收紧到什么程度？** ✅ 推荐 a：收紧为仅 `'specific'`，fail-fast——任何人改 yaml 回 pathname 会在构建时立刻报错，防止静默回到按语言分裂。
+- **D7：孤儿 Discussion #7 怎么处理？** ✅ 推荐 a（delete）——0 评论、slug 已不存在、上线前测试遗留，删掉最干净。
+- **D8：迁移与部署的顺序** ✅ 无悬念：GitHub 侧先行，代码部署在后。唯一含评论的 #19 若在部署后才迁移，其评论会被新帖"顶替"遗弃。
+- **D9：`delete-post.mjs` 提示文案更新是否纳入本次变更范围？** ✅ 推荐纳入（~5 行文案，描述改为单条共享 Discussion）。
+
+## 四、剩余风险清单（全部可接受）
+
+1. **slug 不可变性依赖**：strict 哈希绑定 term 字符串。本站 slug 即文件名、无重命名流程，天然满足。
+2. **strict=1 的哈希机制是 giscus 官方一等特性**，但它在 ADVANCED-USAGE 文档而非首页，spec 里应写清楚，避免后人把 `<!-- sha1: xxx -->` 当垃圾清理掉。
+
+---
+
+方案至此已经收敛得很实：改动面 6 个文件 + 3 步 GitHub 手动操作。随时可以固化成 OpenSpec change。你确认后我再动手创建。
+````
+
+第二次探索后又产生了一些决策问题，需要决策并继续深入探索，其中明确我对于测试文章评论区的处理方式，继续进行第三次探索。
+
+在同一个 Session 继续输入提示词：
+
+```markdown
+继续深入探索，暂时不要创建 OpenSpec 变更。
+
+D7：孤儿 Discussion #7 怎么处理？
+a. delete - 我将手动删除
+
+决策问题使用你推荐的方案。
+```
+
+第三次探索完成后，全部方案已明确。
+
+第三次探索结果输出：
+
+````markdown
+深挖收尾。这轮把 D6 的落点钉死到具体代码、发现并分析了一个此前遗漏的细节线程（backlink 语言偏向），并整理出部署后的验证协议。全程只读，未做任何写入。
+
+---
+
+## 一、D6 落点确认：`assertOneOf` 现成可用，改动极小
+
+```
+现状:
+  interface GiscusConfig { mapping: string; ... }          // 宽松 string
+  validateGiscusConfig:
+    assertNonEmptyString(candidate.mapping, 'giscus.mapping')  // 只查非空
+
+目标 (3 处微调):
+  1. 新增常量:  const GISCUS_MAPPING_VALUES = ['specific'] as const
+  2. 接口:      mapping: 'specific'   + JSDoc 更新
+  3. 校验:      assertOneOf(candidate.mapping, 'giscus.mapping', GISCUS_MAPPING_VALUES)
+```
+
+连带收益：`GiscusConfig.mapping: 'specific'` 结构可赋值给 `@giscus/react` 的 `Mapping` 联合类型，`Comments.tsx` 里的强转直接删除；"yaml 被改回 pathname" 会在模块求值时 fail-fast 报错。
+
+## 二、新发现的线程：Discussion 的 backlink 语言偏向（D10）
+
+统一评论区后，giscus 首次建帖时会把**创建者当时所在页面的 URL** 写进 Discussion 正文作为溯源链接——谁先评论，帖里链接就指向谁的 locale。**纯装饰性问题**：backlink 只出现在 GitHub Discussion 正文里，评论数据、匹配逻辑、前端渲染完全不受影响。
+
+- ✅ **推荐：不动（不纳入范围）**。建议仅在 spec 的非目标（Non-goals）里记一句，避免后人误以为是遗漏。
+
+## 三、部署后的验证协议（给未来的 tasks.md 末尾）
+
+```
+前置: GitHub 侧迁移已完成 (你手动)
+  - #7 en/posts/hello-world 已 delete          [D7: 你执行]
+  - #19 已改名 "my-first-blog-website" + 正文注入
+    <!-- sha1: bed6968ea5cdf32f420fc2c15cfc620b6f9d7a86 -->
+
+V1  访问 /zh/posts/my-first-blog-website
+      -> 评论区显示 XinzheGao 的现有评论 (哈希命中 #19)
+V2  访问 /en/posts/my-first-blog-website
+      -> 显示同一条评论 (跨语言共享达成, 核心验收点)
+V3  在任一 locale 的 /nginx-certbot-https (无存量帖) 首评
+      -> GitHub 新建标题为 "nginx-certbot-https" 的 Discussion
+      -> 正文自动含 sha1 哈希注释 (bot 新建行为, 无需手动)
+V4  GitHub 侧用 discussions_q=my-first-blog-website 搜索
+      -> 只命中一条 (旧方案会命中两条 locale 变体)
+V5  切换 locale / 切换主题
+      -> iframe 重载后仍是同一 Discussion; 主题 postMessage 照常生效
+
+注意: 本地验证需重启 dev server (site.yaml 不在模块图内, 无 HMR)
+```
+
+## 四、决策台账（全部收敛）
+
+| #   | 问题                   | 决议                                                        |
+| --- | ---------------------- | ----------------------------------------------------------- |
+| D1  | mapping 策略           | `specific` + `term`                                         |
+| D2  | term 格式              | 裸 slug                                                     |
+| D3  | strict                 | `'1'`（SHA-1 哈希匹配，防 `*-first-look` 相似 slug 误命中） |
+| D4  | 存量迁移               | M1 手动合并（实际只需 #19 改名 + 注哈希）                   |
+| D5  | 评论 UI 语言           | 跟随访问者 locale（现状不动）                               |
+| D6  | mapping 校验           | 收紧为仅 `'specific'`，fail-fast                            |
+| D7  | 孤儿 #7                | **delete，你手动执行** ✅                                   |
+| D8  | 迁移顺序               | GitHub 侧先行，代码部署在后（写进 tasks 带顺序）            |
+| D9  | `delete-post.mjs` 文案 | 纳入（~5 行，描述改为单条共享 Discussion）                  |
+| D10 | backlink 语言偏向      | 不处理，记入 Non-goals                                      |
+
+方案已无未决项：6 个代码文件 + 3 步 GitHub 手动操作 + 5 项验证，全部有明确落点。探索阶段可以画句号了。当你想落档时说一声，我会先跑 `openspec new change "unify-post-comments-across-locales"` 再产出 proposal / delta spec / tasks（在那之前我不会写任何文件）。
+````
+
+### 创建 OpenSpec 变更
+
+探索完成，开始创建 OpenSpec 变更。
+
+在同一个 Session 继续输入提示词：
+
+```
+/opsx-propose 实现功能：改造 Giscus 评论功能，同文章不再以不同语言划分评论区。
+
+注意事项：
+- 请使用 MCP 或 Context7 等工具联网获取文档与最佳实践
+- 任务过程中遇到不明确的事物请向我提问，明确需求
+- 请在 propose 任务开始前创建并切换至新的 Git 分支
+```
+
+OpenSpec 创建完成，变更名称为 `unify-post-comments-across-locales`，创建结果输出：
+
+```markdown
+## Propose 完成汇报
+
+**Change**：`unify-post-comments-across-locales`（分支已切换至同名分支，`openspec validate` 通过，4/4 工件就绪）
+
+### 工件清单
+
+位于 `openspec/changes/unify-post-comments-across-locales/`：
+
+| 工件                          | 内容                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `proposal.md`                 | 动机（评论量少、跨语言隔离）、变更清单（specific + slug term + strict 哈希、BREAKING 存量迁移）、能力影响（仅修改 `post-comments`）、部署顺序约束                                                                                                                                                                                                                                               |
+| `specs/post-comments/spec.md` | Delta：**ADDED**「评论按 slug 跨语言共享映射」（5 场景：跨语言共享 / 自动建帖 / 相似 slug 防误命中 / 存量迁移命中 / locale 切换线程不变）；**MODIFIED**「Giscus 评论组件渲染」（新增 `term` prop）与「评论配置值固定」（`mapping: specific`、`strict: '1'`、fail-fast 校验场景）；**REMOVED**「评论映射策略」（Reason + Migration，原 pathname 独立分帖行为整体反转，无法用 MODIFIED 增量表达） |
+| `design.md`                   | 6 项决策（D1-D6 含替代方案与理由）、风险与缓解、强制顺序的迁移计划（#19 改名 + 注入 `<!-- sha1: bed6968e... -->`、#7 删除、代码部署殿后）、回滚策略、5 步验证协议                                                                                                                                                                                                                               |
+| `tasks.md`                    | 5 组 14 项 checkbox 任务：GitHub 手动迁移（先行）→ 配置/类型收紧 → 组件改造 → 端到端验证 → 主 spec Purpose 同步，每项含验证方式                                                                                                                                                                                                                                                                 |
+
+### 过程说明
+
+- 探索阶段的全部决策（D1-D10）已固化进工件；孤儿 Discussion #7 按你的决议记为“用户手动 delete”（任务 1.2）。
+- 校验器曾拒绝 MODIFIED 块静默丢弃旧场景「中英文评论独立」，已改用 REMOVED + ADDED 表达行为反转，重校验通过。
+- Git 工作区里大量 `.agents/.github/.opencode` 技能文件的改动是你此前 `openspec update` 产生的，与本次无关；本次新增仅 `unify-post-comments-across-locales`（未提交，供你审阅）。
+
+**All artifacts needed for implementation are ready.**
+
+The artifacts are ready for review. When you are ready, run `/opsx-apply`（注意：apply 前请先完成任务组 1 的 GitHub 手动迁移，否则部署顺序约束会被违反）。
+```
+
+AI 创建的 OpenSpec 变更位于 `openspec/changes/unify-post-comments-across-locales`，内容如下：
+
+- `specs/<capability-path>/spec.md` - 本次功能改动的规范文档，之后可以选择同步到项目全局规范
+- `.openspec.yaml` - 本次 OpenSpec 的配置与信息记录
+- `design.md` - 本次功能改动的设计文档
+- `proposal.md` - 本次功能改动的意图文档
+- `tasks.md` - 本次功能改动的任务列表，稍后 AI 实现过程中会自动勾选已完成的任务
+
+查看本次 OpenSpec 变更的相关文档，如有不符合预期的内容可以手动或继续让 AI 完善，都符合预期后开始进行实现。
+
+### 实现 OpenSpec 变更
+
+由于本次功能改动不算复杂，因此不需要拆分步骤实现，直接使用 `/opsx-apply` 指定实现刚才创建的 OpenSpec 变更。
+
+新开 Session，模型选择 GLM 5.3，高级思考深度，输入提示词：
+
+```
+/opsx-apply unify-post-comments-across-locales
+```
+
+任务执行过程中 AI 检测到了 Github CLI 且已登录，可以自动实现旧文章评论区迁移，AI 向我询问想要如何处理旧的 Github Discussions。
+
+```
+Q: GitHub Discussions 迁移（任务 1.1 / 1.2）目前未完成。你希望如何处理？
+A: 由你通过 gh API 执行 - 我用 gh API 完成 #19 迁移和 #7 删除，然后继续代码改动
+```
+
+其中有一些需要手动完成的任务，比如功能实现后，在没发过评论的文章发一条评论，切换语言后验证评论是否正常显示。
+
+### 验证 OpenSpec 变更
+
+功能实现完成，让 AI 检查是否有遗漏的任务，并检验是否按照本次 OpenSpec 的规范与设计实现功能。
+
+新开 Session，模型选择 GLM 5.3 Flash，高级思考深度，输入提示词：
+
+```
+/opsx-verify unify-post-comments-across-locales
+```
+
+验证结果没有 `CRITICAL` 与 `WARNING` 级别的问题，手动操作验证也没有问题，本次 OpenSpec 变更实现已完成。
+
+### 同步与归档 OpenSpec 变更
+
+OpenSpec 变更已实现完成并检验完成，将本次变更的规范文档同步至全局项目级规范，然后归档本次 OpenSpec 变更。
+
+新开 Session，模型选择 GLM 5.3 Flash，高级思考深度，同步规范文档，输入提示词：
+
+```
+/opsx-sync unify-post-comments-across-locales
+```
+
+归档 OpenSpec 变更，在同一个 Session 继续或新开 Session 输入提示词：
+
+```
+/opsx-archive unify-post-comments-across-locales
+```
+
+### 实践小结
+
+回顾这次 Giscus 评论功能改造，完整走了一遍 OpenSpec 工作流的「探索 - 规划 - 实现 - 验证 - 同步 - 归档」流程：
+
+1. **探索阶段**（3 轮）把方案从"候选对比"收敛到"文件级别的改动面"，期间 AI 联网核实了 Giscus 文档、抓取了 GitHub 仓库实况，还修正了自己上一轮的错误判断（`strict` 的真实语义），10 个决策问题全部收敛
+2. **规划阶段**（`/opsx-propose`）将探索结论固化为 proposal / delta spec / design / tasks 四份工件，其中带顺序的迁移任务（GitHub 侧先行、代码部署殿后）是本次改造的关键约束
+3. **实现阶段**（`/opsx-apply`）AI 检测到已登录的 GitHub CLI 后主动询问，由我确认后自动完成了旧 Discussion 的迁移，剩余少量手动验证任务（发评论、切换语言验证）由我完成
+4. **验证阶段**（`/opsx-verify`）没有 `CRITICAL` 与 `WARNING` 级别的问题，手动验证也通过
+5. **同步与归档**（`/opsx-sync`、`/opsx-archive`）将本次规范同步至项目级规范并归档
+
+模型选择上，探索与实现使用旗舰模型（GLM 5.3），验证、同步与归档使用性价比模型（GLM 5.3 Flash），在保证质量的同时控制成本。
+
+整个过程中我只需要在关键节点做决策（回答决策问题、确认迁移方式、人工验证），复杂的探索、规划与实现都由 AI 完成——这正是这套工作流的核心价值。
+
+## 结语
+
+以上就是我在 2026 年中旬的 AI Coding 工作流。整体来看，我的工作流围绕三个核心：
+
+1. **项目初始化** - 通过安装合适的 Agents Skills 与 MCP、生成 `AGENTS.md`，让 Coding Agent 从项目一开始就了解项目背景与最佳实践，从源头提升任务质量
+2. **提示词模板** - 将高频场景固化为可复用的提示词，让 AI 的产出更稳定、更符合预期
+3. **OpenSpec 规范驱动开发** - 用规范与任务清单拆解复杂任务，规避 AI Agent 上下文长度限制，让多个 AI Session 可以协同完成一个大任务
+
+从实践来看，这套工作流最大的收益是：复杂任务不再需要在一个对话里从头做到尾，而是通过「探索 - 规划 - 实现 - 验证 - 同步 - 归档」的完整流程分阶段推进，每一步都可以选用不同级别的模型，在保证质量的同时控制成本。
+
+AI Coding 工具链的迭代速度非常快，我的工作流也在持续调整，这篇文章会随着实践持续更新。如果你有更好的实践，欢迎在评论区交流。

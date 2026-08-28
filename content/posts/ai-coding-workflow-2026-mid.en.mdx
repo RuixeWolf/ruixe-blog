@@ -1,0 +1,681 @@
+---
+title: My AI Coding Workflow in Mid-2026
+description: A systematic overview of my AI Coding workflow as of mid-2026 - Coding Agent project initialization (Agents Skills, MCP, and AGENTS.md), the AI Coding prompt templates I keep updating, and the complete OpenSpec spec-driven development workflow, closing with a full hands-on case study refactoring this blog's Giscus comments.
+publishedTime: '2026-08-28'
+category: ai-coding
+tags:
+  - copilot
+  - openspec
+---
+
+Since the middle of 2026, AI Coding has become deeply embedded in my daily development workflow. Whether it is initializing a new project, building features, or hunting bugs, I get it done with a coding agent. I have previously written about practices such as [the birth of my personal blog website](https://blog.ruixe.net/en/posts/my-first-blog-website), [my first time using the VS Code Agents Window](https://blog.ruixe.net/en/posts/vscode-agents-window-first-look), and [my first look at Vercel Agent Browser](https://blog.ruixe.net/en/posts/vercel-agent-browser-first-look). This post is a systematic write-up of my current AI Coding workflow, mainly covering:
+
+- **Coding Agent project initialization workflow** - installing the right Agents Skills and MCP for the project, generating `AGENTS.md`
+- **AI Coding prompt sharing** - prompt templates I use often, continuously updated
+- **OpenSpec workflow** - the complete spec-driven development (SDD) process
+- **OpenSpec workflow in practice** - a full hands-on record of refactoring this blog's comment feature
+
+I hope my workflow gives you some reference.
+
+## Coding Agent Project Initialization Workflow
+
+### Install the Right Agents Skills and MCP
+
+A coding agent's capability depends not only on the model itself, but also on the tools and knowledge it can access. Installing the right Agents Skills and MCP for a project lets the coding agent automatically follow best practices in matching scenarios instead of exploring from scratch every time - one of the first things to do when initializing a coding agent project.
+
+- **Agents Skills** - provide the coding agent with domain-specific workflows and knowledge, automatically loaded when a task triggers the matching scenario
+- **MCP (Model Context Protocol)** - connects the coding agent to external tools and data sources, such as fetching up-to-date tech stack docs or searching the web
+
+Explore agents skills that fit your project on [skills.sh](https://www.skills.sh/). You can install them per project, or install cross-project skills globally.
+
+#### Recommended Skills
+
+- **find-skills** - finds and installs suitable agents skills for the project on skills.sh
+- **find-docs** - uses the Context7 CLI to find and fetch documentation for a tech stack
+- **grill-me** - intent-driven workflow: clarify requirements before doing the work
+- **frontend-design** - front-end design skill, recommended for front-end projects
+- **agent-browser** - browser automation built for AI; see my other post [First Look at Vercel Agent Browser](https://blog.ruixe.net/en/posts/vercel-agent-browser-first-look) for details
+
+#### Recommended MCP
+
+- **[Context7](https://context7.com/)** - gives the AI the latest and most complete tech stack docs; the Context7 CLI + Skills can replace the MCP
+- **[Firecrawl](https://www.firecrawl.dev/)** - lets the AI search the web, e.g. for best practices and documentation
+
+### Generate `AGENTS.md`
+
+**Purpose:** generate documents such as `AGENTS.md` so the agent understands the project better in every conversation, improving task quality.
+
+Initialization is usually done by sending the `/init` command directly in the chat window. Use an advanced model with deep thinking.
+
+Re-run initialization when:
+
+- A coding agent has a major version update
+- The project's features or architecture change significantly
+
+## AI Coding Prompts
+
+Here are the AI Coding prompts I currently use - continuously updated.
+
+**Clarify intent** - optionally append to the end of a prompt in regular conversations.
+
+```
+If there are ambiguous requirement decisions, ask me questions, list the options, and mark the recommended one.
+```
+
+**Git commit** - commit, push, create a PR.
+
+```
+Please commit all changes on the project's current Git branch with a message following Conventional Commits, push to the remote repository, then create a Pull Request.
+```
+
+**Git commit** - create a new branch first, then commit, push, create a PR.
+
+```
+Please create a new Git branch for all current changes in the project and commit them with a message following Conventional Commits, push to the remote repository, then create a Pull Request.
+```
+
+**OpenSpec Opsx workflow** - early exploration for feature development.
+
+```markdown
+/opsx-explore Please explore the current project, put together an implementation plan, and list the decisions to be made with options, marking the recommended option.
+
+Feature to implement:
+```
+
+**OpenSpec Opsx workflow** - early exploration for feature development (front and back end projects open in the same IDE window).
+
+```markdown
+/opsx-explore Please explore the front and back end projects, put together an implementation plan, and list the decisions to be made with options, marking the recommended option.
+
+Feature to implement:
+```
+
+**OpenSpec Opsx workflow** - analyzing a bug.
+
+```markdown
+/opsx-explore Please explore the current project, investigate and analyze the problem, and put together a solution.
+
+Problem:
+```
+
+**OpenSpec Opsx workflow** - analyzing a bug (front and back end projects open in the same IDE window).
+
+```markdown
+/opsx-explore Please explore the front and back end projects, investigate and analyze the problem, and put together a solution.
+
+Problem:
+```
+
+**OpenSpec Opsx workflow** - answer decision questions during exploration and keep exploring.
+
+```markdown
+Keep digging deeper; do not create an OpenSpec change yet.
+
+For the other decision questions use your recommended options. (optional)
+```
+
+**OpenSpec Opsx workflow** - after exploration, for small tasks skip the proposal and change code directly.
+
+```
+Please exit Explore mode, do not create an OpenSpec change, and implement the changes directly.
+```
+
+**OpenSpec Opsx workflow** - appended to the end of the propose prompt after exploration.
+
+```markdown
+Notes:
+
+- Use MCP or Context7 etc. to fetch docs and best practices online
+- Ask me when anything is unclear, to clarify requirements
+- Split task.md into a detailed checklist for implementation across multiple AI sessions (add this line if the task is complex)
+- Create and switch to a new Git branch before starting the propose task (add this line if you want to develop on a new branch)
+- Create independent OpenSpec Changes for the front end and back end projects, with the back end change name ending in `-be` and the front end change name ending in `-fe` (add this line if the front and back end projects are open in the same IDE window)
+```
+
+**OpenSpec Opsx workflow** - implement in phases during implementation.
+
+```markdown
+/opsx-apply xxxxx
+
+Please complete only the following tasks:
+
+1. xxx
+2. xxx
+```
+
+## The OpenSpec Workflow
+
+OpenSpec is a spec-driven development (SDD) framework for AI agents. It mainly addresses the context-length limits LLM agents hit when executing complex tasks. Website: https://openspec.dev
+
+GitHub repository: https://github.com/Fission-AI/OpenSpec
+
+OpenSpec Opsx workflow docs: https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md
+
+### Developing or changing a feature (feat)
+
+1. Use `/opsx-explore` to explore the problem; a flagship model with maximum thinking depth is recommended.
+
+```markdown
+/opsx-explore Please explore the current project, put together an implementation plan, and list the decisions to be made with options, marking the recommended option.
+
+Feature to implement: XXX
+
+Feature background: XXX
+
+Feature design:
+
+- XXX
+- XXX
+```
+
+2. Refine the requirements based on the exploration results by answering the decision questions. It may take 1 ~ 3 rounds of refined exploration until the plan meets expectations and no new decision questions or unclear points remain.
+
+```markdown
+Keep digging deeper; do not create an OpenSpec change yet.
+
+Decision question XXX
+Go with option B XXX
+
+For the other decision questions use your recommended options.
+
+(any additional refinements)
+```
+
+3. After exploration, if the feature is simple enough to not be worth an OpenSpec change and the current session's context is still short, you can have the AI implement the change directly in this session.
+
+```
+Please exit Explore mode, do not create an OpenSpec change, and implement the changes directly.
+```
+
+4. After exploration, if the task is complex, continue in this session with `/opsx-propose` to create the implementation plan.
+
+```markdown
+/opsx-propose Implement the feature: XXX
+
+Notes:
+
+- Use MCP or Context7 etc. to fetch docs and best practices online
+- Ask me when anything is unclear, to clarify requirements
+- Split task.md into a detailed checklist for implementation across multiple AI sessions (add this line if the task is complex)
+- Create and switch to a new Git branch before starting the propose task (add this line if you want to develop on a new branch)
+- Create independent OpenSpec Changes for the front end and back end projects, with the back end change name ending in `-be` and the front end change name ending in `-fe` (add this line if the front and back end projects are open in the same IDE window)
+```
+
+5. Open a new session and use `/opsx-apply` to start implementing. For complex tasks you can split the work across multiple new sessions; a flagship or near-flagship model is recommended.
+
+```markdown
+/opsx-apply xxx-xxx-xxx (the change name generated by /opsx-propose under openspec/changes)
+
+Please complete only the following tasks:
+
+1. (a task from task.md)
+2. (a task from task.md)
+3. (a task from task.md)
+```
+
+6. When all tasks in `task.md` are done, open a new session and use `/opsx-verify` to verify the implementation; a near-flagship or cost-effective model is recommended.
+
+```
+/opsx-verify xxx-xxx-xxx
+```
+
+If the verification finds issues to fix, have the AI resolve them in the same session. Focus on whether the result contains `CRITICAL` or `WARNING` level issues - those need to be resolved. `SUGGESTION`-level issues can be left alone.
+
+```
+Please resolve the critical/warning issues.
+```
+
+7. When everything is done, manual testing passes, and the result meets expectations, open a new conversation and use `/opsx-sync` to sync this requirement's spec into the project-level specs; a cost-effective model is recommended. This step is optional - evaluate whether this change might affect future development; otherwise the sync can be skipped.
+
+```
+/opsx-sync xxx-xxx-xxx
+```
+
+8. Use `opsx-archive` to archive the OpenSpec change; a cost-effective model is recommended.
+
+```
+/opsx-archive xxx-xxx-xxx
+```
+
+### Troubleshooting and fixing a problem (fix)
+
+1. Use `/opsx-explore` to explore the problem; a flagship model is recommended for tricky issues.
+
+```markdown
+/opsx-explore Please explore the current project, investigate and analyze the problem, and put together a solution.
+
+Problem: XXX
+
+Details: XXX
+
+Reproduction steps:
+
+1. XXX
+2. XXX
+
+Expected behavior: XXX
+
+Actual behavior: XXX
+
+Additional notes:
+
+- XXX
+- XXX
+```
+
+2. Choose a solution based on the exploration results, or supply more information. It may take 1 ~ 3 rounds of refined exploration until the plan meets expectations and no new decision questions or unclear points remain.
+
+3. After exploration, either exit Explore and fix the code directly, or use `/opsx-propose` to create an implementation plan.
+
+4. If an OpenSpec change was created, the rest of the flow is the same as for developing or changing a feature.
+
+## OpenSpec Workflow in Practice
+
+Take the refactor of this blog's Giscus comment feature as the example. The goal was to merge the per-language comment sections of the same post into a single comment section that no longer splits by language.
+
+### Exploring the implementation plan
+
+Using VS Code Copilot with the GLM 5.3 model at high thinking depth, I entered the prompt:
+
+```markdown
+/opsx-explore Please explore the current project, put together an implementation plan, and list the decisions to be made with options, marking the recommended option.
+
+Feature to implement: Refactor the Giscus comment feature - change the comment sections from being split per language variant of the same slug post to the same slug post having a single comment section that no longer splits by language.
+
+Feature background: This personal blog gets little traffic and very few users interact in the comments, and comments on the same post currently cannot cross languages. Visitors reading different languages can hardly interact with each other, so I want the comment section of the same post to no longer be split by language.
+
+Feature design:
+
+- Adjust the Giscus mapping strategy
+- Giscus maps by post slug instead of directly by pathname
+```
+
+In the first exploration the AI mapped the implementation chain of the blog's comment feature, fetched the Giscus docs online, and listed the decision questions. First exploration result:
+
+````markdown
+Alright, entering explore mode. I have read the giscus block in `site.yaml`, the validation logic in `site-config.ts`, the existing `spec.md`, and verified giscus's official mapping mechanism. Here is the complete thinking.
+
+---
+
+## 1. Current state: how comments got "divided by language"
+
+```
+PostLayout (RSC, server-only)
+    |
+    |  config = siteConfig.giscus          <- content/site.yaml
+    |  locale = zh / en
+    v
+Comments (client)
+    |
+    |  mapping = 'pathname'   (from site.yaml)
+    |  <Giscus mapping="pathname" lang={zh-CN|en} .../>
+    v
+When giscus.app loads:
+    Uses the GitHub Discussions Search API to search "Discussion title contains page pathname"
+        /zh/posts/hello-world  ->  Discussion whose title contains "/zh/posts/hello-world"
+        /en/posts/hello-world  ->  Discussion whose title contains "/en/posts/hello-world"
+    Not found -> the bot auto-creates one on the first comment/reaction (title = mapping value)
+```
+
+Key mechanism: **every giscus mapping strategy is essentially "searching by Discussion title"** - `pathname`, `specific` etc. only decide which string is used to match titles.
+
+## 2. Candidate comparison
+
+| Option                            | Cross-language sharing?     | Auto thread creation?    | Assessment                 |
+| --------------------------------- | --------------------------- | ------------------------ | -------------------------- |
+| **A. `specific` + `term = slug`** | ✅                          | ✅                       | **Recommended**            |
+| B. `title` / C. `og:title`        | ❌ titles differ per locale | ✅                       | Excluded                   |
+| D. `number`                       | ✅                          | ❌ needs a mapping table | Excluded                   |
+| E. Keep `pathname`                | -                           | -                        | Cannot fake URLs, excluded |
+
+## 3. A hidden pitfall: migrating the existing Discussions
+
+In the `pathname` era, each post had one Discussion per language. After switching to `specific + term: slug`, both old titles contain the slug, so the fuzzy search hits one at random and behavior is nondeterministic. Options:
+
+| Migration                           | Action                                                                                                   | Cost                                                              |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **M1. Manual merge (recommended)**  | Keep the one with more comments, rename it to the slug, move the other's comments over, then lock/delete | A few minutes per post, tiny total                                |
+| M2. Seal old threads, open new ones | Lock all old threads, let the bot create new ones by slug                                                | Zero effort, but old comments go "invisible"; needs `strict: '1'` |
+| M3. Rename each without merging     | Uniqueness is unachievable                                                                               | Excluded                                                          |
+
+## 4. Decision questions
+
+- **Q1: Which mapping strategy?** ✅ Recommend `specific` + `term = slug` - the only option satisfying both "cross-language sharing + auto thread creation".
+- **Q2: Format of the term?** ✅ Recommend the bare slug (`hello-world`). giscus's search is scoped to the Comments category, so the collision space is tiny, and titles stay readable.
+- **Q3: Change `strict` from `'0'` to `'1'`?** ✅ Recommend yes. Exact matching eliminates fuzzy mis-hits on old pathname titles.
+- **Q4: How to migrate existing comments?** ✅ Recommend M1 manual merge (4 posts × 2 locales, very few comments - lowest one-time cost and no comments lost).
+- **Q5: Which language should the comment UI follow?** ✅ Keep as-is. `lang` only affects giscus's UI text, not the data.
+
+---
+
+If this direction looks right to you, I can turn it into an OpenSpec change (e.g. `unify-post-comments-across-locales`). **Create the change now? (yes/no)**
+````
+
+I felt all 5 decision questions and the recommended options matched my expectations, so I had the AI run a second exploration with the recommended options.
+
+Continuing in the same session, I entered:
+
+```markdown
+Keep digging deeper; do not create an OpenSpec change yet.
+
+For the decision questions use your recommended options.
+```
+
+During the second exploration the AI fetched and dug into the docs and usage of Giscus and `@giscus/react` online, and also visited the Discussions of my blog's GitHub repository.
+
+The second exploration output:
+
+````markdown
+Deep dive complete. This round produced a few hard facts that **change earlier judgments** - organized one by one below.
+
+---
+
+## 1. Newly verified facts (including corrections to last round's conclusions)
+
+### Fact 1: `@giscus/react` v3 natively supports this plan ✅
+
+`GiscusProps` in `types.d.ts` directly supports `term?: string` and `strict?: BooleanString`, so plan A has zero friction at the component layer, and the existing `mapping as 'pathname'` cast can be cleaned up along the way.
+
+### Fact 2: the real semantics of `strict` is a SHA-1 hash mechanism (correcting my last round's description)
+
+```
+strict = 0:  search term = term (the slug), GitHub fuzzy-searches Discussion titles
+strict = 1:  search term = SHA1(term), searches Discussion bodies for this hash
+             when creating a new Discussion, giscus automatically embeds:
+             <!-- sha1: bed6968... -->
+```
+
+- **The case for `strict: '1'` got stronger**: this site has two highly similar slugs - `vercel-agent-browser-first-look` and `vscode-agents-window-first-look`; strict=0's fuzzy search has a real mis-hit risk.
+- **One more mandatory migration step**: the kept old Discussion must have `<!-- sha1: <hash> -->` manually injected into its body, otherwise strict=1 will never find it.
+
+### Fact 3: the repository's actual Discussions - far fewer than expected (scraped live from GitHub)
+
+There are **only 2 Discussions** under the `Comments` category (giscus only creates a thread on the first comment/reaction):
+
+| #   | Title                            | Comments                  | Nature                                                        |
+| --- | -------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| #19 | `zh/posts/my-first-blog-website` | **1** (XinzheGao, Aug 21) | The only one with real content                                |
+| #7  | `en/posts/hello-world`           | 0                         | **Orphan** - slug no longer exists (pre-launch test leftover) |
+
+This compresses the migration cost to **one rename + one cleanup**, with no comments to move.
+
+### Fact 4: the SHA-1 hash is already computed
+
+`sha1('my-first-blog-website')` = `bed6968ea5cdf32f420fc2c15cfc620b6f9d7a86`
+
+## 2. Revised complete plan (per your decisions: A / bare slug / strict=1 / M1)
+
+```
+                  current (pathname)                   target (specific + strict)
+  ┌──────────────────────────────────┐    ┌──────────────────────────────────┐
+  │ /zh/posts/foo ──> Discussion A   │    │         term = "foo"             │
+  │      (title contains zh path)    │    │      strict = SHA1(foo)          │
+  │ /en/posts/foo ──> Discussion B   │    │            │                     │
+  │      (title contains en path)    │    │            v                     │
+  └──────────────────────────────────┘    │  search bodies for <!--sha1:-->  │
+                                          │  zh/en hit the same Discussion   │
+  comments invisible to each other        │  not found -> bot auto-creates   │
+                                          │  on first comment                │
+                                          │  (title=slug, body has the hash) │
+                                          └──────────────────────────────────┘
+```
+
+### Migration steps (one-time, manual in the GitHub UI, ~3 minutes)
+
+```
+Step 1  Edit Discussion #19:
+          Title: "zh/posts/my-first-blog-website"  ->  "my-first-blog-website"
+          Append to body: <!-- sha1: bed6968ea5cdf32f420fc2c15cfc620b6f9d7a86 -->
+          (keep XinzheGao's comment)
+
+Step 2  Handle orphan #7 "en/posts/hello-world" (0 comments):
+          lock or delete, pick one (see decision D7)
+
+Step 3  Deploy the code (site.yaml mapping: specific, strict: '1')
+          The other 3 posts have no existing threads; the first comment
+          will auto-create one under the new mechanism
+
+Order-sensitive: steps 1/2 must precede step 3
+          (deploy first -> strict=1 can't find the hash -> the first comment
+           creates a new thread -> #19's comment gets orphaned)
+```
+
+### Code change surface (full inventory, nothing touched yet)
+
+| File              | Change                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| `site.yaml`       | `mapping: pathname` -> `specific`; `strict: '0'` -> `'1'`; comment updates                |
+| `site-config.ts`  | Tighten the `GiscusConfig.mapping` type (see D6); upgrade validation                      |
+| `Comments.tsx`    | Add the `term` prop -> `<Giscus term>`; delete the `as 'pathname'` cast                   |
+| `PostLayout.tsx`  | Pass `term={meta.slug}` (one line)                                                        |
+| `spec.md`         | Rewrite the Purpose sentence + 2 Requirements; add strict hash scenarios                  |
+| `delete-post.mjs` | Copy tweak (see D9) - "search by slug" is actually **more accurate** under the new scheme |
+
+## 3. New decision points surfaced by the deep dive
+
+- **D6: How far should the `mapping` validation/type tightening in `site-config.ts` go?** ✅ Recommend a: tighten to only `'specific'`, fail-fast - anyone flipping the yaml back to pathname gets an immediate build error, preventing a silent return to per-language splits.
+- **D7: What to do with orphan #7?** ✅ Recommend a (delete) - 0 comments, slug gone, pre-launch leftover; deletion is cleanest.
+- **D8: Migration vs deploy order** ✅ No suspense: GitHub side first, code deploy after. If #19 - the only thread with a comment - were migrated after deploy, its comment would be orphaned by a new thread.
+- **D9: Include the `delete-post.mjs` copy update in this change's scope?** ✅ Recommend including (~5 lines, describing the single shared Discussion).
+
+## 4. Remaining risk list (all acceptable)
+
+1. **Slug immutability dependency**: the strict hash binds to the term string. On this site slug = filename with no rename flow, so this is naturally satisfied.
+2. **strict=1's hash mechanism is a first-class giscus feature**, but it lives in the ADVANCED-USAGE docs rather than the homepage; the spec should spell it out so nobody later "cleans up" `<!-- sha1: xxx -->` as garbage.
+
+---
+
+The plan has now converged to something concrete: 6 files touched + 3 manual GitHub steps. It can be turned into an OpenSpec change at any time. I'll create it once you confirm.
+````
+
+The second exploration raised more decision questions that needed answers before digging further - among them how I wanted the test post's comment section handled - so I continued with a third exploration.
+
+Continuing in the same session, I entered:
+
+```markdown
+Keep digging deeper; do not create an OpenSpec change yet.
+
+D7: What to do with orphan Discussion #7?
+a. delete - I will delete it manually
+
+For the other decision questions use your recommended options.
+```
+
+After the third exploration, the whole plan was settled.
+
+The third exploration output:
+
+````markdown
+Deep-dive wrap-up. This round pinned D6 down to concrete code, discovered and analyzed a previously missed detail thread (backlink language bias), and put together a post-deploy verification protocol. Read-only throughout; nothing written.
+
+---
+
+## 1. D6 landing point confirmed: `assertOneOf` is ready-made, the change is tiny
+
+```
+Current:
+  interface GiscusConfig { mapping: string; ... }          // loose string
+  validateGiscusConfig:
+    assertNonEmptyString(candidate.mapping, 'giscus.mapping')  // only checks non-empty
+
+Target (3 small tweaks):
+  1. New constant:  const GISCUS_MAPPING_VALUES = ['specific'] as const
+  2. Interface:     mapping: 'specific'   + JSDoc update
+  3. Validation:    assertOneOf(candidate.mapping, 'giscus.mapping', GISCUS_MAPPING_VALUES)
+```
+
+Knock-on benefits: `GiscusConfig.mapping: 'specific'` is structurally assignable to `@giscus/react`'s `Mapping` union, so the cast in `Comments.tsx` is deleted outright; a yaml flipped back to pathname fails fast at module evaluation.
+
+## 2. Newly discovered thread: Discussion backlink language bias (D10)
+
+After unifying comment sections, when giscus first creates a thread it writes **the URL of the page the creator was on** into the Discussion body as a backlink - whoever comments first, the link in the thread points to their locale. **Purely cosmetic**: the backlink only appears in the GitHub Discussion body; comment data, matching logic, and front-end rendering are completely unaffected.
+
+- ✅ **Recommend: leave it (out of scope)**. Just record one line in the spec's Non-goals so nobody later mistakes it for an oversight.
+
+## 3. Post-deploy verification protocol (for the end of the future tasks.md)
+
+```
+Precondition: the GitHub-side migration is done (manually by you)
+  - #7 en/posts/hello-world deleted          [D7: you execute]
+  - #19 renamed to "my-first-blog-website" + body injected with
+    <!-- sha1: bed6968ea5cdf32f420fc2c15cfc620b6f9d7a86 -->
+
+V1  Visit /zh/posts/my-first-blog-website
+      -> the comment section shows XinzheGao's existing comment (hash hits #19)
+V2  Visit /en/posts/my-first-blog-website
+      -> the same comment shows (cross-language sharing achieved, core acceptance point)
+V3  Leave the first comment on /nginx-certbot-https in either locale (no existing thread)
+      -> GitHub creates a Discussion titled "nginx-certbot-https"
+      -> the body automatically contains the sha1 hash comment (bot behavior, no manual work)
+V4  On the GitHub side, search with discussions_q=my-first-blog-website
+      -> exactly one hit (the old scheme would hit both locale variants)
+V5  Switch locale / switch theme
+      -> after the iframe reloads it is still the same Discussion; theme postMessage still works
+
+Note: local verification requires a dev server restart (site.yaml is outside the module graph, no HMR)
+```
+
+## 4. Decision ledger (fully converged)
+
+| #   | Question               | Resolution                                                                       |
+| --- | ---------------------- | -------------------------------------------------------------------------------- |
+| D1  | Mapping strategy       | `specific` + `term`                                                              |
+| D2  | Term format            | Bare slug                                                                        |
+| D3  | strict                 | `'1'` (SHA-1 hash matching; guards against `*-first-look` similar-slug mis-hits) |
+| D4  | Existing migration     | M1 manual merge (in practice just rename #19 + inject the hash)                  |
+| D5  | Comment UI language    | Follows the visitor's locale (unchanged)                                         |
+| D6  | mapping validation     | Tightened to only `'specific'`, fail-fast                                        |
+| D7  | Orphan #7              | **delete, executed manually by you** ✅                                          |
+| D8  | Migration order        | GitHub side first, code deploy after (written into tasks with ordering)          |
+| D9  | `delete-post.mjs` copy | Included (~5 lines, describing the single shared Discussion)                     |
+| D10 | backlink language bias | Not handled; recorded in Non-goals                                               |
+
+No open items remain: 6 code files + 3 manual GitHub steps + 5 verification items, every one with a concrete landing point. The exploration phase can draw to a close. Say the word when you want it filed - I'll run `openspec new change "unify-post-comments-across-locales"` and then produce the proposal / delta spec / tasks (I won't write any file before that).
+````
+
+### Creating the OpenSpec change
+
+Exploration done - time to create the OpenSpec change.
+
+Continuing in the same session, I entered:
+
+```
+/opsx-propose Implement the feature: refactor the Giscus comment feature so the same post no longer splits its comment section by language.
+
+Notes:
+- Use MCP or Context7 etc. to fetch docs and best practices online
+- Ask me when anything is unclear, to clarify requirements
+- Create and switch to a new Git branch before starting the propose task
+```
+
+The OpenSpec change was created under the name `unify-post-comments-across-locales`; the result:
+
+```markdown
+## Propose completion report
+
+**Change**: `unify-post-comments-across-locales` (branch switched to the same name, `openspec validate` passed, 4/4 artifacts ready)
+
+### Artifact list
+
+Located under `openspec/changes/unify-post-comments-across-locales/`:
+
+| Artifact                      | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `proposal.md`                 | Motivation (few comments, cross-language isolation), change list (specific + slug term + strict hash, BREAKING migration of existing threads), capability impact (only `post-comments` modified), deployment-order constraint                                                                                                                                                                                                                                                                                                                                         |
+| `specs/post-comments/spec.md` | Delta: **ADDED** "comments shared across languages by slug mapping" (5 scenarios: cross-language sharing / auto thread creation / similar-slug mis-hit protection / migrated-thread hit / locale switch keeps the thread); **MODIFIED** "Giscus comment component rendering" (new `term` prop) and "comment config values pinned" (`mapping: specific`, `strict: '1'`, fail-fast validation scenario); **REMOVED** "comment mapping strategy" (Reason + Migration - the old pathname per-locale threading is inverted wholesale, impossible to express with MODIFIED) |
+| `design.md`                   | 6 decisions (D1-D6 with alternatives and rationale), risks and mitigations, strictly ordered migration plan (#19 rename + inject `<!-- sha1: bed6968e... -->`, #7 delete, code deploy last), rollback strategy, 5-step verification protocol                                                                                                                                                                                                                                                                                                                          |
+| `tasks.md`                    | 5 groups, 14 checkbox tasks: manual GitHub migration (first) -> config/type tightening -> component refactor -> end-to-end verification -> main spec Purpose sync, each with its verification method                                                                                                                                                                                                                                                                                                                                                                  |
+
+### Process notes
+
+- All decisions from exploration (D1-D10) are baked into the artifacts; orphan Discussion #7 is recorded per your resolution as "user manually deletes" (task 1.2).
+- The validator initially rejected a MODIFIED block that silently dropped the old scenario "Chinese and English comments are independent"; switched to REMOVED + ADDED to express the behavior inversion, re-validation passed.
+- The many `.agents/.github/.opencode` skill-file changes in the Git working tree came from your earlier `openspec update` and are unrelated to this change; the only new addition here is `unify-post-comments-across-locales` (uncommitted, for your review).
+
+**All artifacts needed for implementation are ready.**
+
+The artifacts are ready for review. When you are ready, run `/opsx-apply` (note: complete task group 1's manual GitHub migration before applying, otherwise the deployment-order constraint is violated).
+```
+
+The OpenSpec change the AI created lives at `openspec/changes/unify-post-comments-across-locales` and contains:
+
+- `specs/<capability-path>/spec.md` - the spec document for this change; can optionally be synced into the project-level specs later
+- `.openspec.yaml` - config and metadata for this OpenSpec change
+- `design.md` - the design document for this change
+- `proposal.md` - the intent document for this change
+- `tasks.md` - the task list for this change; the AI checks off completed tasks during implementation
+
+Review the change's documents; fix anything off expectations by hand or keep having the AI refine it, then start implementing once everything looks right.
+
+### Implementing the OpenSpec change
+
+This change wasn't complex, so no phased implementation was needed - I ran `/opsx-apply` directly against the change just created.
+
+New session, GLM 5.3 model at high thinking depth, prompt:
+
+```
+/opsx-apply unify-post-comments-across-locales
+```
+
+During execution the AI detected a logged-in GitHub CLI that could automate the old threads' migration, and asked how I wanted the old GitHub Discussions handled.
+
+```
+Q: The GitHub Discussions migration (tasks 1.1 / 1.2) is not done yet. How do you want to handle it?
+A: You do it via the gh API - complete the #19 migration and #7 deletion with the gh API, then continue with the code changes
+```
+
+A few tasks still needed a human - e.g. after implementation, leaving a comment on a post that had none, then switching languages to verify the comment still showed.
+
+### Verifying the OpenSpec change
+
+Implementation done, I had the AI check for missed tasks and verify the feature against this OpenSpec change's spec and design.
+
+New session, GLM 5.3 Flash at high thinking depth, prompt:
+
+```
+/opsx-verify unify-post-comments-across-locales
+```
+
+Verification found no `CRITICAL` or `WARNING` issues, and the manual checks passed too - this OpenSpec change was complete.
+
+### Syncing and archiving the OpenSpec change
+
+The change was implemented and verified, so I synced its spec document into the global project-level specs, then archived it.
+
+New session, GLM 5.3 Flash at high thinking depth, syncing the spec document, prompt:
+
+```
+/opsx-sync unify-post-comments-across-locales
+```
+
+To archive the OpenSpec change, continue in the same session or open a new one and enter:
+
+```
+/opsx-archive unify-post-comments-across-locales
+```
+
+### Case study recap
+
+Looking back at this Giscus comments refactor, it walked the full OpenSpec loop of "explore - plan - implement - verify - sync - archive":
+
+1. **Exploration (3 rounds)** converged the plan from "candidate comparison" to "file-level change surface"; along the way the AI verified the Giscus docs online, scraped the GitHub repository's live state, and even corrected its own previous misjudgment (the real semantics of `strict`) - all 10 decision questions converged
+2. **Planning (`/opsx-propose`)** froze the exploration conclusions into four artifacts - proposal / delta spec / design / tasks - where the strictly ordered migration tasks (GitHub side first, code deploy last) were the change's key constraint
+3. **Implementation (`/opsx-apply`)** - the AI, having detected a logged-in GitHub CLI, asked first and, after my confirmation, automated the old Discussions migration; the few remaining manual verification tasks (leave a comment, switch languages and verify) I did myself
+4. **Verification (`/opsx-verify`)** had no `CRITICAL` or `WARNING` issues, and manual verification passed
+5. **Sync and archive (`/opsx-sync`, `/opsx-archive`)** synced this change's spec into the project-level specs and archived it
+
+For model selection, exploration and implementation used the flagship model (GLM 5.3), while verification, sync, and archive used the cost-effective GLM 5.3 Flash - controlling cost while keeping quality.
+
+Throughout, I only made decisions at key nodes (answering decision questions, confirming the migration approach, manual verification); the heavy exploration, planning, and implementation were all done by the AI - which is exactly the core value of this workflow.
+
+## Closing thoughts
+
+That's my AI Coding workflow as of mid-2026. Overall, it revolves around three cores:
+
+1. **Project initialization** - installing the right Agents Skills and MCP and generating `AGENTS.md` so the coding agent knows the project's background and best practices from the start, lifting task quality at the source
+2. **Prompt templates** - freezing high-frequency scenarios into reusable prompts, making the AI's output more stable and closer to expectations
+3. **OpenSpec spec-driven development** - decomposing complex tasks with specs and task lists, working around agent context-length limits so multiple AI sessions can collaborate on one big task
+
+In practice, the biggest payoff of this workflow is that a complex task no longer has to run start-to-finish in one conversation, but advances in phases through the full "explore - plan - implement - verify - sync - archive" loop, with a different tier of model at each step - quality and cost control together.
+
+The AI Coding toolchain iterates extremely fast, and my workflow keeps adjusting with it - this post will keep updating as I practice. If you have better practices, I'd love to hear them in the comments.
