@@ -139,7 +139,7 @@ export async function PostLayout({
         </div>
       </div>
 
-      <Comments config={siteConfig.giscus} locale={locale} />
+      <Comments config={siteConfig.giscus} locale={locale} term={meta.slug} />
     </div>
   )
 }
