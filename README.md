@@ -221,6 +221,22 @@ changes.**
 This project uses [OpenSpec](https://openspec.dev) for spec-driven development;
 specs live under `openspec/`.
 
+## License
+
+This repository is dual-licensed:
+
+- **Code** — the Next.js application, components, `lib/`, configuration, and
+  scripts — is licensed under the [MIT License](./LICENSE).
+- **Content** — blog posts under `content/posts/`, drafts, site configuration,
+  and post images — is licensed under the [CC BY-NC 4.0](./LICENSE.content):
+  free to share and adapt for non-commercial purposes with attribution to
+  [Ruixe](https://blog.ruixe.net).
+- **Code snippets inside posts** are additionally released under the MIT
+  License, so they can be reused in any project, including commercial ones.
+
+Third-party resources (fonts, dependencies) keep their own licenses — see
+[Font Resources](#font-resources) below.
+
 ## Font Resources
 
 The local SEO asset bundle uses:

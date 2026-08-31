@@ -18,23 +18,57 @@ export interface TocItem {
  * `rehype-slug` uses internally -- so TOC links match the rendered heading
  * ids exactly.
  *
+ * Lines inside fenced code blocks (``` or ~~~, including nested fences like
+ * the `````markdown blocks used to quote markdown inside markdown) are
+ * skipped, mirroring how remark parses the document.
+ *
  * @param markdownContent - Raw markdown body (frontmatter already stripped).
  * @returns Ordered list of TOC entries.
  */
 export function extractToc(markdownContent: string): TocItem[] {
   const items: TocItem[] = []
   const slugger = new GithubSlugger()
-  const headingRegex = /^(#{2,3})\s+([^\n]+)/gm
+  const headingRegex = /^(#{2,3})\s+([^\n]+)/
 
-  let match: RegExpExecArray | null
-  while ((match = headingRegex.exec(markdownContent)) !== null) {
-    const level = match[1].length as 2 | 3
-    const text = match[2].trim()
-    items.push({
-      level,
-      text,
-      id: slugger.slug(text),
-    })
+  // Active fence marker (backtick or tilde) plus its minimum length; null
+  // when not inside a fenced code block. A closing fence must use the same
+  // character and be at least as long as the opening fence.
+  let fenceChar: '`' | '~' | null = null
+  let fenceLength = 0
+
+  for (const line of markdownContent.split('\n')) {
+    const fence = /^ {0,3}(`{3,}|~{3,})/.exec(line)
+
+    if (fence) {
+      const char = fence[1][0] as '`' | '~'
+      const length = fence[1].length
+
+      if (fenceChar === null) {
+        fenceChar = char
+        fenceLength = length
+      } else if (char === fenceChar && length >= fenceLength) {
+        fenceChar = null
+        fenceLength = 0
+      }
+      // A fence line with the wrong char or too few markers is just content
+      // inside the current code block -- keep scanning.
+      continue
+    }
+
+    if (fenceChar !== null) {
+      continue
+    }
+
+    const match = headingRegex.exec(line)
+    if (match) {
+      const level = match[1].length as 2 | 3
+      const text = match[2].trim()
+      items.push({
+        level,
+        text,
+        id: slugger.slug(text),
+      })
+    }
   }
 
   return items
