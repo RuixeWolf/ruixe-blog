@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import Giscus from '@giscus/react'
 import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
-import type { GiscusConfig } from '@/lib/site-config'
+import type { GiscusConfig, GitHubRepository } from '@/lib/site-config'
 
 /** Maps blog locale codes to Giscus `lang` values (Giscus has no bare `zh`). */
 const LOCALE_TO_LANG: Record<string, string> = {
@@ -64,7 +64,11 @@ function resolveGiscusTheme(resolvedTheme: string | undefined): string {
  * reloading the iframe UI language - acceptable since locale switches are
  * page-level changes.
  *
- * @param config - Giscus configuration from `content/site.yaml`.
+ * @param config - Giscus configuration from `content/site.yaml` (everything
+ *   except the repository, which is a site-wide identity field).
+ * @param repo - GitHub repository full name (`owner/repo`) from
+ *   `siteConfig.githubRepository`, passed separately because the repository is
+ *   site-wide identity rather than a Giscus-generated value.
  * @param locale - Active blog locale code.
  * @param term - Post slug; the cross-locale anchor shared by all language
  *   versions of a post. With `mapping: 'specific'` and `strict: '1'`, Giscus
@@ -73,9 +77,15 @@ function resolveGiscusTheme(resolvedTheme: string | undefined): string {
  */
 export function Comments({
   config,
+  repo,
   locale,
   term,
-}: Readonly<{ config: GiscusConfig; locale: string; term: string }>) {
+}: Readonly<{
+  config: GiscusConfig
+  repo: GitHubRepository
+  locale: string
+  term: string
+}>) {
   const { resolvedTheme } = useTheme()
   const t = useTranslations('Comment')
 
@@ -103,7 +113,7 @@ export function Comments({
       </h2>
       <div className="prose max-w-none dark:prose-invert">
         <Giscus
-          repo={config.repo as `${string}/${string}`}
+          repo={repo}
           repoId={config.repoId}
           category={config.category}
           categoryId={config.categoryId}

@@ -19,10 +19,11 @@ type ButtonVariant = NonNullable<ButtonVariants['variant']>
  * directly. Styled with `buttonVariants` to match the icon-only buttons in
  * the same bar.
  *
- * The `variant` prop lets each header pick the right visual treatment:
- * `tertiary` (default) for the desktop header where icon-only buttons use
- * `tertiary` (e.g. `LanguageSwitcher`), and `ghost` for the mobile header
- * where icon-only buttons use `ghost` (e.g. search, settings).
+ * The `variant` prop lets the caller pick the right visual treatment:
+ * `tertiary` (default) matches the desktop header's icon-only buttons
+ * (e.g. `LanguageSwitcher`). The mobile header no longer renders this
+ * component - RSS lives in `MobileActionsMenu` as a native dropdown menu
+ * item.
  *
  * @param locale - Active locale code; used to build the feed URL and resolve
  *   the `aria-label` translation.

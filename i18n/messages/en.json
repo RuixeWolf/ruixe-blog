@@ -11,7 +11,9 @@
     "Theme": "Theme",
     "Settings": "Settings",
     "Menu": "Menu",
-    "Rss": "RSS Feed"
+    "More": "More actions",
+    "Rss": "RSS Feed",
+    "Github": "GitHub repository"
   },
   "Search": {
     "DialogTitle": "Search Posts",
@@ -45,6 +47,11 @@
   },
   "PostDetail": {
     "TableOfContents": "Table of Contents",
+    "Share": "Share",
+    "ShareDialog": "Share Post",
+    "CopyLink": "Copy link",
+    "LinkCopied": "Link copied",
+    "SystemShare": "Share via device",
     "PreviousPost": "Previous",
     "NextPost": "Next",
     "NoPreviousPost": "No older post",
@@ -78,7 +85,9 @@
     "AboutAuthor": "About the Author",
     "AboutBlog": "About the Blog",
     "AuthorContent": "Hi, I'm Ruixe, a full-stack developer passionate about frontend engineering, the React ecosystem, and developer experience. This blog records my technical learning and project practices.",
-    "BlogContent": "Ruixe Blog is a personal blog built with Next.js 16, HeroUI v3, and MDX. It uses a file-driven content architecture and supports both Chinese and English."
+    "BlogContent": "Ruixe Blog is a personal blog built with Next.js 16, HeroUI v3, and MDX. It uses a file-driven content architecture and supports both Chinese and English.",
+    "BlogLicenseTitle": "Copyright & License",
+    "BlogLicenseContent": "The content of this blog (post text, images, etc.) is licensed under the <linkLicense>Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)</linkLicense> — you may freely share and adapt it, provided you credit <linkSite>Ruixe</linkSite> and do not use it commercially. Code snippets embedded in posts are additionally released under the <linkCode>MIT License</linkCode> and may be reused freely in any project, including commercial ones."
   },
   "NotFound": {
     "Title": "Page Not Found",

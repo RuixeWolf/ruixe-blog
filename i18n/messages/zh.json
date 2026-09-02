@@ -11,7 +11,9 @@
     "Theme": "主题",
     "Settings": "设置",
     "Menu": "菜单",
-    "Rss": "RSS 订阅"
+    "More": "更多操作",
+    "Rss": "RSS 订阅",
+    "Github": "GitHub 仓库"
   },
   "Search": {
     "DialogTitle": "搜索文章",
@@ -45,6 +47,11 @@
   },
   "PostDetail": {
     "TableOfContents": "目录",
+    "Share": "分享",
+    "ShareDialog": "分享文章",
+    "CopyLink": "复制链接",
+    "LinkCopied": "链接已复制",
+    "SystemShare": "系统分享",
     "PreviousPost": "上一篇",
     "NextPost": "下一篇",
     "NoPreviousPost": "没有更早的文章了",
@@ -78,7 +85,9 @@
     "AboutAuthor": "关于博主",
     "AboutBlog": "关于博客",
     "AuthorContent": "你好，我是 Ruixe，一名全栈开发者，热衷于探索前端工程化、React 生态与开发者体验。这个博客记录我的技术学习与项目实践。",
-    "BlogContent": "Ruixe Blog 是一个基于 Next.js 16、HeroUI v3 与 MDX 构建的个人博客，采用文件驱动的内容架构，支持中英双语。"
+    "BlogContent": "Ruixe Blog 是一个基于 Next.js 16、HeroUI v3 与 MDX 构建的个人博客，采用文件驱动的内容架构，支持中英双语。",
+    "BlogLicenseTitle": "版权与许可",
+    "BlogLicenseContent": "本站内容（文章正文、配图等）采用 <linkLicense>知识共享 署名-非商业性使用 4.0 国际许可协议（CC BY-NC 4.0）</linkLicense> 授权，可自由分享与演绎，但需署名 <linkSite>Ruixe</linkSite> 且不得用于商业用途。文章内嵌的代码片段另以 <linkCode>MIT 许可</linkCode> 发布，可在任何项目（包括商业项目）中自由使用。"
   },
   "NotFound": {
     "Title": "页面未找到",

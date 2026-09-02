@@ -28,7 +28,7 @@ const postsDir = path.join(contentDir, 'posts')
 /** Absolute path to the redirect registry (managed by this script). */
 const redirectsPath = path.join(contentDir, 'redirects.yaml')
 
-/** Absolute path to the site configuration file (source of `giscus.repo`). */
+/** Absolute path to the site configuration file (source of `githubRepository`). */
 const siteConfigPath = path.join(contentDir, 'site.yaml')
 
 /** Header prepended to every rewrite of `content/redirects.yaml`. */
@@ -172,14 +172,14 @@ function readRedirects() {
  *
  * @returns {string|null} The repo string, or `null` when unavailable.
  */
-function readGiscusRepo() {
+function readGithubRepository() {
   if (!fs.existsSync(siteConfigPath)) return null
 
   const raw = fs.readFileSync(siteConfigPath, 'utf8')
   try {
     const config = YAML.parse(raw)
-    if (config?.giscus?.repo && typeof config.giscus.repo === 'string') {
-      return config.giscus.repo
+    if (config?.githubRepository && typeof config.githubRepository === 'string') {
+      return config.githubRepository
     }
   } catch {
     // Fall through to null for malformed site config.
@@ -229,7 +229,7 @@ function renderRecordYaml(record) {
  * @param {string} slug - Post slug.
  */
 function printGiscusHints(slug) {
-  const repo = readGiscusRepo()
+  const repo = readGithubRepository()
 
   process.stdout.write('\n--- Giscus Discussion lock (manual) ---\n')
 
@@ -240,7 +240,7 @@ function printGiscusHints(slug) {
     process.stdout.write(`Search by slug:       ${searchUrl}\n`)
   } else {
     process.stdout.write(
-      'Could not read giscus.repo from content/site.yaml; skipping category/search URLs.\n',
+      'Could not read githubRepository from content/site.yaml; skipping category/search URLs.\n',
     )
   }
 

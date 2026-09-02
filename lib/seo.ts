@@ -72,6 +72,23 @@ export function buildPostMarkdownPath(slug: string, locale: Locale): string {
 }
 
 /**
+ * Builds a root-relative path for a post detail page.
+ *
+ * Unlike {@link buildPostUrl}, this returns a path with no origin so the
+ * client can resolve it against `window.location.origin` at runtime. Used
+ * by the post detail `ShareButton` so the share dialog's URL and QR code
+ * track the current browser origin in dev, preview, and production without
+ * depending on the server-only `siteConfig.siteUrl`.
+ *
+ * @param slug - URL-safe post identifier.
+ * @param locale - Target locale code.
+ * @returns Root-relative path (e.g. `/zh/posts/hello-world`).
+ */
+export function buildPostPath(slug: string, locale: Locale): string {
+  return `/${locale}/posts/${slug}`
+}
+
+/**
  * Builds an absolute URL for a category listing page.
  *
  * @param categoryId - Category ID referencing `categories.yaml`.
