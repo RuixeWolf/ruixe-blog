@@ -69,7 +69,7 @@ content/
 ├── taxonomy/
 │   ├── categories.yaml          # {id: {name: {zh, en}}}
 │   └── tags.yaml
-└── site.yaml                    # githubUsername, siteTitle, siteDescription (committed to git)
+└── site.yaml                    # githubUsername, githubRepository, siteTitle, siteDescription (committed to git)
 ```
 
 **Post frontmatter schema** (required):
@@ -104,7 +104,7 @@ Locale codes: `zh`, `en` (default `zh`). App Router structure mirrors these segm
 ### Layout
 
 - **Header (persistent):** left = site title `Ruixe Blog` + nav (Home, About, GitHub). Right = search, language switcher, theme toggle.
-  - Mobile: hamburger opens a Drawer (profile + nav + categories + tags); right side collapses to search + settings.
+  - Mobile: hamburger opens a Drawer (profile + nav + categories + tags); right side collapses to a single actions dropdown (search, RSS, language, theme) whose chevron flips with open state (`MobileActionsMenu`).
 - **Body:** persistent left sidebar (GitHub profile card via GitHub API, categories list, tags cloud) + main content.
   - Mobile: sidebar moves into the Drawer; home shows a compact profile above the post list.
 - **Post detail:** TOC on the right (desktop) / collapsible Accordion between meta and body (mobile).
@@ -122,7 +122,7 @@ Locale codes: `zh`, `en` (default `zh`). App Router structure mirrors these segm
 - **Server-only boundary:** `lib/posts`, `lib/taxonomy`, `lib/site-config`, `lib/github`, `lib/search`, `lib/seo`, `lib/feed`, `lib/llms-txt` all `import 'server-only'` and use `node:fs`/`fetch`. Client components MUST NOT import them - pass server-rendered content as RSC `children`/props (see `app/[lang]/layout.tsx` -> `MobileHeader` -> `MobileDrawer`). `fs.readFileSync` in these modules does NOT force dynamic rendering (all routes stay SSG).
 - **`lib/` module patterns:** fail-fast validation (throw on missing/invalid data at module eval or call time), module-level singleton caches (prod-only in `posts.ts` via `process.env.NODE_ENV === 'production'`), `getCategory`/`getTag` throw on missing ID (wrap in try/catch + `notFound()` in pages).
 - **Search:** `lib/search.ts` (server-only) builds a localized `SearchIndexItem[]` per locale (markdown stripped via `stripMarkdown`, category/tag names pre-localized so the client never imports the server-only taxonomy module) and inlines it into RSC props for `components/search/SearchProvider`. Fuse.js fuzzy matching runs entirely client-side; the dialog is triggered via `components/search/SearchContext` + `SearchTrigger`.
-- **Comments:** `components/posts/Comments.tsx` (client) renders `@giscus/react`; the full `giscus` config block (repo, repoId, category, categoryId, mapping, etc.) lives in `content/site.yaml` and is committed to Git. Locale `zh` maps to Giscus `zh-CN`; theme is synced from `next-themes` via `postMessage` to the Giscus iframe.
+- **Comments:** `components/posts/Comments.tsx` (client) renders `@giscus/react`; the `giscus` config block (repoId, category, categoryId, mapping, etc.) lives in `content/site.yaml` and is committed to Git. The repository itself is the top-level `githubRepository` field (site-wide identity) and is passed to `Comments` as a separate `repo` prop by `PostLayout`. Locale `zh` maps to Giscus `zh-CN`; theme is synced from `next-themes` via `postMessage` to the Giscus iframe.
 - **Media:** post images are served from Cloudflare R2 at `blog-assets.ruixe.net` (configured in `next.config.ts` `images.remotePatterns`); binary assets are NEVER committed to Git. `mdx-components.tsx` `MDXImage` uses `sizes="(max-width: 1023px) 100vw, 690px"` (desktop body container ~690px).
 - **i18n message keys:** all levels PascalCase (e.g. `Nav.Home`, `PostDetail.TableOfContents`). Namespaces: `Nav`, `Header`, `Theme`, `Sidebar`, `PostList`, `PostDetail`, `Categories`, `Tags`, `About`, `NotFound`. Use `next-intl/navigation` (`Link`, `usePathname`, `useRouter`) over raw `next/link`/`next/navigation`.
 - **Env vars:** only `NEXT_PUBLIC_SITE_URL` (SEO `metadataBase`, falls back to Vercel URL). All other site config lives in `content/site.yaml` - no `.env` needed for a fresh clone.

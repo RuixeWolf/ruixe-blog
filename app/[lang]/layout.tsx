@@ -8,7 +8,6 @@ import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { NavLinks } from '@/components/layout/NavLinks'
-import { RssButton } from '@/components/layout/RssButton'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
@@ -237,7 +236,7 @@ export default async function LocaleLayout({
                   siteTitle={siteConfig.siteTitle}
                   navLinks={<NavLinks variant="drawer" />}
                   sidebar={<SidebarContent locale={locale} />}
-                  rssButton={<RssButton locale={locale} variant="ghost" />}
+                  githubRepoUrl={siteConfig.githubRepoUrl}
                 />
                 <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-4 lg:gap-8 lg:px-6">
                   <Sidebar locale={locale} />

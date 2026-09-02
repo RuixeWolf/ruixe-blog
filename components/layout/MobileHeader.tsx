@@ -1,46 +1,43 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Popover } from '@heroui/react'
-import { Menu, Settings } from 'lucide-react'
+import { Button } from '@heroui/react'
+import { Menu } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { SearchTrigger } from '@/components/search/SearchTrigger'
-import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Link } from '@/i18n/navigation'
-import { LanguageSwitcher } from './LanguageSwitcher'
+import { MobileActionsMenu } from './MobileActionsMenu'
 import { MobileDrawer } from './MobileDrawer'
 
 /**
  * Mobile header (`lg:hidden`) with integrated drawer trigger.
  *
- * Header: hamburger button (left), site title (center), search + settings (right).
+ * Header: hamburger button (left), site title (center), actions menu (right).
  * The hamburger opens `MobileDrawer` (left-side) which displays server-rendered
- * content passed in via the `navLinks` and `sidebar` props. The settings button
- * opens a `Popover` with the language switcher and theme toggle.
+ * content passed in via the `navLinks` and `sidebar` props. The actions button
+ * opens `MobileActionsMenu` (dropdown) which consolidates search, RSS
+ * subscription, language switching, and theme switching into native menu items.
  *
- * `navLinks`, `sidebar`, and `siteTitle` are RSC payloads - server-rendered
- * values serialized across the server/client boundary so server-only modules
- * (e.g. `lib/site-config` fs reads, `lib/taxonomy` fs reads) stay out of this
- * client component.
+ * `navLinks`, `sidebar`, `siteTitle`, and `githubRepoUrl` are RSC payloads -
+ * server-rendered values serialized across the server/client boundary so
+ * server-only modules (e.g. `lib/site-config` fs reads, `lib/taxonomy` fs
+ * reads) stay out of this client component.
  *
  * @param siteTitle - Site title rendered in the header and forwarded to the drawer.
  * @param navLinks - Server-rendered primary navigation (`NavLinks variant="drawer"`).
  * @param sidebar - Server-rendered sidebar content (profile card, categories, tags).
- * @param rssButton - Server-rendered RSS subscription button (`RssButton`);
- *   passed as an RSC payload because `RssButton` is a server-only component.
- *   The caller is responsible for styling (e.g. `variant="ghost"` to match
- *   the other mobile icon buttons).
+ * @param githubRepoUrl - Absolute URL of the blog's GitHub repository (from
+ *   `siteConfig.githubRepoUrl`), forwarded to `MobileActionsMenu`.
  */
 export function MobileHeader({
   siteTitle,
   navLinks,
   sidebar,
-  rssButton,
+  githubRepoUrl,
 }: Readonly<{
   siteTitle: string
   navLinks: React.ReactNode
   sidebar: React.ReactNode
-  rssButton: React.ReactNode
+  githubRepoUrl: string
 }>) {
   const tHeader = useTranslations('Header')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -61,26 +58,7 @@ export function MobileHeader({
           {siteTitle}
         </Link>
 
-        <div className="flex items-center gap-1">
-          <SearchTrigger variant="mobile" />
-          {rssButton}
-          <Popover>
-            <Button isIconOnly variant="ghost" aria-label={tHeader('Settings')}>
-              <Settings className="size-5" />
-            </Button>
-            <Popover.Content className="max-w-64">
-              <Popover.Dialog>
-                <Popover.Heading className="text-sm font-semibold">
-                  {tHeader('Settings')}
-                </Popover.Heading>
-                <div className="mt-3 flex flex-col gap-3">
-                  <LanguageSwitcher />
-                  <ThemeToggle />
-                </div>
-              </Popover.Dialog>
-            </Popover.Content>
-          </Popover>
-        </div>
+        <MobileActionsMenu githubRepoUrl={githubRepoUrl} />
       </header>
 
       <MobileDrawer siteTitle={siteTitle} isOpen={isDrawerOpen} onOpenChange={setIsDrawerOpen}>

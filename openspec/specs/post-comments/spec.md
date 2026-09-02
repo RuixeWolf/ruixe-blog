@@ -8,12 +8,12 @@
 
 ### Requirement: Giscus 评论组件渲染
 
-系统 SHALL 在文章详情页正文之后渲染基于 Giscus（GitHub Discussions）的评论区。评论组件 `components/posts/Comments.tsx` MUST 标记 `'use client'`，使用 `@giscus/react` 的 `<Giscus>` 组件。评论组件 MUST 通过 props 接收 Giscus 配置（`repo`、`repoId`、`category`、`categoryId`、`mapping`、`term`、`reactionsEnabled`、`inputPosition`、`strict`、`emitMetadata`）与当前 `locale`，其中 `term` MUST 为当前文章的 slug（由 `PostLayout` 从文章元数据传入，是评论区跨 locale 共享的锚点）。评论组件 MUST NOT 直接 import `lib/site-config` 等 server-only 模块（遵循 RSC->Client 边界，与 `SearchProvider` 一致）。`<Giscus>` 组件 MUST 设置 `loading="lazy"`，使评论 iframe 在接近视口时才加载，不阻塞文章首屏渲染。评论组件 MUST 渲染在 `PostLayout` 的 `<article>` 元素之后。
+系统 SHALL 在文章详情页正文之后渲染基于 Giscus（GitHub Discussions）的评论区。评论组件 `components/posts/Comments.tsx` MUST 标记 `'use client'`，使用 `@giscus/react` 的 `<Giscus>` 组件。评论组件 MUST 通过 props 接收 Giscus 配置（`repoId`、`category`、`categoryId`、`mapping`、`term`、`reactionsEnabled`、`inputPosition`、`strict`、`emitMetadata`）、当前 `locale`，以及独立的 `repo` prop（GitHub 仓库全名 `owner/repo`，来自站点级 `siteConfig.githubRepository` —— 仓库身份不属于 `giscus` 配置块），其中 `term` MUST 为当前文章的 slug（由 `PostLayout` 从文章元数据传入，是评论区跨 locale 共享的锚点）。评论组件 MUST NOT 直接 import `lib/site-config` 等 server-only 模块（遵循 RSC->Client 边界，与 `SearchProvider` 一致）。`<Giscus>` 组件 MUST 设置 `loading="lazy"`，使评论 iframe 在接近视口时才加载，不阻塞文章首屏渲染。评论组件 MUST 渲染在 `PostLayout` 的 `<article>` 元素之后。
 
 #### Scenario: 评论组件接收配置 props
 
 - **WHEN** `PostLayout`（Server Component）渲染 `<Comments>`
-- **THEN** 传入 `config={siteConfig.giscus}`、`locale={locale}` 与 `term={meta.slug}` props，`Comments` 组件不直接 import `lib/site-config`
+- **THEN** 传入 `config={siteConfig.giscus}`、`repo={siteConfig.githubRepository}`、`locale={locale}` 与 `term={meta.slug}` props，`Comments` 组件不直接 import `lib/site-config`
 
 #### Scenario: term prop 为文章 slug
 

@@ -1,4 +1,5 @@
 import 'server-only'
+import { GithubRepoButton } from '@/components/layout/GithubRepoButton'
 import { RssButton } from '@/components/layout/RssButton'
 import { SearchTrigger } from '@/components/search/SearchTrigger'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
@@ -17,7 +18,7 @@ import { NavLinks } from './NavLinks'
  *
  * Left: site title + primary navigation via `NavLinks` (Home, About, GitHub).
  * Right: search trigger (opens the global `SearchDialog` via `⌘K`/`Ctrl+K`),
- * language switcher, theme toggle.
+ * GitHub repository link, language switcher, theme toggle.
  *
  * @param locale - Active locale code (reserved for future search routing).
  */
@@ -33,9 +34,10 @@ export async function Header({ locale }: Readonly<{ locale: Locale }>) {
         </div>
 
         <div className="flex items-center gap-2">
-          <SearchTrigger variant="desktop" />
+          <SearchTrigger />
+          <GithubRepoButton />
           <RssButton locale={locale} />
-          <LanguageSwitcher variant="dropdown" />
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </div>

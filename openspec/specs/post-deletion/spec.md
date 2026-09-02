@@ -136,7 +136,7 @@
 
 ### Requirement: Giscus Discussion 手动锁定提示
 
-脚本 MUST 在完成文件删除与重定向登记后，向 stdout 打印 Giscus Discussion 手动锁定的提示信息。提示信息 MUST 包含：GitHub Discussions 分类页 URL（`https://github.com/{owner}/{repo}/discussions/categories/Comments`，其中 `owner`/`repo` 从 `content/site.yaml` 的 `giscus.repo` 读取）、按 slug 搜索 Discussions 的 URL、以及每个受影响 locale 对应的 pathname 与文章标题。脚本 MUST NOT 调用 GitHub API 或要求 `GITHUB_TOKEN` 环境变量。
+脚本 MUST 在完成文件删除与重定向登记后，向 stdout 打印 Giscus Discussion 手动锁定的提示信息。提示信息 MUST 包含：GitHub Discussions 分类页 URL（`https://github.com/{owner}/{repo}/discussions/categories/Comments`，其中 `owner`/`repo` 从 `content/site.yaml` 的顶层 `githubRepository` 字段读取）、按 slug 搜索 Discussions 的 URL、以及每个受影响 locale 对应的 pathname 与文章标题。脚本 MUST NOT 调用 GitHub API 或要求 `GITHUB_TOKEN` 环境变量。
 
 #### Scenario: 打印 Giscus 锁定提示
 

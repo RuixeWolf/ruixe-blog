@@ -14,9 +14,10 @@ type ThemeMode = 'system' | 'light' | 'dark'
  *
  * Order matches the visual layout: system (default), light, then dark. Icons
  * come from lucide-react; visible labels are omitted in favor of icons plus
- * screen-reader text resolved from the `Theme` i18n namespace.
+ * screen-reader text resolved from the `Theme` i18n namespace. Exported for
+ * reuse by `MobileActionsMenu`'s theme section.
  */
-const THEME_MODES: ReadonlyArray<{
+export const THEME_MODES: ReadonlyArray<{
   key: ThemeMode
   Icon: LucideIcon
   labelKey: 'System' | 'Light' | 'Dark'

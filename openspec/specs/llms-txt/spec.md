@@ -28,7 +28,7 @@
 #### Scenario: Optional 节包含 GitHub 与 RSS 链接
 
 - **WHEN** 系统生成 `/llms.txt`
-- **THEN** 文件包含 `## Optional` 节，且该节下包含指向 `siteConfig.githubUrl` 的 GitHub 仓库链接项，以及指向 `/{locale}/feed.xml` 的每语言 RSS feed 链接项
+- **THEN** 文件包含 `## Optional` 节，且该节下包含指向 `siteConfig.githubRepoUrl` 的 GitHub 仓库链接项，以及指向 `/{locale}/feed.xml` 的每语言 RSS feed 链接项
 
 #### Scenario: llms.txt 响应 Content-Type
 

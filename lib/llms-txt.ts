@@ -46,7 +46,7 @@ export function buildLlmsTxt(): string {
   })
 
   const optionalItems = [
-    `- [GitHub Repository](${siteConfig.githubUrl})`,
+    `- [GitHub Repository](${siteConfig.githubRepoUrl})`,
     ...routing.locales.map((locale) => `- [RSS Feed (${locale})](${buildFeedUrl(locale)})`),
   ]
 
