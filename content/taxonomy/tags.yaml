@@ -38,3 +38,11 @@ browser-automation:
   name:
     zh: 浏览器自动化
     en: Browser Automation
+modbus:
+  name:
+    zh: Modbus
+    en: Modbus
+openapi:
+  name:
+    zh: OpenAPI
+    en: OpenAPI

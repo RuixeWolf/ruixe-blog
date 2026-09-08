@@ -1,0 +1,179 @@
+---
+title: Adding AI Support to My Modbus Simulator
+description: Adding full AI support to a free, open-source Modbus simulator - a modbus-simulator Agent Skill plus a stable HTTP OpenAPI control layer, letting an AI Agent auto-start, configure, read and write registers, and drive full end-to-end automated tests together with Modbus host software.
+publishedTime: '2026-09-08'
+category: ai-coding
+tags:
+  - modbus
+  - openapi
+---
+
+Because I need to develop Modbus host software, I built a [Modbus simulator](https://github.com/RuixeWolf/modbus-simulator) for easier debugging - it simulates connections to Modbus devices. The simulator is free to use and open source, and can be started without installation via `npx @ruixe/modbus-simulator@latest`.
+
+Modbus simulator project links
+
+- GitHub repository: https://github.com/RuixeWolf/modbus-simulator
+
+- NPM: https://www.npmjs.com/package/@ruixe/modbus-simulator
+
+While developing the Modbus host software, I wanted the AI to automatically start the Modbus simulator to test the host software, and to change register values in the simulator at any point during the automated tests. However, the Modbus simulator project does not yet offer that level of AI support.
+
+## Feature Goals
+
+- Add a `skills` directory at the repository root to hold the project's (Modbus simulator) AI Agent Skills. Other users can install the Skills that describe how to use the Modbus simulator through `npx skills add`.
+
+- Expose an HTTP API or MCP to the outside world, so that once the Modbus simulator is running, an AI Agent can operate it through means other than serial/TCP.
+
+## Current State
+
+The Modbus simulator ships with a Web console; the frontend and backend interact through a RESTful API. I therefore need to refactor that frontend/backend API, exposing it so an AI Agent can call the simulator over HTTP OpenAPI - changing connection configuration, reading and setting register data, and so on.
+
+The project doesn't have a `skills` directory yet. I need to create a Skill for Modbus simulator users that tells an AI Agent in detail how to use the simulator.
+
+## Feature Design
+
+### Agent Skill
+
+Create a user-facing Skill:
+
+```
+skills/
+`-- modbus-simulator/
+    |-- SKILL.md
+    |-- references/
+    |   |-- http-api.md
+    |   `-- troubleshooting.md
+    `-- scripts/
+        `-- modbus-api.mjs       optional
+```
+
+The Skill should guide the Agent:
+
+1. Choose an independent high HTTP/TCP port.
+2. Run `npx @ruixe/modbus-simulator@latest`.
+3. Wait for `/api/v1/health` or a ready JSON.
+4. Configure TCP/RTU and the Slave ID.
+5. Reset and write the initial test values.
+6. Start/test the host software.
+7. Change registers through the REST API during the test.
+8. Query the communication logs to diagnose failures.
+9. Finally, terminate only the simulator process started in this run.
+
+It must make the following clear:
+
+- API addresses are all zero-based.
+- The mapping between `40001`-style human addresses and protocol offsets.
+- Input Registers and Discrete Inputs are read-only to Modbus clients, but the control API can write them to simulate field inputs.
+- The port and serial-port differences across Windows, Linux and macOS.
+- Don't use the default 502 port for unattended testing, to avoid Unix privileged-port issues.
+
+Suggested installation instructions:
+
+```bash
+npx skills add RuixeWolf/modbus-simulator --list
+npx skills add RuixeWolf/modbus-simulator --skill modbus-simulator
+```
+
+### OpenAPI Design
+
+| Method | Endpoint                                 | Purpose                                                                 |
+| ------ | ---------------------------------------- | ----------------------------------------------------------------------- |
+| GET    | `/api/v1/health`                         | Version, instance ID, uptime, actual config, TCP/RTU status             |
+| GET    | `/api/v1/registers/{type}?start=&count=` | Precisely read a range                                                  |
+| PUT    | `/api/v1/registers/{type}`               | Write a set of booleans or uint16 from a given address                  |
+| POST   | `/api/v1/registers/{type}/typed`         | Encoded writes such as Float/Double/byte order                          |
+| POST   | `/api/v1/state/reset`                    | Restore an all-zero or given initial state, optionally clear logs       |
+| GET    | `/api/v1/config`                         | Get the configuration                                                   |
+| PATCH  | `/api/v1/config`                         | Partially update the configuration and return the actual restart result |
+| GET    | `/api/v1/logs`                           | Filter by time, type, source and count                                  |
+| DELETE | `/api/v1/logs`                           | Clear logs                                                              |
+| GET    | `/api/openapi.json`                      | OpenAPI 3.1 contract                                                    |
+
+## Final Skill Implementation
+
+The final implementation differs slightly from the original design: the reference documentation was split from a single `http-api.md` into `api.md` and `addressing.md`, the helper script is named `control.mjs`, and two test files - `skill.test.ts` and `control.test.ts` - were added so the Skill itself can be verified.
+
+```
+skills/
+`-- modbus-simulator/
+    |-- SKILL.md                 # Skill entry: triggers + owned-process workflow
+    |-- skill.test.ts            # Skill metadata and doc-integrity tests
+    |-- references/
+    |   |-- api.md               # Control API endpoints + control.mjs usage
+    |   |-- addressing.md        # Human address ↔ API address mapping + encoded writes
+    |   `-- troubleshooting.md   # Port/serial/auth/readiness troubleshooting
+    `-- scripts/
+        |-- control.mjs          # Dependency-free Node 20 CLI helper
+        `-- control.test.ts      # Unit tests for control.mjs
+```
+
+**`SKILL.md`** - Skill entry point. Its frontmatter declares `name`, `description` and `author`, where `description` is what triggers the Skill in an Agent. The body defines the "Owned-process workflow":
+
+1. Pick a high port pair that doesn't conflict with the app under test (e.g. HTTP `15000`, Modbus TCP `15020`).
+2. Start and keep the handle/PID of the process you created; never terminate processes of unknown origin.
+3. Wait for a `MODBUS_SIMULATOR_READY` JSON record (or `MODBUS_SIMULATOR_ERROR` / timeout).
+4. Use `control.mjs wait` to confirm readiness, then configure and reset the simulator.
+5. Run the client under test; write fixtures with `write`/`write-encoded`, assert with `read`, diagnose with `logs`.
+6. Collect the final health and logs, then terminate only the simulator process you started in step 2.
+
+**`references/api.md`** - Control API reference. It lists all the v1 endpoints (`health`, `state`, `state/reset`, `registers/{table}`, `registers/{table}/encoded`, `config`, `logs`, `serial-ports`, `tcp-clients`) with examples for each `control.mjs` command, and explains the uniform response envelope `{ data, meta }` / `{ error, meta }`.
+
+**`references/addressing.md`** - Addressing and value conventions. It makes clear the API always uses zero-based addresses, and gives the mapping from `00001`/`10001`/`30001`/`40001` human addresses to `coils`/`discrete-inputs`/`input-registers`/`holding-registers` (e.g. `40017` → holding-register address `16`). It also explains that Discrete Inputs / Input Registers are read-only to Modbus clients but writable via the control API to simulate field inputs, and lists encoded write types such as `Float3412`.
+
+**`references/troubleshooting.md`** - Troubleshooting and deployment. It covers switching to a high port pair when a port is occupied, serial path differences such as Windows `COM3` vs Linux/macOS `/dev/ttyUSB0`, the need for explicit `--host`/`--tcp-host` to listen on a LAN or in a container (non-loopback listeners must set `MODBUS_API_TOKEN`), the failure semantics of `strict-ready`, and security red lines like "never print the Token" and "never terminate processes you didn't start".
+
+**`scripts/control.mjs`** - A dependency-free Node 20 CLI helper whose commands include `health`, `reset`, `read`, `write`, `write-encoded`, `config`, `logs` and `wait`. It supports the `MODBUS_SIMULATOR_URL` and `MODBUS_API_TOKEN` environment variables, and exit codes are categorized by failure type (`0` success / `2` usage / `3` network / `4` API / `5` timeout).
+
+**`skill.test.ts` / `control.test.ts`** - the former checks that the startup commands, doc links and script paths in SKILL.md are intact; the latter runs end-to-end tests of `control.mjs` against a local HTTP server (JSON output, Bearer auth, error envelope, exit codes).
+
+## Testing in a Host-Software Project
+
+Once the Skill was finished, I installed it in a project that uses the Modbus simulator and put the simulator to work there.
+
+Installing the Modbus simulator Skill requires the `--skill modbus-simulator` flag to install it explicitly:
+
+```bash
+npx skills add RuixeWolf/modbus-simulator --skill modbus-simulator
+```
+
+Ask the AI Agent to automatically test the Modbus host project with the simulator:
+
+```markdown
+/modbus-simulator Please use the Modbus simulator to automatically test the Modbus host software project.
+
+The Modbus host software project dev server is running; operate its pages through `agent-browser` CDP 9222.
+
+Please test the connection methods:
+
+- TCP client
+- Serial COM20 <-> COM21
+
+Please test data value changes:
+
+- Change register values in the Modbus simulator and verify the host software's data channel changes as expected
+- Send a control on the host software's control channel and verify the simulator's register values change as expected
+```
+
+The AI then automatically reads the `modbus-simulator` skill package to learn how to use the simulator, runs the simulator via `@ruixe/modbus-simulator`, drives the host software with `agent-browser`, and completes the full end-to-end automated test.
+
+## Summary
+
+At this point I've fully added AI support to the Modbus simulator: the project gained a `skills` directory containing the `modbus-simulator` Skill package aimed at AI Agents, the frontend/backend REST API that previously served only the Web console was organized into a stable, contractible external control layer, and everything was verified end-to-end in a real Modbus host project.
+
+Looking back, I think a few points are worth recording:
+
+- **From "operated by humans" to "operated by AI"** - The simulator's Web console already provided intuitive graphical operation, but a GUI is "unreadable" to an AI Agent. Only by distilling it into a stable HTTP OpenAPI contract (together with `openapi.json`) can the AI truly understand and operate the simulator - the API design moved from "human-readable" to "machine-discoverable and contractible".
+- **A Skill is a "user manual + automation assistant" combo** - The docs tell the AI how to use it (port strategy, address mapping, security red lines), while `control.mjs` saves the AI from writing a pile of `curl` commands by hand; neither is dispensable. Without docs the AI doesn't know when to call the script; without a script, executing the docs is tedious and error-prone.
+- **Testability considered from day one** - The Skill itself ships with `skill.test.ts` and `control.test.ts`, so startup commands, doc links and script behavior don't drift apart. Every future Skill change can be tested before release, avoiding "the docs look great but it doesn't actually run".
+- **Details decide how often unattended AI runs succeed** - uniform zero-based addressing, the mapping of `40001`-style human addresses, Input Registers being writable through the control API to simulate field inputs, avoiding the default privileged 502 port, terminating only the processes you started... These conventions look trivial, yet they directly affect the stability of automated tests.
+
+This effort also gave me a more grounded understanding of "AI test infrastructure". In the past, debugging host software meant manually starting the simulator, changing registers and watching logs; now that these steps are frozen into a Skill and an API, the AI can automatically close the loop of "start simulator → configure → write initial values → operate the host software → assert → diagnose". For software that depends on an "external device", a simulator that can be programmed by AI is exactly the key to unlocking full end-to-end automated testing.
+
+As for future improvements, I have a few ideas in mind:
+
+- **MCP support** - The opening mentioned "HTTP API or MCP" as two options; this time I chose the HTTP OpenAPI route. Later I can evaluate providing an MCP Server for the simulator, letting MCP-capable Agents connect in a more native, lower-friction way
+- **Richer encoded writes** - On top of the existing Float / Double / byte-order support, add more encoding types common in industrial scenarios as needed
+- **Fault injection** - Simulate abnormal scenarios such as garbled frames, timeouts, disconnects and exception responses, helping host software test its error-handling logic
+- **Multiple slaves and connections** - Move closer to real multi-device field environments
+
+The Modbus simulator will stay free and open source, and I'll keep improving it based on my actual needs in host-software development and AI testing. If you're also doing Modbus-related development, or have better ideas, feel free to discuss in the comments, or open an Issue or PR.
