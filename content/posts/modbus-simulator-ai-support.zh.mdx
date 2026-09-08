@@ -1,0 +1,179 @@
+---
+title: 为我的 Modbus 模拟器完善 AI 支持
+description: 为免费开源的 Modbus 模拟器补齐 AI 支持：沉淀 modbus-simulator Agent Skill 与稳定的 HTTP OpenAPI 控制层，让 AI Agent 能自动启动、配置、读写寄存器，并配合上位机软件完成全流程 E2E 自动化测试。
+publishedTime: '2026-09-08'
+category: ai-coding
+tags:
+  - modbus
+  - openapi
+---
+
+由于我需要开发 Modbus 上位机软件，为了方便调试，我开发了一个 [Modbus 模拟器](https://github.com/RuixeWolf/modbus-simulator) 用于模拟连接 Modbus 设备，这个 Modbus 模拟器免费使用且开源，支持 `npx @ruixe/modbus-simulator@latest` 免安装启动 Modbus 模拟器。
+
+Modbus 模拟器项目链接
+
+- Github 仓库： https://github.com/RuixeWolf/modbus-simulator
+
+- NPM： https://www.npmjs.com/package/@ruixe/modbus-simulator
+
+我在后续开发 Modbus 上位机软件时，想要让 AI 自动启动 Modbus 模拟器对上位机软件进行测试，并在自动化测试过程中随时更改模拟器寄存器的数值，但现在 Modbus 模拟器项目还没有如此完善的 AI 支持程度。
+
+## 功能目标
+
+- 项目根路径新增 `skills` 目录，内部存放当前项目（Modbus 模拟器）的 AI Agent Skills。其他用户可通过 `npx skills add` 安装如何使用当前项目 Modbus 模拟器的 Skills。
+
+- 新增对外开放的 HTTP API 或 MCP 等方式，实现 Modbus 模拟器启动后可以被 AI Agent 通过非串口、TCP 的方式操作。
+
+## 项目现状
+
+Modbus 模拟器启动后会附带 Web 控制台，前后端交互通过 RESTful API，因此我需要对前后端交互 API 进行改造，对外让 AI Agent 通过 HTTP OpenAPI 的方式调用模拟器，实现让 AI 更改连接配置、获取与设置寄存器数据等功能。
+
+现在项目还没有 `skills` 目录，需要为 Modbus 模拟器使用者创建 Skill，详细指导 AI Agent 如何使用 Modbus 模拟器。
+
+## 功能设计
+
+### Agent Skill
+
+创建一个面向使用者的 Skill：
+
+```
+skills/
+`-- modbus-simulator/
+    |-- SKILL.md
+    |-- references/
+    |   |-- http-api.md
+    |   `-- troubleshooting.md
+    `-- scripts/
+        `-- modbus-api.mjs       optional
+```
+
+Skill 应指导 Agent：
+
+1. 选择独立的高位 HTTP/TCP 端口。
+2. 运行 `npx @ruixe/modbus-simulator@latest`。
+3. 等待 `/api/v1/health` 或 ready JSON。
+4. 配置 TCP/RTU 和 Slave ID。
+5. reset 并写入测试初始值。
+6. 启动/测试上位机。
+7. 测试期间通过 REST API 改变寄存器。
+8. 查询通信日志诊断失败。
+9. 最后只结束本次创建的模拟器进程。
+
+必须明确：
+
+- API 地址均为从零开始。
+- `40001` 风格的人类地址与协议偏移量的映射。
+- Input Register 和 Discrete Input 虽然对 Modbus 客户端只读，但控制 API 可以写，用来模拟现场输入。
+- Windows、Linux、macOS 的端口和串口差异。
+- 不使用默认 502 端口进行无人值守测试，避免 Unix 特权端口问题。
+
+安装方式建议写为：
+
+```bash
+npx skills add RuixeWolf/modbus-simulator --list
+npx skills add RuixeWolf/modbus-simulator --skill modbus-simulator
+```
+
+### OpenAPI 设计
+
+| 方法   | 接口                                     | 用途                                            |
+| ------ | ---------------------------------------- | ----------------------------------------------- |
+| GET    | `/api/v1/health`                         | 版本、实例 ID、运行时间、实际配置、TCP/RTU 状态 |
+| GET    | `/api/v1/registers/{type}?start=&count=` | 精确范围读取                                    |
+| PUT    | `/api/v1/registers/{type}`               | 从指定地址写入一组 boolean 或 uint16            |
+| POST   | `/api/v1/registers/{type}/typed`         | Float/Double/端序等编码写入                     |
+| POST   | `/api/v1/state/reset`                    | 恢复全零或指定初始状态，可选清理日志            |
+| GET    | `/api/v1/config`                         | 获取配置                                        |
+| PATCH  | `/api/v1/config`                         | 部分更新配置，并返回实际重启结果                |
+| GET    | `/api/v1/logs`                           | 按时间、类型、来源、数量过滤                    |
+| DELETE | `/api/v1/logs`                           | 清理日志                                        |
+| GET    | `/api/openapi.json`                      | OpenAPI 3.1 契约                                |
+
+## Skill 最终实现
+
+最终实现与最初设计略有出入：参考文档从一份 `http-api.md` 拆成了 `api.md` 与 `addressing.md` 两份，辅助脚本命名为 `control.mjs`，并额外补充了 `skill.test.ts` 与 `control.test.ts` 两个测试文件，保证 Skill 本身可被验证。
+
+```
+skills/
+`-- modbus-simulator/
+    |-- SKILL.md                 # Skill 入口：触发条件 + 受管进程工作流
+    |-- skill.test.ts            # Skill 元数据与文档完整性测试
+    |-- references/
+    |   |-- api.md               # 控制 API 端点 + control.mjs 用法
+    |   |-- addressing.md        # 人类地址 ↔ API 地址映射 + 编码写入
+    |   `-- troubleshooting.md   # 端口/串口/认证/就绪失败排查
+    `-- scripts/
+        |-- control.mjs          # 无依赖的 Node 20 命令行助手
+        `-- control.test.ts      # control.mjs 的单元测试
+```
+
+**`SKILL.md`** — Skill 入口。frontmatter 声明 `name`、`description`、`author`，其中 `description` 是 Agent 触发该 Skill 的关键。正文定义「受管进程工作流」（Owned-process workflow）：
+
+1. 选择不与被测应用冲突的高位端口（示例 HTTP `15000`、Modbus TCP `15020`）。
+2. 启动并保留自己创建的进程句柄/PID，绝不终止来源不明的进程。
+3. 等待一条 `MODBUS_SIMULATOR_READY` JSON 记录（或 `MODBUS_SIMULATOR_ERROR` / 超时）。
+4. 用 `control.mjs wait` 确认就绪，再配置并 reset 模拟器。
+5. 运行被测客户端，用 `write`/`write-encoded` 写夹具、`read` 断言、`logs` 诊断。
+6. 收集最终 health 与日志，只结束第 2 步自己启动的模拟器进程。
+
+**`references/api.md`** — 控制 API 参考。列出全部 v1 端点（`health`、`state`、`state/reset`、`registers/{table}`、`registers/{table}/encoded`、`config`、`logs`、`serial-ports`、`tcp-clients`）与 `control.mjs` 各命令示例，并说明统一响应信封 `{ data, meta }` / `{ error, meta }`。
+
+**`references/addressing.md`** — 地址与取值约定。明确 API 一律使用零基地址，给出 `00001`/`10001`/`30001`/`40001` 人类地址到 `coils`/`discrete-inputs`/`input-registers`/`holding-registers` 的映射表（如 `40017` → holding-register 地址 `16`），并说明 Discrete Input / Input Register 对 Modbus 客户端只读、但控制 API 可写以模拟现场输入，以及 `Float3412` 等编码写入类型清单。
+
+**`references/troubleshooting.md`** — 排查与部署。端口占用时换高位端口对、Windows `COM3` 与 Linux/macOS `/dev/ttyUSB0` 等串口路径差异、LAN/容器监听需显式 `--host`/`--tcp-host` 且非回环监听必须配置 `MODBUS_API_TOKEN`、`strict-ready` 失败语义，以及「不打印 Token、不结束非自己启动的进程」等安全红线。
+
+**`scripts/control.mjs`** — 无依赖的 Node 20 命令行助手，命令包括 `health`、`reset`、`read`、`write`、`write-encoded`、`config`、`logs`、`wait`；支持 `MODBUS_SIMULATOR_URL` 与 `MODBUS_API_TOKEN` 环境变量，退出码按失败类别区分（`0` 成功 / `2` 用法 / `3` 网络 / `4` API / `5` 超时）。
+
+**`skill.test.ts` / `control.test.ts`** — 前者校验 SKILL.md 中的启动命令、文档链接与脚本路径完整；后者用本地 HTTP 服务器对 `control.mjs` 做端到端测试（JSON 输出、Bearer 认证、错误信封、退出码）。
+
+## 在上位机软件项目测试
+
+完成 Skill 开发后，在需要使用到 Modbus 模拟器的项目安装 Skill 并使用模拟器。
+
+安装 Modbus 模拟器 Skill，需要使用 `--skill modbus-simulator` 明确指定安装 Modbus 模拟器 Skill：
+
+```bash
+npx skills add RuixeWolf/modbus-simulator --skill modbus-simulator
+```
+
+让 AI Agent 在 Mdbus 上位机项目使用模拟器自动测试：
+
+```markdown
+/modbus-simulator 请使用 Modbus 模拟器自动测试 Modbus 上位机软件项目。
+
+Modbus 上位机软件项目开发服务已启动，可通过 `agent-browser` CDP 9222 操作 Modbus 上位机软件的页面。
+
+请测试连接方式：
+
+- TCP 客户端
+- 串口 COM20 <-> COM21
+
+请测试数据值变更：
+
+- 更改 Modbus 模拟器寄存器数据值，检查上位机软件的数据通道是否按预期变化
+- 在 Modbus 上位机软件的控制通道发送控制，检查模拟器的寄存器数据值是否按预期变化
+```
+
+然后 AI 会自动读取 `modbus-simulator` 技能包的内容，了解如何使用 Modbus 模拟器，自动使用 `@ruixe/modbus-simulator` 运行模拟器，并使用 `agent-browser` 操作上位机软件实现全流程 E2E 自动化测试。
+
+## 总结
+
+至此，我为 Modbus 模拟器完整补齐了 AI 支持：项目中新增了面向 AI Agent 的 `skills` 目录与 `modbus-simulator` Skill 包，原本只服务于 Web 控制台的前后端 REST API 也被梳理成稳定、可契约化的对外控制层，最后还在真实的 Modbus 上位机项目中完成了全流程验证。
+
+回顾整个过程，我认为有几个值得记录的点：
+
+- **从「给人操作」到「给 AI 操作」** - 模拟器原本的 Web 控制台已经提供了直观的图形化操作，但对 AI Agent 而言图形界面是「不可读」的。把它沉淀为稳定的 HTTP OpenAPI 契约（配合 `openapi.json`），AI 才能真正理解并操作这台模拟器，API 设计也随之从「人可读」走向「机器可发现、可契约化」。
+- **Skill 是「使用说明书 + 自动化助手」的组合** - 文档告诉 AI 该怎么用（端口策略、地址映射、安全红线），`control.mjs` 让 AI 不必手写一堆 `curl`；两者缺一不可。没有文档的脚本 AI 不知道何时调用，没有脚本的文档 AI 执行起来既繁琐又易错。
+- **可测试性从第一天就考虑** - 给 Skill 本身编写了 `skill.test.ts` 与 `control.test.ts`，保证启动命令、文档链接与脚本行为不脱节。以后每次改动 Skill 都可以先跑测试再发布，避免「文档写得挺好、实际跑不起来」的情况。
+- **细节决定 AI 无人值守的成功率** - 统一零基地址、`40001` 风格人类地址的映射、Input Register 对控制 API 可写以模拟现场输入、避开默认 502 特权端口、只结束自己启动的进程……这些约定看似琐碎，却直接影响自动化测试的稳定性。
+
+这次改造也让我对「AI 测试基础设施」有了更实际的认识。过去调试上位机软件，需要我手动启动模拟器、改寄存器、盯日志；现在把这些步骤固化为 Skill 与 API 后，AI 可以自动完成「启动模拟器 → 配置 → 写入初值 → 操作上位机 → 断言 → 诊断」的闭环。对需要「外部设备」配合的软件来说，一个可被 AI 编程的模拟器，正是打通全流程 E2E 自动化测试的关键一环。
+
+对于未来的改进方向，我大概想了几点：
+
+- **MCP 支持** - 文章开头提到「HTTP API 或 MCP」两种方式，本次选择了 HTTP OpenAPI 方案，后续可以评估为模拟器提供 MCP Server，让支持 MCP 的 Agent 以更原生、更低门槛的方式接入
+- **更丰富的编码写入** - 在现有 Float / Double / 端序的基础上，按需补充更多工业场景常见的编码类型
+- **故障注入** - 模拟错帧、超时、断连、异常响应等异常场景，帮助上位机软件测试异常处理逻辑
+- **多 Slave 与多连接** - 进一步贴近真实的多设备现场环境
+
+这个 Modbus 模拟器会保持免费开源，我也会根据自己上位机开发与 AI 测试的实际需要持续完善。如果你也在做 Modbus 相关开发，或者有更好的想法，欢迎在评论区交流，也欢迎提 Issue 或 PR 交流。
