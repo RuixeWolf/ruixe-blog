@@ -47,15 +47,20 @@ export function generateStaticParams() {
  *
  * The `prefers-color-scheme` pair (`#FBFCFC` light / `#111314` dark, the
  * header `--surface` colors, matching `ThemeColorSync`'s
- * `THEME_COLOR_BY_THEME`) is the static no-JS / pre-hydration fallback only.
- * After hydration `ThemeColorSync` inserts a single un-media'd tag ahead of
- * the pair; browsers resolve `theme-color` as the FIRST matching tag, so the
- * runtime tag wins.
+ * `THEME_COLOR_BY_THEME`) is the no-JS / pre-hydration fallback for browser
+ * tabs and the primary source in the installed PWA: `ThemeColorSync` inserts
+ * a single un-media'd tag ahead of the pair only in browser tabs (browsers
+ * resolve `theme-color` as the FIRST matching tag, so the runtime tag wins
+ * there) and emits nothing in `display-mode: standalone`, letting this pair
+ * govern the resolved color - the page theme-color follows the system scheme
+ * there, matching the platform-driven chrome.
  *
- * Neither tag drives Android installed-PWA chrome: that follows the system
- * color scheme via install-time manifest metadata, and `app/manifest.ts`
- * intentionally omits `theme_color` (see its comment and the `AGENTS.md`
- * "Critical pitfalls" entry).
+ * The installed-PWA status bar background is not driven by these tags: it
+ * follows the platform surface color via install-time manifest metadata, and
+ * `app/manifest.ts` intentionally omits `theme_color` (see its comment and
+ * the `AGENTS.md` "Critical pitfalls" entry). The platform does derive the
+ * status bar icon tint from the resolved page color, which is why the runtime
+ * tag is suppressed in `display-mode: standalone`.
  */
 export const viewport: Viewport = {
   themeColor: [
