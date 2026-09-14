@@ -43,13 +43,24 @@ export function generateStaticParams() {
  * Viewport options. `themeColor` lives here (not in `generateMetadata`)
  * because Next.js 16 moved it to the viewport export - configuring it in
  * metadata emits a build warning and the `<meta name="theme-color">` tags
- * are NOT rendered. Uses a `ThemeColorDescriptor[]` array so the browser
- * chrome (e.g. Android Chrome status bar) switches with the OS color scheme
- * at runtime. The values match `ThemeColorSync`'s `THEME_COLOR_BY_THEME`
- * (the header `--surface` background), so the pre-hydration / no-JS fallback
- * is identical to the runtime-synced color and never flashes the body
- * `--background` color. The manifest `theme_color` is a single value used
- * only for the install splash screen (see `app/manifest.ts`).
+ * are NOT rendered.
+ *
+ * The `prefers-color-scheme` pair (`#FBFCFC` light / `#111314` dark, the
+ * header `--surface` colors, matching `ThemeColorSync`'s
+ * `THEME_COLOR_BY_THEME`) is the no-JS / pre-hydration fallback for browser
+ * tabs and the primary source in the installed PWA: `ThemeColorSync` inserts
+ * a single un-media'd tag ahead of the pair only in browser tabs (browsers
+ * resolve `theme-color` as the FIRST matching tag, so the runtime tag wins
+ * there) and emits nothing in `display-mode: standalone`, letting this pair
+ * govern the resolved color - the page theme-color follows the system scheme
+ * there, matching the platform-driven chrome.
+ *
+ * The installed-PWA status bar background is not driven by these tags: it
+ * follows the platform surface color via install-time manifest metadata, and
+ * `app/manifest.ts` intentionally omits `theme_color` (see its comment and
+ * the `AGENTS.md` "Critical pitfalls" entry). The platform does derive the
+ * status bar icon tint from the resolved page color, which is why the runtime
+ * tag is suppressed in `display-mode: standalone`.
  */
 export const viewport: Viewport = {
   themeColor: [
