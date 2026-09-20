@@ -1,0 +1,4 @@
+# Patch files must stay LF in the working tree — pnpm 12 rejects CRLF patches
+# (ERR_PNPM_INVALID_PATCH, pnpm/pnpm#14557); Git for Windows core.autocrlf=true
+# would otherwise rewrite them to CRLF on checkout.
+*.patch text eol=lf
