@@ -2,6 +2,7 @@
 title: My AI Coding Workflow in Mid-2026
 description: A systematic overview of my AI Coding workflow as of mid-2026 - Coding Agent project initialization (Agents Skills, MCP, and AGENTS.md), the AI Coding prompt templates I keep updating, and the complete OpenSpec spec-driven development workflow, closing with a full hands-on case study refactoring this blog's Giscus comments.
 publishedTime: '2026-08-28'
+modifiedTime: '2026-09-20'
 category: ai-coding
 tags:
   - copilot
@@ -109,15 +110,17 @@ Problem:
 **OpenSpec Opsx workflow** - answer decision questions during exploration and keep exploring.
 
 ```markdown
+For the decision questions use your recommended options. (optional)
+
 Keep digging deeper; do not create an OpenSpec change yet.
 
-For the other decision questions use your recommended options. (optional)
+After exploration, judge by the task size whether an OpenSpec change is needed, or whether making the changes directly is recommended. (optional)
 ```
 
 **OpenSpec Opsx workflow** - after exploration, for small tasks skip the proposal and change code directly.
 
 ```
-Please exit Explore mode, do not create an OpenSpec change, and implement the changes directly.
+Please exit Explore mode, do not create an OpenSpec change, and implement the changes directly, then update the related OpenSpec docs.
 ```
 
 **OpenSpec Opsx workflow** - appended to the end of the propose prompt after exploration.
@@ -168,23 +171,23 @@ Feature design:
 - XXX
 ```
 
-2. Refine the requirements based on the exploration results by answering the decision questions. It may take 1 ~ 3 rounds of refined exploration until the plan meets expectations and no new decision questions or unclear points remain.
+2. Refine the requirements based on the exploration results by answering the decision questions. It may take 1 ~ 3 rounds of conversation to refine the exploration until the plan meets expectations and no new decision questions or unclear points remain.
 
 ```markdown
-Keep digging deeper; do not create an OpenSpec change yet.
-
 Decision question XXX
 Go with option B XXX
 
 For the other decision questions use your recommended options.
 
 (any additional refinements)
+
+Keep digging deeper; do not create an OpenSpec change yet.
 ```
 
 3. After exploration, if the feature is simple enough to not be worth an OpenSpec change and the current session's context is still short, you can have the AI implement the change directly in this session.
 
 ```
-Please exit Explore mode, do not create an OpenSpec change, and implement the changes directly.
+Please exit Explore mode, do not create an OpenSpec change, and implement the changes directly, then update the related OpenSpec docs.
 ```
 
 4. After exploration, if the task is complex, continue in this session with `/opsx-propose` to create the implementation plan.
@@ -196,9 +199,7 @@ Notes:
 
 - Use MCP or Context7 etc. to fetch docs and best practices online
 - Ask me when anything is unclear, to clarify requirements
-- Split task.md into a detailed checklist for implementation across multiple AI sessions (add this line if the task is complex)
-- Create and switch to a new Git branch before starting the propose task (add this line if you want to develop on a new branch)
-- Create independent OpenSpec Changes for the front end and back end projects, with the back end change name ending in `-be` and the front end change name ending in `-fe` (add this line if the front and back end projects are open in the same IDE window)
+- Split task.md into a detailed checklist for implementation across multiple AI sessions
 ```
 
 5. Open a new session and use `/opsx-apply` to start implementing. For complex tasks you can split the work across multiple new sessions; a flagship or near-flagship model is recommended.
@@ -263,7 +264,7 @@ Additional notes:
 - XXX
 ```
 
-2. Choose a solution based on the exploration results, or supply more information. It may take 1 ~ 3 rounds of refined exploration until the plan meets expectations and no new decision questions or unclear points remain.
+2. Choose a solution based on the exploration results, or supply more information. It may take 1 ~ 3 rounds of conversation to refine the exploration until the plan meets expectations and no new decision questions or unclear points remain.
 
 3. After exploration, either exit Explore and fix the code directly, or use `/opsx-propose` to create an implementation plan.
 

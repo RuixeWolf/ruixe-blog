@@ -47,6 +47,30 @@
 - **WHEN** 浏览器访问 `/en/posts/hello-world`
 - **THEN** 系统直接渲染对应页面，不触发 locale 重定向
 
+### Requirement: 语言偏好持久化
+
+系统 SHALL 通过 next-intl 的 `NEXT_LOCALE` cookie 持久化用户的语言选择，cookie 有效期 MUST 为一年（`maxAge: 60 * 60 * 24 * 365`，配置于 `i18n/routing.ts` 的 `localeCookie`）。根路径 `/` 的 locale 检测优先级 MUST 为：URL locale 前缀 → `NEXT_LOCALE` cookie → `Accept-Language` 头 → 默认 locale `zh`。当用户通过语言切换器切换语言（客户端软导航）或显式访问带 locale 前缀的 URL 时，系统 MUST 更新 cookie 为该 locale。cookie 属性 MUST 保持 next-intl 默认值（`SameSite=Lax`）。
+
+#### Scenario: 切换语言后重新访问根路径
+
+- **WHEN** 浏览器 `Accept-Language` 首选 `zh`，用户通过语言切换器切换至 `en`，关闭浏览器后重新访问 `/`
+- **THEN** 系统读取持久化的 `NEXT_LOCALE=en` cookie，重定向至 `/en`（cookie 优先于 `Accept-Language`）
+
+#### Scenario: 语言与浏览器一致时不种 cookie
+
+- **WHEN** 浏览器 `Accept-Language` 首选 `en` 且访问 `/en`
+- **THEN** 系统不设置 `NEXT_LOCALE` cookie（locale 与 `Accept-Language` 匹配时无需持久化）
+
+#### Scenario: 显式访问带前缀 URL 更新偏好
+
+- **WHEN** 用户持有 `NEXT_LOCALE=en` cookie，显式访问 `/zh/posts/hello-world`
+- **THEN** 系统将 cookie 更新为 `zh`，后续访问 `/` 重定向至 `/zh`
+
+#### Scenario: 客户端软导航写入持久 cookie
+
+- **WHEN** 用户在页面内通过语言切换器切换语言（`router.push(pathname, { locale })` 软导航）
+- **THEN** 系统在客户端写入 `NEXT_LOCALE` cookie，且携带与 middleware 路径一致的 `max-age` 属性
+
 ### Requirement: Locale 校验与 404 处理
 
 系统 SHALL 在 `[lang]` 布局中校验 `lang` 参数是否为受支持 locale。当 `lang` 不受支持时，MUST 调用 `notFound()` 返回 404 页面。系统 SHALL 提供 `app/[lang]/not-found.tsx` 本地化 404 页面，当任意页面（文章详情、分类、标签等）调用 `notFound()` 时，MUST 渲染该本地化 404 页面而非 Next.js 默认 404。404 页面 MUST 使用 `useTranslations('NotFound')` 读取 `i18n/messages/{lang}.json` 中已定义的 `Title`、`Description`、`BackHome` 翻译文案，并渲染"返回首页"按钮，按钮链接 MUST 使用 locale-aware `Link` 指向当前 locale 首页。

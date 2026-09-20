@@ -12,6 +12,17 @@ export const routing = defineRouting({
   locales: ['zh', 'en'],
   /** Locale used when no match is found (e.g. unsupported Accept-Language). */
   defaultLocale: 'zh',
+  /**
+   * Persist the user's locale choice in the `NEXT_LOCALE` cookie for one
+   * year. Without `maxAge` the cookie is session-scoped, so the preference
+   * was lost when the browser closed and `/` fell back to `Accept-Language`
+   * detection. Applies to both cookie write paths: the middleware
+   * (`Set-Cookie` on redirects) and client-side soft navigations from
+   * `useLocaleSwitch` (`document.cookie` via next-intl's `syncLocaleCookie`).
+   */
+  localeCookie: {
+    maxAge: 60 * 60 * 24 * 365,
+  },
 })
 
 /** Convenience type alias for the supported locale codes. */
