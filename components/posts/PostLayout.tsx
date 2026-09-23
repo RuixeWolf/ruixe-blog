@@ -5,7 +5,7 @@ import { getFormatter, getTranslations } from 'next-intl/server'
 import { Link as NavLink } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import type { PostMeta } from '@/lib/posts'
-import { buildPostMarkdownPath, buildPostPath } from '@/lib/seo'
+import { buildPostMarkdownPath, buildSharePostPath } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { getCategory, getTag } from '@/lib/taxonomy'
 import type { TocItem } from '@/lib/toc'
@@ -96,7 +96,7 @@ export async function PostLayout({
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-1">
-          <ShareButton path={buildPostPath(meta.slug, locale)} title={meta.title} />
+          <ShareButton path={buildSharePostPath(meta.slug, locale)} title={meta.title} />
           <MarkdownLinkButton path={buildPostMarkdownPath(meta.slug, locale)} />
         </div>
       </header>
