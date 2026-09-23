@@ -15,12 +15,15 @@ const QR_CODE_SIZE = 200
 /** Props for the post share button component. */
 interface ShareButtonProps {
   /**
-   * Root-relative path of the post detail page
-   * (`/{locale}/posts/{slug}`), built server-side via `buildPostPath` and
-   * passed in as a prop so this client component never imports the
-   * server-only `lib/seo` module. The browser resolves the origin at
-   * runtime so the shared URL tracks the current host in dev, preview, and
-   * production.
+   * Root-relative path of the post detail page, built server-side via
+   * `buildSharePostPath` and passed in as a prop so this client component never
+   * imports the server-only `lib/seo` module.
+   *
+   * The path normally omits the locale prefix so the recipient's own language
+   * is resolved by the `proxy.ts` middleware (locale-aware share links); it only
+   * keeps the active locale when the post is missing a locale variant. The
+   * browser resolves the origin at runtime so the shared URL tracks the current
+   * host in dev, preview, and production.
    */
   path: string
   /** Post title, forwarded to `navigator.share` as the share-sheet title. */
@@ -52,7 +55,8 @@ interface ShareDialogContentProps {
  * after the user opens the dialog — post-hydration by definition — so the
  * server renders nothing but the trigger button.
  *
- * @param path - Root-relative post path for the current locale.
+ * @param path - Root-relative share path (locale-less when the post exists in
+ *   every locale).
  * @param title - Post title forwarded to the Web Share API.
  */
 export function ShareButton({ path, title }: Readonly<ShareButtonProps>) {
@@ -109,7 +113,8 @@ export function ShareButton({ path, title }: Readonly<ShareButtonProps>) {
  * zone (`marginSize={4}`), wrapped in a white rounded card so it stays
  * scannable in dark mode.
  *
- * @param path - Root-relative post path for the current locale.
+ * @param path - Root-relative share path shared by the displayed URL, the
+ *   clipboard, the QR code, and the system share sheet.
  * @param title - Post title forwarded to the Web Share API.
  */
 function ShareDialogContent({ path, title }: Readonly<ShareDialogContentProps>) {

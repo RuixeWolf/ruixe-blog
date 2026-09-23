@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Lets readers share a blog post from the post detail page via a share dialog exposing the post URL with one-tap copy, a QR code, and the device's native share sheet when available.
+Lets readers share a blog post from the post detail page via a share dialog exposing the post URL with one-tap copy, a QR code, and the device's native share sheet when available. The shared URL omits the locale prefix for fully translated posts, so each recipient lands in their own language instead of the sharer's.
 
 ## Requirements
 
@@ -22,17 +22,22 @@ The post detail page SHALL display a share entry point in the post header action
 
 ### Requirement: Share dialog shows the current-origin post URL
 
-The share dialog SHALL display the post's absolute URL resolved against the current browser origin (not the configured site URL), so the URL is correct in local development, preview deployments, and production.
+The share dialog SHALL display the post's absolute URL resolved against the current browser origin (not the configured site URL), so the URL is correct in local development, preview deployments, and production. The URL SHALL omit the locale prefix whenever the post has a variant in every supported locale, so the locale-detection middleware (`proxy.ts`) resolves it to each recipient's own language rather than imposing the sharer's. A post missing at least one locale variant SHALL instead keep the locale prefix of the page being viewed, because the locale-less form would be redirected to a locale where that variant does not exist and end in a 404.
 
 #### Scenario: URL tracks the current origin
 
-- **WHEN** the share dialog is opened on a preview deployment (e.g. `https://example-preview.vercel.app/zh/posts/foo`)
-- **THEN** the dialog displays `https://example-preview.vercel.app/zh/posts/foo`
+- **WHEN** the share dialog is opened on a preview deployment (e.g. `https://example-preview.vercel.app/posts/foo`)
+- **THEN** the dialog displays `https://example-preview.vercel.app/posts/foo` (the preview host, not the configured production site URL)
 
-#### Scenario: URL preserves the active locale
+#### Scenario: URL omits the locale prefix for a fully translated post
 
-- **WHEN** the share dialog is opened on an English post page
-- **THEN** the displayed URL contains the `/en` locale prefix
+- **WHEN** the share dialog is opened on a post that has a variant in every supported locale
+- **THEN** the displayed URL contains no locale prefix (e.g. `https://example.com/posts/hello-world`), and opening that URL redirects each visitor to the locale matching their own preference
+
+#### Scenario: URL keeps the active locale for a partially translated post
+
+- **WHEN** the share dialog is opened on a post that is missing a variant in at least one supported locale
+- **THEN** the displayed URL keeps the locale prefix of the page being viewed (e.g. `https://example.com/zh/posts/draft-post`), so the only existing variant stays reachable
 
 ### Requirement: One-tap copy of the post URL
 

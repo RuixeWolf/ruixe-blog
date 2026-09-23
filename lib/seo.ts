@@ -9,7 +9,8 @@ import { siteConfig } from './site-config'
  * Concentrates URL generation and Schema.org JSON-LD building logic so that
  * sitemap, `generateMetadata`, and JSON-LD `<script>` injection don't duplicate
  * path-assembly or schema-shaping code. All functions are pure except
- * {@link buildPostAlternates}, which checks post existence via `getPostBySlug`.
+ * {@link buildPostAlternates} and {@link buildSharePostPath}, which check post
+ * existence via `getPostBySlug`.
  */
 
 /**
@@ -72,20 +73,45 @@ export function buildPostMarkdownPath(slug: string, locale: Locale): string {
 }
 
 /**
- * Builds a root-relative path for a post detail page.
+ * Builds the root-relative post detail path handed to the share dialog.
  *
- * Unlike {@link buildPostUrl}, this returns a path with no origin so the
- * client can resolve it against `window.location.origin` at runtime. Used
- * by the post detail `ShareButton` so the share dialog's URL and QR code
- * track the current browser origin in dev, preview, and production without
- * depending on the server-only `siteConfig.siteUrl`.
+ * Unlike {@link buildPostUrl}, this returns a path with no origin so the client
+ * can resolve it against `window.location.origin` at runtime: the post detail
+ * `ShareButton` feeds the same value to the displayed URL, the clipboard, the
+ * QR code, and `navigator.share`, so all four track the current browser origin
+ * in dev, preview, and production without depending on the server-only
+ * `siteConfig.siteUrl`.
+ *
+ * The locale prefix is omitted **when the post has a variant in every supported
+ * locale**, because the locale-less form is resolved per visitor by `proxy.ts`
+ * (next-intl middleware: pathname prefix → `NEXT_LOCALE` cookie →
+ * `Accept-Language` → default locale) and serves the recipient's own language
+ * through a 307 redirect. Recipients therefore never inherit the sharer's
+ * language.
+ *
+ * When at least one locale variant is missing, the sharer's locale prefix is
+ * kept instead: the locale-less form would be redirected to the recipient's
+ * locale and end in the localized 404 (`/[lang]/posts/[slug]` calls
+ * `notFound()` for a missing variant), hiding the only readable version. The
+ * returned shape therefore depends on translation completeness — shipping every
+ * locale variant is what buys the language-adaptive share URL.
+ *
+ * Do NOT copy this locale-less pattern to dotted paths such as
+ * {@link buildPostMarkdownPath}: the `proxy.ts` matcher excludes any path
+ * containing a dot (only `/feed.xml` is added back explicitly), so the
+ * unprefixed `/posts/<slug>/index.md` would skip locale detection entirely and
+ * hit a hard 404 — no route matches that 3-segment path.
  *
  * @param slug - URL-safe post identifier.
- * @param locale - Target locale code.
- * @returns Root-relative path (e.g. `/zh/posts/hello-world`).
+ * @param locale - Locale of the sharing visitor, used as the prefix fallback.
+ * @returns Root-relative path: `/posts/hello-world` when every locale variant
+ *   exists, otherwise `/zh/posts/hello-world`.
  */
-export function buildPostPath(slug: string, locale: Locale): string {
-  return `/${locale}/posts/${slug}`
+export function buildSharePostPath(slug: string, locale: Locale): string {
+  const existsInEveryLocale = routing.locales.every(
+    (candidate) => getPostBySlug(slug, candidate) !== null,
+  )
+  return existsInEveryLocale ? `/posts/${slug}` : `/${locale}/posts/${slug}`
 }
 
 /**

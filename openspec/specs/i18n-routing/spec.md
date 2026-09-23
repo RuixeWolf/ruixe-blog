@@ -2,7 +2,7 @@
 
 ## Purpose
 
-定义 Ruixe Blog 的国际化路由与 UI 翻译基础设施，包括 `/[lang]` URL 前缀结构、根路径语言检测与重定向、locale 校验、`next-intl` 消息加载、语言切换、静态渲染支持，以及 locale 感知的内部导航 API。
+定义 Ruixe Blog 的国际化路由与 UI 翻译基础设施，包括 `/[lang]` URL 前缀结构、根路径与无 locale 前缀路径的语言检测重定向、locale 校验、`next-intl` 消息加载、语言切换、静态渲染支持，以及 locale 感知的内部导航 API。
 
 ## Requirements
 
@@ -46,6 +46,34 @@
 
 - **WHEN** 浏览器访问 `/en/posts/hello-world`
 - **THEN** 系统直接渲染对应页面，不触发 locale 重定向
+
+### Requirement: 无 locale 前缀路径的语言探测重定向
+
+系统 SHALL 对任意不含 locale 前缀的业务路径（例如 `/posts/hello-world`、`/categories/frontend`）执行与根路径 `/` 相同的语言探测，并重定向至 `/{探测出的 locale}/...`。探测优先级 MUST 与根路径一致：`NEXT_LOCALE` cookie → `Accept-Language` 头 → 默认 locale `zh`（路径本身无前缀，不参与优先级）。重定向 MUST 使用临时（307）状态码，使浏览器不缓存探测结果，同一个无前缀 URL 才能对不同访问者解析为不同语言。
+
+该行为由 `proxy.ts` 的 `next-intl/middleware` 统一提供，无需为无前缀路径新增路由。`ShareButton` 展示与复制的分享链接即依赖此行为：文章在所有受支持 locale 均有版本时省略前缀，由访客自身的语言偏好决定落地语言。
+
+matcher MUST 继续排除含点路径（`/((?!api|_next|_vercel|.*\..*).*)`），仅根路径 `feed.xml` 通过字面量条目显式加回。因此无前缀的含点路径（如 `/posts/hello-world/index.md`）MUST NOT 被当作可依赖该重定向的 URL：它不进入 middleware，且无任何路由匹配时会返回 Next.js 默认 404（而非 `app/[lang]/not-found.tsx` 的本地化 404）。
+
+#### Scenario: 无前缀深层路径按 Accept-Language 重定向
+
+- **WHEN** 浏览器 `Accept-Language` 首选 `en` 且访问 `/posts/hello-world`
+- **THEN** 系统以 307 重定向至 `/en/posts/hello-world`
+
+#### Scenario: 无前缀路径优先使用 NEXT_LOCALE cookie
+
+- **WHEN** 浏览器持有 `NEXT_LOCALE=en` cookie、`Accept-Language` 首选 `zh`，访问 `/posts/hello-world`
+- **THEN** 系统以 307 重定向至 `/en/posts/hello-world`（cookie 优先于 `Accept-Language`）
+
+#### Scenario: 无前缀路径无法匹配时回退默认 locale
+
+- **WHEN** 浏览器 `Accept-Language` 首选 `ja`（不受支持）且无 `NEXT_LOCALE` cookie，访问 `/posts/hello-world`
+- **THEN** 系统以 307 重定向至默认 locale `/zh/posts/hello-world`
+
+#### Scenario: 无前缀的含点路径不触发语言重定向
+
+- **WHEN** 浏览器访问 `/posts/hello-world/index.md`
+- **THEN** 请求不进入 middleware，且因无匹配路由返回 404（该 URL 形式 MUST NOT 用于分享或内链）
 
 ### Requirement: 语言偏好持久化
 
