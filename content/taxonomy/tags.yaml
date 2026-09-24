@@ -46,3 +46,7 @@ openapi:
   name:
     zh: OpenAPI
     en: OpenAPI
+css:
+  name:
+    zh: CSS
+    en: CSS

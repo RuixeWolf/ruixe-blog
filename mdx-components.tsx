@@ -85,6 +85,14 @@ function MDXImage({ alt, src, ...rest }: ImageProps) {
  *   `language-*` class when a fence declares its language - bare ``` fences
  *   would otherwise be misclassified as inline code. The typography plugin's
  *   decorative backtick pseudo-elements are disabled there as well.
+ * - `table` -> wrapped in a horizontally scrollable `div`, so a table wider than
+ *   the article column scrolls inside the column instead of widening the
+ *   document. On mobile, a document wider than the screen widens the *layout
+ *   viewport* (a 390px phone reported `window.innerWidth === 482`), and
+ *   `position: fixed` overlays - the share and search dialogs - were then laid
+ *   out against that wider axis and clipped on the right. Wrapping rather than
+ *   styling the table itself keeps `display: table`, so the typography plugin's
+ *   `width: 100%` stretch and vertical margins are unchanged.
  *
  * All remaining HTML elements use their default tags; prose typography is
  * applied at the page level via the `prose` class.
@@ -99,6 +107,11 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     a: Anchor,
     pre: ({ children, ...rest }: React.HTMLAttributes<HTMLPreElement>) => (
       <CodeBlock {...rest}>{children}</CodeBlock>
+    ),
+    table: ({ children, ...rest }: React.TableHTMLAttributes<HTMLTableElement>) => (
+      <div className="overflow-x-auto">
+        <table {...rest}>{children}</table>
+      </div>
     ),
     // No inline/block branching here: inline-code styling lives in
     // `app/globals.css` under a structural `:not(pre) > code` selector, since

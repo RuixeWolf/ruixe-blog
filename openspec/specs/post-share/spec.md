@@ -108,3 +108,17 @@ Adding the share affordance SHALL NOT change the static generation status of pos
 
 - **WHEN** the production site is built
 - **THEN** post detail pages are statically generated (no new dynamic rendering is introduced by the share feature)
+
+### Requirement: Share dialog stays within the visible viewport
+
+The share dialog SHALL never extend beyond the visible viewport, including when the page's content is wider than the screen. Mobile browsers widen the **layout viewport** to the widest content on the page (a wide GFM table pushed a 390px screen's `window.innerWidth` to 482px), and the HeroUI modal overlay is `fixed inset-0 w-full`, so its width resolves against that widened layout viewport instead of the visible screen — the dialog was then centred on the wider axis and clipped on the right. The overlay SHALL carry a viewport-relative width cap so the dialog stays fully visible and horizontally centred on the screen.
+
+#### Scenario: Dialog fits a narrow screen
+
+- **WHEN** the share dialog is opened on a 390px-wide mobile viewport, on a post whose content is wider than the screen
+- **THEN** the dialog's right edge stays within the visible viewport and the dialog is horizontally centred on the screen
+
+#### Scenario: Wide viewports are unaffected
+
+- **WHEN** the share dialog is opened on a desktop viewport
+- **THEN** the dialog keeps its configured maximum width (`sm:max-w-sm`) and position, because the viewport-relative cap can only reduce the width, never increase it

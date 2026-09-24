@@ -198,7 +198,17 @@ export function SearchDialog({ searchIndex, isOpen, onOpenChange }: Readonly<Sea
   const shouldShowEmpty = hasQuery && results.length === 0
 
   return (
-    <Modal.Backdrop isOpen={isOpen} onOpenChange={onOpenChange} isKeyboardDismissDisabled>
+    <Modal.Backdrop
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      isKeyboardDismissDisabled
+      /* Keeps the overlay on the visible screen: `fixed inset-0 w-full` resolves
+         against the layout viewport, which mobile browsers widen to the widest
+         content on the page (a wide GFM table pushed it to 482px on a 390px
+         screen), clipping the full-width mobile dialog. `100vw` follows the
+         screen and can only reduce the width, so it is inert otherwise. */
+      className="max-w-[100vw]"
+    >
       {/* `size="cover"` makes the dialog fill the viewport on mobile (full-screen
           search). On desktop the `sm:` overrides restore a compact, top-anchored
           panel: the container is capped at `2xl` width and the dialog drops the

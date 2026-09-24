@@ -1,0 +1,153 @@
+---
+title: Debugging a Mobile Modal Overflow
+description: A mobile modal overflow postmortem. A single GFM table in a post widened the layout viewport from 390px to 482px, so the fixed-positioned share and search modals centered on the wrong containing block and ran off screen. Covers the device-emulation reproduction, three rejected candidate fixes, and the final three-part repair - an MDX table scroll wrapper, anywhere word-breaking, and a 100vw backdrop cap.
+publishedTime: '2026-09-24'
+category: frontend
+tags:
+  - css
+  - browser-automation
+---
+
+A few days ago I was reading my own blog on my phone and tapped the "Share" button in the post header. The right side of the modal was cut off: the URL was truncated, the "Copy link" button sat noticeably too far right, and the modal was not centered on the screen at all - it was "overflowing to the right".
+
+Oddly enough, the same post behaved perfectly when I dragged my desktop browser window down to 375px wide - the modal dutifully shrank to fit.
+
+That "does not reproduce in a narrow desktop window" detail ended up being one of the key clues that cracked the case.
+
+## 1. Reproduce first, explain later
+
+At first I did not rush to change code. Instead I asked the agent to reproduce the problem under **real mobile device emulation**, and to give me verifiable numbers rather than an explanation.
+
+How you reproduce it matters a lot:
+
+- ❌ Dragging a desktop browser window narrow - this never triggers mobile layout-viewport behavior, so it can never reproduce the bug
+- ✅ Creating a mobile context (`viewport: 390×844`, `deviceScaleFactor: 3`, `isMobile: true`, `hasTouch: true`) so it renders under real device rules
+
+Once reproduced, the very first set of numbers already told the whole story:
+
+| Measurement                            | Observed |
+| -------------------------------------- | -------- |
+| `documentElement.clientWidth` (screen) | 390      |
+| `visualViewport.width`                 | 390      |
+| `window.innerWidth` (layout viewport)  | **482**  |
+| `documentElement.scrollWidth`          | **482**  |
+| `document.body` width                  | 390      |
+| measured `100vw`                       | 390      |
+
+The screen is only 390px, yet `window.innerWidth` is **482px**. The document is 92px wider than the screen, so the mobile browser widened the **layout viewport** to fit the widest content - that is the source of the entire problem.
+
+## 2. Why the header looked fine but the modal did not
+
+The most counterintuitive part is that the header in the screenshot was completely normal (hamburger menu, centered title, dropdown chevron on the right, all exactly where they should be) - only the modal was misplaced. The reason is that **normal flow and `position: fixed` use different reference frames**:
+
+```text
+screen width = 390 CSS px         layout viewport = 482 CSS px
++------------------------------+  +--------------------------------------+
+| body / header at 390px       |  | .modal__backdrop  fixed inset-0      |
+| (so the header looks fine)   |  | width:100%  ->  482px wide           |
++------------------------------+  |  +--------------------------------+  |
+                                  |  | .modal__dialog  w-full          |  |
+    ^ modal right edge 465 (+75px) |  | max-w-md = 448px (size="md")    |  |
+                                  |  | x=17 .............. right=465   |  |
+                                  |  +--------------------------------+  |
+                                  +--------------------------------------+
+```
+
+Concretely, for the HeroUI v3 Modal:
+
+- `.modal__backdrop` is `fixed inset-0 w-full`, and its `100%` resolves against the **initial containing block** (the widened 482px layout viewport), not the screen;
+- `.modal__dialog` defaults to `size="md"`, i.e. `max-w-md` (448px). The container's content box is 482 − 32 (`p-4`) = 450 ≥ 448, so the dialog takes the full 448px;
+- the `sm:max-w-sm` I had written in the component only applies at ≥640px, so on a 390px screen it does nothing at all.
+
+The result is a 448px-wide modal centered on a 482px reference frame, with its right edge landing at 465px - 75px past the screen, and cut off.
+
+## 3. What actually widened the document
+
+Next I ran an element-by-element sweep: find every element whose right edge exceeds the screen width and that is not inside a scroll container.
+
+| Element                            | Width        | Notes                                                                |
+| ---------------------------------- | ------------ | -------------------------------------------------------------------- |
+| GFM `<table>` (API endpoint table) | 466px        | **the only element breaking the document** (`scrollWidth` 482 is it) |
+| Bare URL link                      | 385px        | would break the document on its own below 385px                      |
+| `<pre>` code block                 | 554 - 1015px | fine - `CodeBlock` is itself a horizontal scroll container           |
+
+I also swept the whole site: across 22 pages (6 posts each in zh/en plus home, list, about, category, and tag pages) at 390px, **only one post overflowed** - this Modbus post with the API table.
+
+The root cause is mundane: `mdx-components.tsx` maps `img`, `a`, `pre`, and `code`, but **does not map `table`**; `globals.css` has no rule targeting `.prose table` either. So the GFM table's min-content width simply broke the document open.
+
+## 4. Three candidates that measurement rejected
+
+The most valuable part of the investigation was actually the candidates that "looked perfectly reasonable but died on first contact with a measurement". **Every candidate was verified by injecting styles first, and only then considered for the codebase**:
+
+**Candidate 1: `html { overflow-x: clip }`** - ineffective.
+
+The idea was to "forbid horizontal overflow at the root". Measured, `window.innerWidth` was still 482 and the modal still overflowed. The browser does not consult `overflow` when it computes the layout viewport width.
+
+**Candidate 2: cap only the modal's width** - ineffective.
+
+This was the agent's first suggestion, and the one I liked most at first: `max-w-[calc(100vw-2rem)]`. Measured, the modal did get narrower (448 → 358), but it was **still centered on the 482px reference frame**: `x=62`, right edge `420` - still off screen. The real problem was never "the modal is too wide", it was "the centering reference frame is wrong".
+
+**Candidate 3: fix the table with pure CSS** - had side effects.
+
+`.prose table { display: block; max-width: 100%; overflow-x: auto }` is a very widely circulated "scrollable table" recipe, and measured, it did eliminate the overflow. But it turns the table's anonymous table box into shrink-to-fit, so **the table no longer fills the column**: on desktop the measured table width shrank from 953px to 849px, and the column widths went from `67/390/497` to `59/347/443`. That is a change nobody asked for, but every reader would see it.
+
+## 5. The final fix
+
+Three changes in the end.
+
+**1. Wrap MDX tables in a scroll container (`mdx-components.tsx`)**
+
+```tsx
+table: ({ children, ...rest }: React.TableHTMLAttributes<HTMLTableElement>) => (
+  <div className="overflow-x-auto">
+    <table {...rest}>{children}</table>
+  </div>
+),
+```
+
+The key is to **wrap** the table rather than **reshape the table itself**: the table stays `display: table`, so the typography plugin's `width: 100%` fill and its vertical margins are completely unchanged (measured margins before and after are 12px / 48px), and the overflow is handed to the outer div to scroll.
+
+**2. Let over-long tokens break (`app/globals.css`)**
+
+```css
+.prose :where(a, :not(pre) > code):not(:where([class~='not-prose'] *)) {
+  overflow-wrap: anywhere;
+}
+```
+
+`anywhere` is required here - `break-word` will not do: only `anywhere` participates in min-content size calculation, which means only it can make the outer box (and the document) actually shrink back.
+
+**3. Make the backdrop follow the screen (`ShareButton.tsx` / `SearchDialog.tsx`)**
+
+```tsx
+<Modal.Backdrop className="max-w-[100vw]">
+```
+
+There is a key measurement here: in that state **`100vw` = 390 (the screen) while `100%` / `innerWidth` = 482 (the widened layout viewport)**. So a `vw`-based cap works and a `100%`-based cap does not. And `max-width` can only ever narrow the width, so it is completely inert when the page does not overflow - zero risk on desktop.
+
+As an aside, HeroUI's own drawer panel does exactly this: `.drawer__dialog[data-placement="left"]` uses `w-80 max-w-[85vw]`. I basically copied its homework.
+
+## 6. Verification
+
+Before and after (mobile device emulation + desktop):
+
+| Scenario                      | Before                                                   | After                      |
+| ----------------------------- | -------------------------------------------------------- | -------------------------- |
+| 390px: `window.innerWidth`    | 482                                                      | **390**                    |
+| 390px: share modal            | 448px, right edge 465 (75px overflow)                    | 358px, right edge 374 ✅   |
+| 390px: search modal           | 450px, right edge 466 (76px overflow)                    | 358px, right edge 374 ✅   |
+| 320px: share / search modal   | 448 / 450px, right edge 465 / 466 (145 / 146px overflow) | 288px, right edge 304 ✅   |
+| Desktop: share / search modal | 384 / 592                                                | 384 / 592 (unchanged)      |
+| Desktop: table column widths  | 67 / 390 / 497                                           | 67 / 390 / 497 (unchanged) |
+| All 22 pages × 390/360/320    | only the Modbus post, both locales                       | **zero overflow**          |
+| `pnpm build`                  | -                                                        | all routes still `● (SSG)` |
+
+I also folded the conclusions into three OpenSpec capability specs - `mdx-content`, `post-share`, and `post-search` (new requirements + scenarios) - and `openspec validate --specs` passes 13/13.
+
+## 7. Takeaways
+
+1. **Mobile has several different "screen widths", and picking the wrong one produces a fallback that looks reasonable but does nothing.** Here it was `100vw` (390) versus `100%` / `innerWidth` (482): swap one unit inside the same CSS rule and the fix goes from "effective" to "completely ineffective".
+2. **Horizontal page overflow is not just a cosmetic problem.** It widens the layout viewport, which in turn misplaces every `position: fixed` overlay (modals, drawers, backdrops) - a small "content layout" wart that ends up looking like "a broken component".
+3. **There is a gap worth reporting upstream:** React Aria's backdrop height follows the visual viewport (`--visual-viewport-height`), while its width is `w-full` (the layout viewport). The two disagree, which means every Modal / Drawer has to add its own width cap.
+4. **Measurement trap:** HeroUI's modal enter animation carries `zoom-in-105`, i.e. it applies `transform: scale(1.05)` to the container. In that state `getBoundingClientRect()` returns the **scaled** values (448 → 470), so you must measure after the animation finishes (>250ms) or the entire dataset is wrong.
+5. **The right way to use an agent for bug hunting: make it produce verifiable numbers first, not explanations.** Its first proposal (just capping the modal width) was wrong, and what refuted it was the very `x=62 / right edge 420` it had measured itself. Making "every candidate must be verified by injection and measurement" a hard requirement is more reliable than asking it to "give the correct fix".
