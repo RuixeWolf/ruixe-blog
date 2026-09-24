@@ -67,7 +67,7 @@
 
 ### Requirement: 全局 MDX 组件映射
 
-系统 SHALL 在项目根目录维护 `mdx-components.tsx`，将 HTML 元素映射至自定义 React 组件。映射范围 MUST 包括：`img`（映射至 `next/image`，自动获取宽高与 blurDataURL）、`a`（外链 `target="_blank"` + `rel="noopener noreferrer"`）、`pre`/`code`（自定义样式，代码高亮留待阶段 2）。其余元素（`h1`-`h6`、`p`、`ul`、`blockquote` 等）SHALL 使用 Tailwind Typography（`prose`）样式。
+系统 SHALL 在项目根目录维护 `mdx-components.tsx`，将 HTML 元素映射至自定义 React 组件。映射范围 MUST 包括：`img`（映射至 `next/image`，自动获取宽高与 blurDataURL）、`a`（外链 `target="_blank"` + `rel="noopener noreferrer"`）、`pre`/`code`（自定义样式，代码高亮留待阶段 2）、`table`（包裹在 `overflow-x: auto` 的容器中）。其余元素（`h1`-`h6`、`p`、`ul`、`blockquote` 等）SHALL 使用 Tailwind Typography（`prose`）样式。
 
 #### Scenario: MDX 中的图片使用 next/image
 
@@ -78,6 +78,20 @@
 
 - **WHEN** MDX 内容含 `[example](https://example.com)`
 - **THEN** 渲染的 `<a>` 含 `target="_blank"` 与 `rel="noopener noreferrer"`
+
+### Requirement: 正文宽内容不撑破视口宽度
+
+系统 SHALL 保证正文内容宽度不超出视口宽度，即使某篇正文含比文章栏更宽的表格或不可断行的长 token。此约束不仅关乎观感：移动端浏览器会把**布局视口**撑到页面最宽内容（宽 GFM 表格曾把 390px 屏幕的 `window.innerWidth` 撑到 482px），而 `position: fixed` 遮罩按布局视口定尺寸，会连带裁切弹窗（见 `post-share` 与 `post-search` 能力）。宽表格 MUST 通过包裹 `overflow-x: auto` 容器在栏内横向滚动，且包裹 MUST NOT 改变表格自身的 `display: table`（`width: 100%` 撑满与上下外边距保持原样）；超长 token MUST 通过 `overflow-wrap: anywhere` 在栏内换行（`break-word` 不参与 min-content 尺寸计算，无法阻止撑宽）。
+
+#### Scenario: 宽表格不撑破文档宽度
+
+- **WHEN** 某篇 MDX 正文含 GFM 表格且其内容宽度超过文章栏宽（例如 API 端点表）
+- **THEN** 表格在栏内横向滚动，`document.documentElement.scrollWidth` 不超过视口宽度，且表格仍保持 `display: table` 与 `width: 100%` 撑满
+
+#### Scenario: 超长不可断行 token 不撑破文档宽度
+
+- **WHEN** 某篇 MDX 正文含超过栏宽且无断行点的长 token（如裸 URL、长行内代码）
+- **THEN** 该 token 在栏内换行，`document.documentElement.scrollWidth` 不超过视口宽度
 
 ### Requirement: 文章列表读取
 

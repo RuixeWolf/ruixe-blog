@@ -55,3 +55,24 @@ body {
 .prose :where(:not(pre) > code):not(:where([class~='not-prose'] *)) {
   @apply rounded bg-muted/20 px-1.5 py-0.5 text-sm;
 }
+
+/*
+ * Long unbreakable tokens must not widen the document.
+ *
+ * A bare `https://www.npmjs.com/package/@ruixe/modbus-simulator` link overflowed
+ * a 320px screen on its own. On mobile that is not just a visual nuisance: the
+ * browser widens the *layout viewport* to the widest content, so a 390px phone
+ * reported `window.innerWidth === 482`, and `position: fixed` overlays (share
+ * and search dialogs) were laid out against that wider axis and clipped on the
+ * right.
+ *
+ * `overflow-wrap: anywhere` is required rather than `break-word`: only
+ * `anywhere` contributes to the box's min-content size, which is what lets the
+ * surrounding boxes (and the document) shrink back to the viewport width.
+ *
+ * Wide GFM tables are handled structurally instead - see the `table` mapping in
+ * `mdx-components.tsx`.
+ */
+.prose :where(a, :not(pre) > code):not(:where([class~='not-prose'] *)) {
+  overflow-wrap: anywhere;
+}

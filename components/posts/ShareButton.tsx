@@ -55,6 +55,14 @@ interface ShareDialogContentProps {
  * after the user opens the dialog — post-hydration by definition — so the
  * server renders nothing but the trigger button.
  *
+ * The backdrop carries `max-w-[100vw]` to keep the overlay inside the visible
+ * screen. `Modal.Backdrop` is `fixed inset-0 w-full`, so `100%` resolves
+ * against the *layout* viewport, which mobile browsers widen to the widest
+ * content on the page (a wide GFM table pushed it to 482px on a 390px screen);
+ * the dialog was then centred on that wider axis and clipped on the right.
+ * `100vw` tracks the visible screen instead, and because it can only ever
+ * *reduce* the width it stays inert whenever the page does not overflow.
+ *
  * @param path - Root-relative share path (locale-less when the post exists in
  *   every locale).
  * @param title - Post title forwarded to the Web Share API.
@@ -68,7 +76,8 @@ export function ShareButton({ path, title }: Readonly<ShareButtonProps>) {
         <Share2 className="mr-1 size-4" aria-hidden="true" />
         {t('Share')}
       </Button>
-      <Modal.Backdrop>
+      {/* `max-w-[100vw]` keeps the overlay on the visible screen — see the docblock. */}
+      <Modal.Backdrop className="max-w-[100vw]">
         <Modal.Container>
           <Modal.Dialog className="sm:max-w-sm">
             <Modal.CloseTrigger />

@@ -54,6 +54,20 @@
 - **WHEN** 移动端用户点击 Header 右侧的搜索按钮
 - **THEN** 搜索弹窗以全屏覆盖模式打开，输入框获得焦点
 
+### Requirement: 搜索弹窗宽度不超出可视视口
+
+系统 SHALL 保证搜索弹窗宽度不超出可视视口宽度，即使页面内容宽于屏幕。移动端浏览器会把**布局视口**撑到页面最宽内容（宽 GFM 表格曾把 390px 屏幕的 `window.innerWidth` 撑到 482px），而 HeroUI Modal 遮罩为 `fixed inset-0 w-full`，宽度按被撑宽的布局视口解析而非可视屏幕，导致全屏覆盖模式下的弹窗右侧被裁切。遮罩 MUST 携带相对视口的宽度上限（`max-w-[100vw]`），使弹窗完整可见且相对屏幕水平居中；该上限只可能收窄宽度，在页面未溢出时不起作用。
+
+#### Scenario: 窄屏下搜索弹窗不溢出屏幕
+
+- **WHEN** 在 390px 宽的移动端视口、且页面内容宽于屏幕时打开搜索弹窗
+- **THEN** 弹窗右边界不超出可视视口，且相对屏幕水平居中
+
+#### Scenario: 宽视口下搜索弹窗宽度不变
+
+- **WHEN** 在桌面端视口打开搜索弹窗
+- **THEN** 弹窗保持既有的 `sm:max-w-2xl` 上限与定位，不受该视口宽度上限影响
+
 ### Requirement: 客户端模糊搜索
 
 系统 SHALL 使用 Fuse.js 对当前 locale 的 `SearchIndexItem[]` 执行客户端模糊搜索。Fuse 实例 MUST 通过 `useMemo` 缓存，依赖项为 `searchIndex`，避免每次渲染重建。Fuse 配置 SHALL 使用加权 `keys`：`title`（权重 0.4）、`description`（0.25）、`tagNames`（0.2）、`categoryName`（0.1）、`contentText`（0.05）；`threshold` 设为 `0.4`；`ignoreLocation` 设为 `true`；`minMatchCharLength` 设为 `2`；`includeScore` 设为 `true`。查询输入 MUST 经防抖处理（200ms），避免每次按键立即搜索。搜索结果 MUST 限制为最多 10 条。
