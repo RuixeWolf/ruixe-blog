@@ -50,3 +50,15 @@ css:
   name:
     zh: CSS
     en: CSS
+ui-automation:
+  name:
+    zh: UI 自动化
+    en: UI Automation
+windows:
+  name:
+    zh: Windows
+    en: Windows
+electron:
+  name:
+    zh: Electron
+    en: Electron

@@ -1,0 +1,151 @@
+---
+title: 让 AI Agent 自动操作 Windows 原生窗口
+description: 微软 Windows App Development CLI（winapp CLI）的 UI Automation 命令上手体验，介绍如何让 AI Agent 通过 UIA 元素树定位并操作 Windows 原生窗口与文件选择、文件保存、MessageBox 等对话框，与 agent-browser 配合补齐 Electron 桌面应用的 E2E 自动化工作流。
+publishedTime: '2026-09-29'
+category: ai-coding
+tags:
+  - ui-automation
+  - windows
+  - electron
+---
+
+前段时间我开始使用 `agent-browser` 让 AI Agent 自动化操作浏览器页面与 Electron 窗口的渲染进程，前端相关的开发任务因此可以由 AI 完成并自动验收，详见我的另一篇文章 [Vercel Agent Browser 初体验](https://blog.ruixe.net/posts/vercel-agent-browser-first-look)。
+
+但是当 AI 在 Electron 中打开了 Windows 原生的文件选择、文件保存、MessageBox 等对话框后，无法很好地与这些对话框交互，通常会卡在这一步探索很久，甚至还会误操作到其他正在聚焦的窗口。
+
+借助 ChatGPT 检索后发现，微软在 2026 年的 `winapp CLI` 中加入了一套专门面向 AI Agent 的 Windows UI Automation 命令。
+
+## WinApp CLI 是什么
+
+`winapp CLI`（Windows App Development CLI）是微软推出的 Windows 应用开发命令行工具，主要用来管理 Windows SDK、打包、生成应用身份与清单、调用构建工具等（这些不在本文范围内）；而其中专门面向 AI Agent 的 UI Automation（UIA）命令，正是本文的主角。它可以从命令行执行：
+
+- `inspect` UIA 树
+- `search` 控件
+- `list-windows` 枚举窗口
+- 通过 HWND 精确锁定窗口
+- `set-value` 写输入框
+- `invoke` 按钮
+- 截图
+- 等待某个控件出现 / 消失
+
+### 为什么适合 AI Agent
+
+- **操作元素树而非截图坐标** - 通过 UIA 元素树定位并驱动控件，不需要模型 “看图找位置”
+- **先侦察、后锁定** - `list-windows` 找到 HWND 后用 `-w`（或 AutomationId / slug）精确锁定，天然避免误操作其他聚焦窗口
+- **对 CI 与后台 Agent 友好** - `inspect`、`search`、`set-value`、`invoke`、`wait-for` 等 UIA 模式命令可在无头 / 锁屏会话下运行
+- **结构化输出** - `--json` 直接产出 Agent 可解析的结果，便于断言
+
+类似的能力还有很多，这正是我需要的 Windows App 版 “agent-browser”：官方文档明确支持 **Electron**，也给出了**打开 / 保存原生文件对话框**的自动化[示例](https://github.com/microsoft/winappCli/blob/main/docs/ui-automation.md)。
+
+## 安装 CLI
+
+PowerShell 指令：
+
+```powershell
+winget install Microsoft.winappcli --source winget
+```
+
+示例：
+
+```
+❯ winget install Microsoft.winappcli --source winget
+
+Found Windows App Development CLI [Microsoft.WinAppCli] Version 0.7.0
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Successfully verified installer hash
+Starting package install...
+  ██████████████████████████████  100%
+Successfully installed
+```
+
+## 使用 CLI
+
+### 列出窗口
+
+列出当前 Electron 程序的窗口，使用以下 PowerShell 指令：
+
+```powershell
+winapp ui list-windows -a Electron
+```
+
+示例：
+
+```
+❯ winapp ui list-windows -a Electron
+
+  HWND 132338: "Electron App" (window, 1920x75) [Chrome_WidgetWin_1] (electron, PID 24544)
+  HWND 722170: "Electron App sub window 1" (window, 1216x670) [Chrome_WidgetWin_1] (electron, PID 24544)
+  HWND 657308: "Electron App sub window 2" (window, 1216x670) [Chrome_WidgetWin_1] (electron, PID 24544)
+  HWND 264556: "Electron App sub window 3" (window, 366x540) [Chrome_WidgetWin_1] (electron, PID 24544)
+Found 4 windows
+```
+
+其中 `-a` 支持进程名、窗口标题或 PID；拿到 HWND 后，用 `-w <HWND>` 就能在后续命令中精确锁定这个窗口。
+
+### 操作文件对话框
+
+文件打开 / 保存对话框是标准的 Windows 对话框，本身就支持 UI Automation，因此对 Electron、WPF、Win32 应用都通用。官方文档给出的最小流程是三步：
+
+```powershell
+# 1. 触发对话框（例如点击“打开文件”按钮）
+winapp ui invoke btn-openfile-a1b2 -a myapp
+
+# 2. 找到对话框窗口（主窗口和对话框都会列出，取对话框的 HWND）
+winapp ui list-windows -a myapp
+
+# 3. 用 -w 锁定对话框，填入路径并确认
+winapp ui set-value txt-1148-c4d5 "C:\Users\<user>\Desktop\E2E_Test.csv" -w <dialog-hwnd>
+winapp ui invoke btn-save-e6f7 -w <dialog-hwnd>
+```
+
+其中文件名输入框的 AutomationId 通常是 `1148`；不确定时用 `winapp ui inspect -w <dialog-hwnd> --interactive` 查看实际的 slug 再操作。
+
+## 安装 Agent Skill
+
+通过 [skills.sh](https://www.skills.sh/) 安装 winapp CLI 配套的 UI 自动化 Agent Skill `winapp-ui-automation`：
+
+```bash
+npx skills add microsoft/winAppCli --skill winapp-ui-automation
+```
+
+## 使用 Agent Skill
+
+完善项目 `AGENTS.md`，提示词：
+
+```markdown
+/grill-me 请完善 `AGENTS.md` 的 AI Agent E2E 自动化说明：
+
+- 使用 agent-browser 操作 Electron 渲染进程
+- 使用 winapp-ui-automation 操作 Windows 系统原生弹窗，比如文件保存、文件选择、MessageBox 等窗口
+```
+
+Agent 最终写入 `AGENTS.md` 的关键片段如下（节选、已脱敏）：
+
+```markdown
+## Native dialogs (winapp-ui-automation)
+
+Flows in the Electron host can trigger real Windows dialogs (file open/save,
+native message boxes) — separate native windows, not renderer content. Drive
+them with the `winapp` CLI (UI Automation), never with agent-browser.
+
+- Discover the dialog with `winapp ui list-windows --json`, then pass its `-w <hwnd>`.
+- Standard file dialogs: the filename input is usually AutomationId `1148`; fill it with
+  `winapp ui set-value`, confirm with `winapp ui invoke`, cancel with `winapp ui send-keys esc`.
+- Native message boxes: `winapp ui invoke '<button label>' -w <hwnd>` (labels follow the locale).
+- Chain commands with `;` and finish with `winapp ui yield`; leave no dialog open at the end.
+```
+
+在 Electron 项目测试，提示词：
+
+```markdown
+请使用 /agent-browser 操作 `数据记录配置` 页面选择数据记录文件，打开 Windows 文件选择窗口后使用 /winapp-ui-automation 将数据记录文件保存至 `桌面/E2E_Test.csv`。
+
+现状：Electron App 开发服务已启动，CDP 端口 9222。
+```
+
+## 总结
+
+`agent-browser` 负责 Electron 的渲染进程，`winapp ui` 负责 Windows 原生窗口与对话框，两者配合基本覆盖了 AI 在 Windows 桌面应用上需要操作的界面，也补上了我之前工作流里缺失的一环。
+
+需要注意的是，`winapp CLI` 目前仍处于 Public Preview 阶段（本文写作时为 0.7.0），命令与输出格式都可能继续变化，使用前建议先阅读[官方 UI Automation 文档](https://github.com/microsoft/winappCli/blob/main/docs/ui-automation.md)。
