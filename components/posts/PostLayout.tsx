@@ -69,11 +69,15 @@ export async function PostLayout({
             {category.name}
           </NavLink>
           <span aria-hidden="true">·</span>
-          <span>{t('PublishedTime', { date: formattedPublished })}</span>
-          {formattedUpdated ? (
+          <time dateTime={meta.publishedTime}>
+            {t('PublishedTime', { date: formattedPublished })}
+          </time>
+          {formattedUpdated && meta.modifiedTime ? (
             <>
               <span aria-hidden="true">·</span>
-              <span>{t('ModifiedTime', { date: formattedUpdated })}</span>
+              <time dateTime={meta.modifiedTime}>
+                {t('ModifiedTime', { date: formattedUpdated })}
+              </time>
             </>
           ) : null}
         </div>

@@ -6,9 +6,14 @@ import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getAllPosts } from '@/lib/posts'
+import { buildAlternates, buildOpenGraph, buildPageUrl } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 
-/** Generates metadata with the localized post-list title and site description. */
+/**
+ * Generates metadata with the localized post-list title, complete alternates
+ * (canonical + hreflang for the same path), and page-level OpenGraph so the
+ * social card reflects this page rather than the site defaults.
+ */
 export async function generateMetadata({
   params,
 }: {
@@ -19,10 +24,18 @@ export async function generateMetadata({
     return {}
   }
 
-  const t = await getTranslations({ locale: lang as Locale, namespace: 'PostList' })
+  const locale = lang as Locale
+  const t = await getTranslations({ locale, namespace: 'PostList' })
   return {
     title: t('Title'),
     description: siteConfig.siteDescription,
+    alternates: buildAlternates('posts', locale),
+    openGraph: buildOpenGraph({
+      title: t('Title'),
+      description: siteConfig.siteDescription,
+      url: buildPageUrl('posts', locale),
+      locale,
+    }),
   }
 }
 

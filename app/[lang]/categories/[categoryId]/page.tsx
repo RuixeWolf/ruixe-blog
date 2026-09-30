@@ -7,10 +7,11 @@ import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getPostsByCategory } from '@/lib/posts'
 import {
+  buildAlternates,
   buildBreadcrumbJsonLd,
   buildCategoryUrl,
+  buildOpenGraph,
   buildPageUrl,
-  buildRssAlternateTypes,
 } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { getCategories, getCategory } from '@/lib/taxonomy'
@@ -23,7 +24,9 @@ export function generateStaticParams() {
 }
 
 /**
- * Generates metadata with the localized category name as the title.
+ * Generates metadata with the localized category name as the title, complete
+ * alternates (canonical + hreflang for the same path), and page-level
+ * OpenGraph so the social card shows the category instead of site defaults.
  */
 export async function generateMetadata({
   params,
@@ -40,10 +43,13 @@ export async function generateMetadata({
     const category = getCategory(categoryId, locale)
     return {
       title: category.name,
-      alternates: {
-        canonical: buildCategoryUrl(categoryId, locale),
-        types: buildRssAlternateTypes(locale),
-      },
+      alternates: buildAlternates(`categories/${categoryId}`, locale),
+      openGraph: buildOpenGraph({
+        title: category.name,
+        description: siteConfig.siteDescription,
+        url: buildCategoryUrl(categoryId, locale),
+        locale,
+      }),
     }
   } catch {
     return {}

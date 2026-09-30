@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import 'server-only'
 import { routing, type Locale } from '../i18n/routing'
 import { getPostBySlug, type PostMeta } from './posts'
@@ -6,12 +7,83 @@ import { siteConfig } from './site-config'
 /**
  * Central SEO construction module.
  *
- * Concentrates URL generation and Schema.org JSON-LD building logic so that
- * sitemap, `generateMetadata`, and JSON-LD `<script>` injection don't duplicate
- * path-assembly or schema-shaping code. All functions are pure except
- * {@link buildPostAlternates} and {@link buildSharePostPath}, which check post
- * existence via `getPostBySlug`.
+ * Concentrates URL generation, `metadata.alternates` / `metadata.openGraph`
+ * construction, and Schema.org JSON-LD building logic so that sitemap,
+ * `generateMetadata`, and JSON-LD `<script>` injection don't duplicate
+ * path-assembly or schema-shaping code. Next.js replaces the `alternates` and
+ * `openGraph` metadata keys wholesale when a segment defines them (no deep
+ * merge), so these helpers are the single point that assembles those objects
+ * with every field present — pages MUST NOT hand-assemble partial objects,
+ * which would silently drop the remaining fields. All functions are pure
+ * except {@link buildPostAlternates} and {@link buildSharePostPath}, which
+ * check post existence via `getPostBySlug`.
  */
+
+/**
+ * Timezone offset appended when a bare frontmatter date is promoted to a full
+ * ISO 8601 date-time.
+ *
+ * The single author writes and publishes in UTC+8, so a bare `YYYY-MM-DD` is
+ * interpreted at the author's local midnight (`T00:00:00+08:00`). Emitting
+ * the offset keeps `BlogPosting` JSON-LD dates from being re-interpreted in
+ * the crawler's timezone (a bare date can shift a day depending on the
+ * reader's tz). Hardcoded rather than configured in `site.yaml`: single-author
+ * site, and `scripts/validate-post.mjs` already enforces the `YYYY-MM-DD`
+ * frontmatter shape.
+ */
+const AUTHOR_TZ_OFFSET = '+08:00'
+
+/**
+ * Open Graph protocol `og:locale` value (`language_TERRITORY`) for each
+ * supported locale code.
+ *
+ * A exhaustive `Record<Locale, string>` (not a partial map) so adding a locale
+ * without registering its OGP mapping fails at compile time.
+ */
+const OG_LOCALE_BY_LOCALE: Record<Locale, string> = {
+  zh: 'zh_CN',
+  en: 'en_US',
+}
+
+/**
+ * Maps a locale code to the Open Graph protocol `language_TERRITORY` format.
+ *
+ * The OGP spec requires values like `zh_CN`; the bare locale code (`zh`) is
+ * invalid and dropped by consumers, so every `og:locale` /
+ * `og:locale:alternate` output MUST go through this mapping.
+ *
+ * @param locale - Supported locale code.
+ * @returns OGP-formatted locale (e.g. `zh_CN`).
+ */
+export function toOgLocale(locale: Locale): string {
+  return OG_LOCALE_BY_LOCALE[locale]
+}
+
+/**
+ * Builds the `og:locale:alternate` values for a page that exists in every
+ * supported locale.
+ *
+ * @param locale - Locale of the page being rendered (excluded from the list).
+ * @returns OGP-formatted locales of every other supported locale.
+ */
+export function buildOgLocaleAlternates(locale: Locale): string[] {
+  return routing.locales.filter((candidate) => candidate !== locale).map(toOgLocale)
+}
+
+/**
+ * Promotes a frontmatter date to a timezone-complete ISO 8601 date-time.
+ *
+ * Bare `YYYY-MM-DD` values are completed at the author's local midnight (see
+ * {@link AUTHOR_TZ_OFFSET}); values that already carry a time component
+ * (contain `T`) pass through unchanged for forward compatibility.
+ *
+ * @param dateStr - Frontmatter date (`YYYY-MM-DD`) or full ISO date-time.
+ * @returns ISO 8601 date-time with timezone offset (e.g.
+ *   `2026-08-28T00:00:00+08:00`).
+ */
+export function toIsoDateTime(dateStr: string): string {
+  return dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00${AUTHOR_TZ_OFFSET}`
+}
 
 /**
  * Builds an absolute, locale-prefixed URL for a page path.
@@ -184,6 +256,122 @@ export function buildRssAlternateTypes(
 }
 
 /**
+ * Complete `metadata.alternates` object assembled by {@link buildAlternates}
+ * and {@link buildPostAlternatesFull}.
+ *
+ * Next.js replaces the `alternates` key wholesale (no deep merge), so page
+ * metadata needs all three fields at once. The shape is deliberately narrower
+ * than Next.js `Metadata['alternates']` — canonical and language values are
+ * plain string URLs — so the same object feeds both page metadata and the
+ * sitemap's `alternates.languages`, which only accepts string URLs.
+ */
+export interface SeoAlternates {
+  /** Absolute canonical URL of the page. */
+  canonical: string
+  /** hreflang map: locale code (or `x-default`) to absolute URL. */
+  languages: Record<string, string>
+  /** RSS auto-discovery types (see {@link buildRssAlternateTypes}). */
+  types: Record<string, { url: string; title: string }[]>
+}
+
+/**
+ * Builds the complete `metadata.alternates` object for a non-post page.
+ *
+ * Next.js replaces the `alternates` key wholesale when a segment defines it,
+ * so a page-level `generateMetadata` must return `canonical`, `languages`,
+ * and `types` all at once. This helper is the single construction point:
+ * `canonical` for the current locale + path, hreflang `languages` covering
+ * every supported locale at the same path, and RSS auto-discovery `types`.
+ *
+ * For the home page (`path === ''`) the hreflang group additionally declares
+ * `x-default` pointing at the prefix-less site root, which `proxy.ts`
+ * negotiates per visitor (cookie → `Accept-Language` → default locale) —
+ * Google's recommended pattern for auto-redirecting homepages. All other
+ * paths MUST NOT declare `x-default`.
+ *
+ * @param path - Path segment after the locale prefix (e.g. `'posts'`,
+ *   `'categories/frontend'`); empty string for the locale homepage.
+ * @param locale - Locale of the page being rendered (selects `canonical` and
+ *   the RSS feed).
+ * @returns Alternates object with `canonical`, `languages`, and `types`.
+ */
+export function buildAlternates(path: string, locale: Locale): SeoAlternates {
+  const languages: Record<string, string> = {}
+  for (const candidate of routing.locales) {
+    languages[candidate] = buildPageUrl(path, candidate)
+  }
+  if (path === '') {
+    languages['x-default'] = siteConfig.siteUrl.replace(/\/$/, '')
+  }
+  return {
+    canonical: buildPageUrl(path, locale),
+    languages,
+    types: buildRssAlternateTypes(locale),
+  }
+}
+
+/**
+ * Builds the complete `metadata.alternates` object for a post detail page.
+ *
+ * Post counterpart of {@link buildAlternates}: `canonical` for the rendered
+ * variant, hreflang `languages` restricted to locales where the post actually
+ * exists ({@link buildPostAlternates}), and RSS `types`. Kept separate from
+ * `buildAlternates` because listing pages exist in every locale while post
+ * variants may not.
+ *
+ * @param slug - URL-safe post identifier shared across language variants.
+ * @param locale - Locale of the variant being rendered (selects `canonical`
+ *   and the RSS feed).
+ * @returns Alternates object with `canonical`, `languages`, and `types`.
+ */
+export function buildPostAlternatesFull(slug: string, locale: Locale): SeoAlternates {
+  return {
+    canonical: buildPostUrl(slug, locale),
+    languages: buildPostAlternates(slug),
+    types: buildRssAlternateTypes(locale),
+  }
+}
+
+/**
+ * Builds a complete page-level `metadata.openGraph` object for non-post
+ * pages.
+ *
+ * The object must be full because Next.js replaces the `openGraph` key
+ * wholesale and the file-convention OG image injection only fires in segments
+ * that define an image file — once a page defines `openGraph`, the root
+ * layout's default image is gone, so this helper re-declares it explicitly.
+ * Post detail pages MUST NOT use this helper: their segment-level
+ * `opengraph-image.tsx` file convention must stay in charge of `og:image`.
+ *
+ * @param options - Page data: localized `title`, `description`, the canonical
+ *   `url`, and the rendered `locale`.
+ * @returns Full `openGraph` object: site name, type, OGP-mapped locale and
+ *   alternate locales, and the default OG image.
+ */
+export function buildOpenGraph({
+  title,
+  description,
+  url,
+  locale,
+}: {
+  title: string
+  description: string
+  url: string
+  locale: Locale
+}): NonNullable<Metadata['openGraph']> {
+  return {
+    title,
+    description,
+    url,
+    siteName: siteConfig.siteTitle,
+    type: 'website',
+    locale: toOgLocale(locale),
+    alternateLocale: buildOgLocaleAlternates(locale),
+    images: [{ url: '/opengraph-image.png', alt: siteConfig.siteTitle }],
+  }
+}
+
+/**
  * Builds the `WebSite` Schema.org JSON-LD object for the root layout.
  *
  * @returns `WebSite` schema with the site name and URL.
@@ -220,8 +408,8 @@ export function buildPersonJsonLd(): Record<string, unknown> {
  * @param locale - Locale of the post variant being rendered (used for
  *   `inLanguage`).
  * @param url - Absolute URL of the post page.
- * @returns `BlogPosting` schema with headline, description, dates, author, and
- *   main entity reference.
+ * @returns `BlogPosting` schema with headline, description, the post's dynamic
+ *   OG image URL, timezone-complete dates, author, and main entity reference.
  */
 export function buildBlogPostingJsonLd(
   post: PostMeta,
@@ -233,8 +421,13 @@ export function buildBlogPostingJsonLd(
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.description,
-    datePublished: post.publishedTime,
-    dateModified: post.modifiedTime ?? post.publishedTime,
+    // Hash-less stable URL of the post's dynamic OG image (responds 200 /
+    // image/png), as an array per Google's Article structured-data
+    // recommendation. Dates go through `toIsoDateTime` so Google doesn't
+    // re-interpret the bare frontmatter date in its own timezone.
+    image: [`${url}/opengraph-image`],
+    datePublished: toIsoDateTime(post.publishedTime),
+    dateModified: toIsoDateTime(post.modifiedTime ?? post.publishedTime),
     inLanguage: locale,
     author: {
       '@type': 'Person',

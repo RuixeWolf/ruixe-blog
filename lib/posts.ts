@@ -157,6 +157,30 @@ export function getCategoryPostCounts(lang: Locale): Record<string, number> {
 }
 
 /**
+ * Aggregates post counts per tag for the given locale.
+ *
+ * Iterates over `getAllPosts(lang)` and accumulates one count per entry of
+ * each post's `tags` array (a post's tags never contain duplicates). Tags
+ * with no posts are omitted from the result; callers should fall back to `0`
+ * via `counts[tagId] ?? 0`.
+ *
+ * @param lang - Target locale code.
+ * @returns Map of tag ID to post count. Tags with zero posts are absent -
+ *   use `?? 0` when reading.
+ */
+export function getTagPostCounts(lang: Locale): Record<string, number> {
+  const counts: Record<string, number> = {}
+
+  for (const post of getAllPosts(lang)) {
+    for (const tag of post.tags) {
+      counts[tag] = (counts[tag] ?? 0) + 1
+    }
+  }
+
+  return counts
+}
+
+/**
  * Filters posts by category ID.
  *
  * @param categoryId - Category ID referencing `categories.yaml`.

@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation'
 import ogImage from '@/app/opengraph-image.png'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
-import { buildPageUrl, buildPersonJsonLd, buildRssAlternateTypes } from '@/lib/seo'
+import { buildAlternates, buildOpenGraph, buildPageUrl, buildPersonJsonLd } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 
 /** GitHub repository base URL used to build license file links. */
@@ -75,7 +75,11 @@ function CodeLicenseLink(chunks: ReactNode) {
   )
 }
 
-/** Generates metadata with the localized "About" title and canonical URL. */
+/**
+ * Generates metadata with the localized "About" title, complete alternates
+ * (canonical + hreflang for the same path), and page-level OpenGraph so the
+ * social card reflects this page rather than the site defaults.
+ */
 export async function generateMetadata({
   params,
 }: {
@@ -90,10 +94,13 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'About' })
   return {
     title: t('Title'),
-    alternates: {
-      canonical: buildPageUrl('about', locale),
-      types: buildRssAlternateTypes(locale),
-    },
+    alternates: buildAlternates('about', locale),
+    openGraph: buildOpenGraph({
+      title: t('Title'),
+      description: siteConfig.siteDescription,
+      url: buildPageUrl('about', locale),
+      locale,
+    }),
   }
 }
 

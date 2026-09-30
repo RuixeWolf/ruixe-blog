@@ -8,10 +8,11 @@ import { getAllPostSlugs, getPostBySlug } from '@/lib/posts'
 import {
   buildBlogPostingJsonLd,
   buildBreadcrumbJsonLd,
+  buildOgLocaleAlternates,
   buildPageUrl,
-  buildPostAlternates,
+  buildPostAlternatesFull,
   buildPostUrl,
-  buildRssAlternateTypes,
+  toOgLocale,
 } from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { extractToc } from '@/lib/toc'
@@ -45,18 +46,20 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.description,
-    alternates: {
-      canonical: url,
-      languages: buildPostAlternates(slug),
-      types: buildRssAlternateTypes(locale),
-    },
+    alternates: buildPostAlternatesFull(slug, locale),
     openGraph: {
       title: post.title,
       description: post.description,
       type: 'article',
       url,
       siteName: siteConfig.siteTitle,
-      locale,
+      // OGP-mapped locale + alternate locales. This og object stays
+      // hand-rolled (NOT `buildOpenGraph`) so the segment-level
+      // `opengraph-image.tsx` file convention stays in charge of
+      // `og:image` — declaring `images` here would override the post's
+      // dedicated OG card.
+      locale: toOgLocale(locale),
+      alternateLocale: buildOgLocaleAlternates(locale),
       publishedTime: post.publishedTime,
       modifiedTime: post.modifiedTime,
     },
