@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
@@ -6,6 +7,31 @@ import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getAllPosts } from '@/lib/posts'
+import { buildAlternates } from '@/lib/seo'
+
+/**
+ * Generates alternates-only metadata: canonical + hreflang group (with
+ * `x-default` for the prefix-less root) via the shared helper. Deliberately
+ * returns no `title` so the browser tab keeps the root layout's
+ * `title.default` (`siteConfig.siteTitle`) — a clean "Ruixe Blog" instead of
+ * "All Posts | Ruixe Blog" — and no `openGraph` / `description`, which
+ * likewise inherit the site-wide layout values (the home page is the layout
+ * `openGraph`'s only inheritor, whose `url` points here).
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang } = await params
+  if (!hasLocale(routing.locales, lang)) {
+    return {}
+  }
+
+  return {
+    alternates: buildAlternates('', lang),
+  }
+}
 
 /**
  * Home page (`/[lang]`) -- equivalent to the post list, plus a compact profile
@@ -15,11 +41,6 @@ import { getAllPosts } from '@/lib/posts'
  * mobile (`<lg`) a compact `ProfileCard` is shown above the list to compensate
  * for the hidden sidebar. Static rendering is enabled automatically by
  * `next/root-params` (see `i18n/request.ts`) - no `setRequestLocale` needed.
- *
- * Deliberately omits `generateMetadata` so the browser tab title falls back to
- * the root layout's `title.default` (`siteConfig.siteTitle`), yielding a clean
- * `"Ruixe Blog"` instead of `"All Posts | Ruixe Blog"`. The `description` and
- * other site-wide metadata are likewise inherited from the root layout.
  */
 export default async function HomePage({
   params,

@@ -6,7 +6,13 @@ import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { getPostsByTag } from '@/lib/posts'
-import { buildBreadcrumbJsonLd, buildPageUrl, buildRssAlternateTypes, buildTagUrl } from '@/lib/seo'
+import {
+  buildAlternates,
+  buildBreadcrumbJsonLd,
+  buildOpenGraph,
+  buildPageUrl,
+  buildTagUrl,
+} from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import { getTag, getTags } from '@/lib/taxonomy'
 
@@ -16,7 +22,9 @@ export function generateStaticParams() {
 }
 
 /**
- * Generates metadata with the localized tag name as the title.
+ * Generates metadata with the localized tag name as the title, complete
+ * alternates (canonical + hreflang for the same path), and page-level
+ * OpenGraph so the social card shows the tag instead of site defaults.
  */
 export async function generateMetadata({
   params,
@@ -33,10 +41,13 @@ export async function generateMetadata({
     const tag = getTag(tagId, locale)
     return {
       title: tag.name,
-      alternates: {
-        canonical: buildTagUrl(tagId, locale),
-        types: buildRssAlternateTypes(locale),
-      },
+      alternates: buildAlternates(`tags/${tagId}`, locale),
+      openGraph: buildOpenGraph({
+        title: tag.name,
+        description: siteConfig.siteDescription,
+        url: buildTagUrl(tagId, locale),
+        locale,
+      }),
     }
   } catch {
     return {}

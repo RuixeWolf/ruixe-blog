@@ -18,7 +18,13 @@ import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { buildSearchIndex } from '@/lib/search'
-import { buildPersonJsonLd, buildRssAlternateTypes, buildWebsiteJsonLd } from '@/lib/seo'
+import {
+  buildPageUrl,
+  buildPersonJsonLd,
+  buildRssAlternateTypes,
+  buildWebsiteJsonLd,
+  toOgLocale,
+} from '@/lib/seo'
 import { siteConfig } from '@/lib/site-config'
 import '../globals.css'
 
@@ -90,8 +96,13 @@ function buildVerification(): Metadata['verification'] {
 
 /**
  * Root + locale metadata. Merges site-wide defaults (formerly in the deleted
- * `app/layout.tsx`) with locale-specific `hreflang` alternates and OpenGraph
- * locale. `metadataBase` is inherited from `siteConfig.siteUrl`.
+ * `app/layout.tsx`) with locale-specific OpenGraph data; `metadataBase` comes
+ * from `siteConfig.siteUrl`. Next.js replaces the `alternates` / `openGraph` /
+ * `twitter` keys wholesale (no deep merge), so the layout keeps them
+ * home-page-correct only: `alternates` carries no `languages` (those URLs are
+ * only valid for the home page — every page builds its complete `alternates`
+ * via the `lib/seo.ts` helpers), and `twitter` is slimmed to `card` +
+ * `creator` so page cards fall back to the page-level `og:*` values.
  */
 export async function generateMetadata({
   params,
@@ -107,6 +118,22 @@ export async function generateMetadata({
       template: `%s | ${siteConfig.siteTitle}`,
     },
     description: siteConfig.siteDescription,
+    // Site-wide indexability: renders `<meta name="robots" content="index,
+    // follow">` plus a `googlebot` variant with `max-image-preview:large`.
+    // The large image preview is required for Google Discover and AI
+    // Overviews to feature this site with big imagery - without it they fall
+    // back to small thumbnails. No page defines its own `robots`, so every
+    // page inherits this (including empty-state taxonomy pages, which stay
+    // indexable on purpose).
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+      },
+    },
     // Renders the search-engine site verification `<meta>` tags (Google Search
     // Console / Bing Webmaster Tools) when tokens are configured.
     verification: buildVerification(),
@@ -120,23 +147,32 @@ export async function generateMetadata({
     },
     metadataBase: new URL(siteConfig.siteUrl),
     alternates: {
-      languages: {
-        zh: `/${routing.locales[0]}`,
-        en: `/${routing.locales[1]}`,
-      },
       // Generates `<link rel="alternate" type="application/rss+xml"
       // title="…">` so RSS readers can auto-discover the current locale's
       // feed. The relative href is resolved against `metadataBase` into an
       // absolute URL.
+      //
+      // Deliberately NO `languages` here: layout values are inherited by every
+      // page that doesn't define its own `alternates`, and locale-homepage
+      // URLs are wrong for every other page. Each page's `generateMetadata`
+      // builds its complete `alternates` via `lib/seo.ts` helpers instead
+      // (`buildAlternates` / `buildPostAlternatesFull`); a page that forgets
+      // to call them is simply missing hreflang (discoverable) instead of
+      // pointing crawlers at the wrong page.
       types: buildRssAlternateTypes(locale),
     },
     openGraph: {
       title: siteConfig.siteTitle,
       description: siteConfig.siteDescription,
-      url: siteConfig.siteUrl,
+      // The home page is the only inheritor of this layout object (all other
+      // pages define a page-level `openGraph` via `buildOpenGraph`), so
+      // pointing `url` at the locale homepage keeps the home page's `og:url`
+      // identical to its canonical. `locale` uses the OGP `zh_CN` / `en_US`
+      // format — the bare locale code is invalid OGP.
+      url: buildPageUrl('', locale),
       siteName: siteConfig.siteTitle,
       type: 'website',
-      locale,
+      locale: toOgLocale(locale),
       images: [
         {
           url: '/opengraph-image.png',
@@ -145,9 +181,13 @@ export async function generateMetadata({
       ],
     },
     twitter: {
+      // Only `card` + `creator`: layout-level `twitter.title` /
+      // `twitter.description` would be inherited verbatim by every page,
+      // making post cards show the site name instead of the post title.
+      // X/Twitter's crawler officially falls back to `og:title` /
+      // `og:description` / `og:image` when `twitter:*` fields are absent, so
+      // per-page card data comes from the page-level OpenGraph values.
       card: 'summary_large_image',
-      title: siteConfig.siteTitle,
-      description: siteConfig.siteDescription,
       creator: '@RuixeWolf',
     },
   }
