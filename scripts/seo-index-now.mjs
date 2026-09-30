@@ -21,6 +21,13 @@
  * the Google Search Console verification file); the file content must equal
  * the key so IndexNow can validate ownership at `<siteUrl>/<key>.txt`.
  *
+ * Before submitting, the script fetches the deployed key file and requires
+ * it to return 200 with the key as its body. IndexNow rejects (403) a
+ * submission sent while the file is not yet reachable, and that failure can
+ * stick to the host/key as a cached negative verification that outlives the
+ * deployment — so a submission is only ever sent once the file is confirmed
+ * live.
+ *
  * Zero dependencies beyond Node builtins (`fetch` requires Node 18+).
  *
  * @module seo-index-now
@@ -126,6 +133,51 @@ function findKey() {
 }
 
 /**
+ * Verifies the deployed key file before any submission is sent.
+ *
+ * IndexNow validates ownership by fetching `<keyLocation>`. Submitting while
+ * the file is not yet reachable (e.g. mid-deployment) returns 403 and can
+ * leave a cached verification failure on the IndexNow side for the host/key,
+ * so this preflight replaces that remote failure with a local, actionable
+ * error and guarantees the file is live when the POST is finally sent.
+ *
+ * @param {string} key - The IndexNow key.
+ * @returns {Promise<void>}
+ * @throws When the key file cannot be fetched or its body does not equal the key.
+ */
+async function verifyKeyFile(key) {
+  const keyUrl = `https://${PRODUCTION_HOST}/${key}.txt`
+
+  let response
+  try {
+    response = await fetch(keyUrl)
+  } catch (error) {
+    throw new Error(
+      `IndexNow key file could not be fetched (${error.message}): ${keyUrl}\n` +
+        'No request was sent. Deploy the key file before running this script.',
+    )
+  }
+
+  if (!response.ok) {
+    const status = response.statusText
+      ? `${response.status} ${response.statusText}`
+      : `HTTP ${response.status}`
+    throw new Error(
+      `IndexNow key file returned ${status}: ${keyUrl}\n` +
+        'No request was sent. Deploy the key file before running this script.',
+    )
+  }
+
+  const body = (await response.text()).trim()
+  if (body !== key) {
+    throw new Error(
+      `IndexNow key file content mismatch at ${keyUrl}: the file body must be the ` +
+        'key itself.\nNo request was sent.',
+    )
+  }
+}
+
+/**
  * Fetches the sitemap document.
  *
  * @param {string} sitemapUrl - Absolute sitemap URL.
@@ -221,6 +273,13 @@ async function main() {
 
   const key = findKey()
 
+  try {
+    await verifyKeyFile(key)
+  } catch (error) {
+    process.stderr.write(`${error.message}\n`)
+    process.exit(1)
+  }
+
   let urls
   try {
     urls = parseLocs(await fetchSitemap(sitemapUrl))
@@ -269,14 +328,19 @@ async function main() {
   process.stdout.write(`IndexNow responded with status ${response.status}.\n`)
 
   if (response.status !== 200 && response.status !== 202) {
-    process.stderr.write(
-      [
-        `Unexpected IndexNow response status ${response.status} (expected 200 or 202).`,
-        `Body: ${(await response.text()).slice(0, 500)}`,
-        'Docs: https://www.indexnow.org/documentation',
-        '',
-      ].join('\n'),
-    )
+    const lines = [
+      `Unexpected IndexNow response status ${response.status} (expected 200 or 202).`,
+      `Body: ${(await response.text()).slice(0, 500)}`,
+    ]
+    if (response.status === 403) {
+      lines.push(
+        'The key file was reachable moments ago, so a 403 usually means IndexNow is',
+        'still holding a cached verification failure for this host/key. Retry in a few',
+        'minutes; if it persists, rotate the key file and redeploy.',
+      )
+    }
+    lines.push('Docs: https://www.indexnow.org/documentation', '')
+    process.stderr.write(lines.join('\n'))
     process.exit(1)
   }
 
