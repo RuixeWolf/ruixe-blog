@@ -45,7 +45,7 @@ verification:
   me: ''
   # Bing Webmaster Tools token (`msvalidate.01`).
   # Get token: https://www.bing.com/webmasters/ (HTML meta tag method).
-  bing: ''
+  bing: 'C946A40DA6A8822BEDC0C5463EEDB211'
 
 # VibeCafé (https://vibecafe.ai) product telemetry configuration.
 #
