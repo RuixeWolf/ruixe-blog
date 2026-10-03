@@ -8,7 +8,7 @@
 
 ### Requirement: Locale-prefixed URL routing
 
-系统 SHALL 使用 `/[lang]/...` URL 前缀结构承载所有业务页面，其中 `lang` 为受支持的语言代码。系统 MUST 支持的语言代码为 `zh` 与 `en`，默认 locale 为 `zh`。
+系统 SHALL 使用 `/[lang]/...` URL 前缀结构承载所有业务页面，其中 `lang` 为受支持的语言代码。系统 MUST 支持的语言代码为 `zh` 与 `en`，默认 locale 为 `en`。
 
 #### Scenario: 访问带 locale 前缀的首页
 
@@ -25,7 +25,7 @@
 
 ### Requirement: 根路径语言检测与重定向
 
-系统 SHALL 在 `proxy.ts` 中通过 `next-intl/middleware` 检测浏览器 `Accept-Language` 头，并将根路径 `/` 重定向至匹配的 locale 前缀路径。当无法匹配受支持 locale 时，MUST 回退至默认 locale `zh`。
+系统 SHALL 在 `proxy.ts` 中通过 `next-intl/middleware` 检测浏览器 `Accept-Language` 头，并将根路径 `/` 重定向至匹配的 locale 前缀路径。当无有效语言偏好 cookie，且请求头缺失或无法匹配受支持 locale 时，MUST 回退至默认 locale `en`。
 
 #### Scenario: 浏览器首选中文访问根路径
 
@@ -39,8 +39,13 @@
 
 #### Scenario: 浏览器首选不支持的语言访问根路径
 
-- **WHEN** 浏览器 `Accept-Language` 首选 `ja`（不在支持列表）且访问 `/`
-- **THEN** 系统重定向至默认 locale `/zh`
+- **WHEN** 浏览器无 `NEXT_LOCALE` cookie，`Accept-Language` 仅包含 `ja`（不在支持列表）且访问 `/`
+- **THEN** 系统以 307 重定向至默认 locale `/en`
+
+#### Scenario: 无语言请求信息访问根路径
+
+- **WHEN** 浏览器无 `NEXT_LOCALE` cookie，也未携带 `Accept-Language` 头，访问 `/`
+- **THEN** 系统以 307 重定向至默认 locale `/en`
 
 #### Scenario: 已带 locale 前缀的请求不被二次重定向
 
@@ -49,7 +54,7 @@
 
 ### Requirement: 无 locale 前缀路径的语言探测重定向
 
-系统 SHALL 对任意不含 locale 前缀的业务路径（例如 `/posts/hello-world`、`/categories/frontend`）执行与根路径 `/` 相同的语言探测，并重定向至 `/{探测出的 locale}/...`。探测优先级 MUST 与根路径一致：`NEXT_LOCALE` cookie → `Accept-Language` 头 → 默认 locale `zh`（路径本身无前缀，不参与优先级）。重定向 MUST 使用临时（307）状态码，使浏览器不缓存探测结果，同一个无前缀 URL 才能对不同访问者解析为不同语言。
+系统 SHALL 对任意不含 locale 前缀的业务路径（例如 `/posts/hello-world`、`/categories/frontend`）执行与根路径 `/` 相同的语言探测，并重定向至 `/{探测出的 locale}/...`。探测优先级 MUST 与根路径一致：`NEXT_LOCALE` cookie → `Accept-Language` 头 → 默认 locale `en`（路径本身无前缀，不参与优先级）。重定向 MUST 使用临时（307）状态码，使浏览器不缓存探测结果，同一个无前缀 URL 才能对不同访问者解析为不同语言。
 
 该行为由 `proxy.ts` 的 `next-intl/middleware` 统一提供，无需为无前缀路径新增路由。`ShareButton` 展示与复制的分享链接即依赖此行为：文章在所有受支持 locale 均有版本时省略前缀，由访客自身的语言偏好决定落地语言。
 
@@ -67,8 +72,8 @@ matcher MUST 继续排除含点路径（`/((?!api|_next|_vercel|.*\..*).*)`）�
 
 #### Scenario: 无前缀路径无法匹配时回退默认 locale
 
-- **WHEN** 浏览器 `Accept-Language` 首选 `ja`（不受支持）且无 `NEXT_LOCALE` cookie，访问 `/posts/hello-world`
-- **THEN** 系统以 307 重定向至默认 locale `/zh/posts/hello-world`
+- **WHEN** 浏览器 `Accept-Language` 仅包含 `ja`（不受支持）且无 `NEXT_LOCALE` cookie，访问 `/posts/hello-world`
+- **THEN** 系统以 307 重定向至默认 locale `/en/posts/hello-world`
 
 #### Scenario: 无前缀的含点路径不触发语言重定向
 
@@ -77,7 +82,12 @@ matcher MUST 继续排除含点路径（`/((?!api|_next|_vercel|.*\..*).*)`）�
 
 ### Requirement: 语言偏好持久化
 
-系统 SHALL 通过 next-intl 的 `NEXT_LOCALE` cookie 持久化用户的语言选择，cookie 有效期 MUST 为一年（`maxAge: 60 * 60 * 24 * 365`，配置于 `i18n/routing.ts` 的 `localeCookie`）。根路径 `/` 的 locale 检测优先级 MUST 为：URL locale 前缀 → `NEXT_LOCALE` cookie → `Accept-Language` 头 → 默认 locale `zh`。当用户通过语言切换器切换语言（客户端软导航）或显式访问带 locale 前缀的 URL 时，系统 MUST 更新 cookie 为该 locale。cookie 属性 MUST 保持 next-intl 默认值（`SameSite=Lax`）。
+系统 SHALL 通过 next-intl 的 `NEXT_LOCALE` cookie 持久化用户的语言选择，cookie 有效期 MUST 为一年（`maxAge: 60 * 60 * 24 * 365`，配置于 `i18n/routing.ts` 的 `localeCookie`）。根路径 `/` 的 locale 检测优先级 MUST 为：URL locale 前缀 → `NEXT_LOCALE` cookie → `Accept-Language` 头 → 默认 locale `en`。当用户通过语言切换器切换语言（客户端软导航）或显式访问带 locale 前缀的 URL 时，系统 MUST 更新 cookie 为该 locale。cookie 属性 MUST 保持 next-intl 默认值（`SameSite=Lax`）。
+
+#### Scenario: 中文 cookie 优先于英文兜底
+
+- **WHEN** 浏览器持有 `NEXT_LOCALE=zh` cookie，未携带 `Accept-Language` 头或该头仅包含不受支持的语言，访问 `/`
+- **THEN** 系统重定向至 `/zh`（cookie 优先于默认 locale）
 
 #### Scenario: 切换语言后重新访问根路径
 

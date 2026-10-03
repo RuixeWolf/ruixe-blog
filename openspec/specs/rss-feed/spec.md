@@ -104,7 +104,12 @@ feed 的所有 XML 文本内容 MUST 经过正确的 XML 实体转义（`&` -> `
 #### Scenario: 无 cookie 且 Accept-Language 不匹配时重定向到默认 locale
 
 - **WHEN** 用户浏览器无 `NEXT_LOCALE` cookie，`Accept-Language: fr-FR,fr;q=0.9`（无 zh/en 匹配），请求 `/feed.xml`
-- **THEN** 系统返回 307 重定向到 `/zh/feed.xml`（`defaultLocale`）
+- **THEN** 系统返回 307 重定向到 `/en/feed.xml`（`defaultLocale`）
+
+#### Scenario: 无 cookie 且无语言请求头时重定向到默认 locale
+
+- **WHEN** 用户浏览器无 `NEXT_LOCALE` cookie，未携带 `Accept-Language` 头，请求 `/feed.xml`
+- **THEN** 系统返回 307 重定向到 `/en/feed.xml`（`defaultLocale`）
 
 ### Requirement: RSS 自动发现 link 标签
 
