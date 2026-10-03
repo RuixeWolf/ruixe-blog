@@ -11,7 +11,7 @@ export const routing = defineRouting({
   /** Supported locale codes, mirrored by the `[lang]` URL segment. */
   locales: ['zh', 'en'],
   /** Locale used when no match is found (e.g. unsupported Accept-Language). */
-  defaultLocale: 'zh',
+  defaultLocale: 'en',
   /**
    * Persist the user's locale choice in the `NEXT_LOCALE` cookie for one
    * year. Without `maxAge` the cookie is session-scoped, so the preference
