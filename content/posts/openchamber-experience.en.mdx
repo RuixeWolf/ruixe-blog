@@ -1,0 +1,180 @@
+---
+title: 'OpenChamber in Practice: A More Complete GUI Workbench Than OpenCode Desktop'
+description: Hands-on notes on OpenChamber, a third-party GUI coding agent built on OpenCode that fills in what the official OpenCode Desktop leaves out. Covers the features I actually use day to day - usage quotas, phone remote takeover, worktree sessions and multi-model runs, changes walkthrough and the Git/PR workflow - the session goals and scheduled tasks I have not really put to work yet, the rough edges, and a head-to-head comparison with OpenCode Desktop.
+publishedTime: '2026-10-28'
+category: ai-coding
+tags:
+  - openchamber
+  - opencode
+---
+
+My GUI coding agent used to be **OpenCode Desktop**, the official desktop client from OpenCode. OpenCode itself is very capable, but the official desktop client has considerably fewer features than GUI coding agents like Codex and Claude Code: no goal-driven automatic continuation, no subscription usage readout, no scheduled tasks, and no way to take over a running session on your computer from your phone.
+
+So I went looking and found **[OpenChamber](https://openchamber.dev/)** - a third-party GUI coding agent tool built on top of OpenCode. This post records how it actually went in daily use: which features I really use, which ones I value but haven't genuinely put to work yet, and the parts that feel awkward.
+
+**The overall verdict in one word: solid!**
+
+![OpenChamber main interface](https://blog-assets.ruixe.net/2026-10/74e12ec40804d2fcbab61fbff5f2cb22-01-main-chat.png)
+
+## Why I replaced OpenCode Desktop
+
+**[OpenCode](https://opencode.ai/)** is one of the most popular open-source AI coding agents right now. The numbers on its official homepage are **208K GitHub stars, 950 contributors, 16 million developers per month**, and it's maintained by the Anomaly team. It ships a terminal TUI, a desktop client, a web client, and extensions for various IDEs, connects to more than 75 model providers through Models.dev, and also supports signing in with existing subscriptions like GitHub Copilot or ChatGPT Plus/Pro.
+
+But OpenCode Desktop has always been deliberately restrained in scope: it mainly solves the "I don't want to live in the terminal" problem, moving sessions, model selection, and file changes into a GUI, while the official effort clearly goes more into the CLI, the server, and model integration. Before I switched, the following capabilities were not available in the official desktop client:
+
+- A mechanism that keeps advancing and auto-continuing after you hand a goal to the agent
+- Real-time display of subscription usage and quotas
+- Scheduled or recurring tasks
+- Taking over a session running on your machine from a phone or tablet
+
+These are exactly the areas that products like Codex and Claude Code have been catching up on lately - turning a coding agent from a "chat box" into "an executor you can hand tasks to". I didn't want to switch an entire ecosystem for these few features, so I started looking for a more complete GUI within the OpenCode ecosystem.
+
+One clarification though: **OpenCode Desktop is not slow to iterate**. While I was writing this post, the official [2026-10-14 update](https://opencode.ai/changelog) had already added device pairing and remote access, and the desktop client also has a built-in worktree tool, a browser panel, and session cost display. That "missing features list" above is a record of my situation, not a final verdict on it.
+
+## What OpenChamber is
+
+OpenChamber positions itself as an **Agentic Development Environment**, a visual workspace built around OpenCode. A few facts that matter to me:
+
+- **[Open source under the MIT license](https://github.com/openchamber/openchamber), and the software itself is completely free** - the official FAQ puts it bluntly: `Nothing. OpenChamber itself is free. You pay only your model provider, on your own keys.`; model costs still go through your own keys
+- **It's an independent project** - the official footer states `Independent project. Not affiliated with the OpenCode team.`, so it's not an official OpenCode product
+- **Built on the OpenCode SDK** - it's a client on top of OpenCode Server, and all model calls go through the OpenCode providers you've already configured
+
+It has three ways to run (details in the [install docs](https://docs.openchamber.dev/install/)), and the first is the one I use:
+
+- **Desktop app** - grab the installer from [GitHub Releases](https://github.com/openchamber/openchamber/releases) or the download page on the official site; Windows, macOS, and Linux are all available; **the desktop build bundles a matching OpenCode CLI**, so you don't need to install one separately
+- **Web app + PWA** - install the CLI with a one-line script and start it; open it in a browser and you get the full interface, then use "Install" in the address bar to treat it as an app (this path requires OpenCode to already be on the machine)
+- **VS Code extension** - install from the VS Code Marketplace and the interface shows up right in the sidebar
+
+The startup commands for the web route look like this:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/openchamber/openchamber/main/scripts/install.sh | bash
+openchamber --ui-password be-creative-here
+```
+
+`--ui-password` here is not a parameter you can skip. Once this interface is reachable from more than just localhost, it is the lock on the door; I'll come back to this when I get to remote access.
+
+One more design worth understanding up front: OpenChamber uses an **Instance model**. Agents and sessions run on an instance; the desktop app runs one of its own and can also connect to other instances on remote machines. In other words, sessions "live" on the server, and closing the window doesn't stop them.
+
+When I was writing this post, my local version was **OpenChamber 2.3.3**, with **2.0.27** for the bundled OpenCode CLI. The project is still young: the first public release came out on 2025-12-07, and it only started aligning with OpenCode 2 in 2.0 on 2026-09-23; but the pace of iteration is wild - it went from 2.0.1 to 2.3.3 in three weeks.
+
+## The features I actually use every day
+
+### Usage and quotas
+
+The entry point is `Settings → Usage`. For each connected provider it shows how much of the current billing window you've used (a progress bar), usage broken down by model, and a **pace indicator** for judging whether you'll run out before the window ends at the current rate. There's also a dropdown in the app's top bar that shows the same summary, so you don't have to dig into settings every time.
+
+The range of support is quite broad - anything the provider publishes a quota for can be read, including **Claude, Codex, GitHub Copilot, Google, OpenRouter, Kimi, NanoGPT, z.ai, Zhipu, MiniMax, Ollama Cloud, and Wafer**. A few require separate credentials, such as exe.dev, Cursor, and ZenMux; in my 2.3.3 build I can also see usage tracking for OpenCode Go, which takes a token that **can only read LLM credit usage and expires automatically after 30 days**.
+
+Only providers you've signed in to on the "Providers" page appear on the usage page; if one of them shows no data, it's usually a missing credential.
+
+The uncomfortable part of subscription billing is that you usually only know how much you've used, not how much is left, and you often find the quota is gone only when you get blocked - this surfaces that information earlier.
+
+![image-20261028151752381](https://blog-assets.ruixe.net/2026-10/d0d926d8b5494d91806edab556f3cb28-image-20261028151752381.png)
+
+### Mobile and remote takeover
+
+This is a route I actually use, and one of the reasons it appealed to me in the first place. For mobile there are two options, native apps and the PWA: iOS goes through the TestFlight public beta, Android downloads the APK directly, and both are still marked Beta; for the PWA you just use "Install" in the browser address bar.
+
+Pairing goes through **Private Relay**: scan a one-time QR code to pair, the connection is end-to-end encrypted, **you don't need to open any ports on your computer or server**, and you don't need to expose the service to the public internet; the relay itself can't see the plaintext. Each device has its own token and can be revoked individually at any time. If you just want browser access, you can also use a tunnel plus a strong UI password.
+
+On the same local network it's simpler still: turn on LAN access and phones, tablets, and other computers on the same Wi-Fi can reach the instance directly.
+
+Combined with the instance model from earlier, what your phone connects to is actually **the same session, the same context**, not a separate terminal - sessions are no longer tied to one device's window.
+
+I should be measured here: the official FAQ explicitly says **the software itself is free**, and remote access doesn't appear in any paid item either (the official support channel is Patreon donations). But Private Relay is official infrastructure, the docs give no limits, and only the recent changelog mentions that "the relay refused the connection because the limit was exceeded", so I can't promise on its behalf that it will be free forever and unlimited. If you need certainty, the relay can be self-hosted.
+
+### Worktree sessions and Multi-run
+
+Both of these are in my daily rotation, and they solve the same class of problem: **running multiple lines of work on one repository at the same time**.
+
+**Worktree sessions** give each session its own Git worktree and branch, so multiple sessions editing the same repo in parallel don't step on each other's working tree; when creating a session you can pick a new branch or an existing one from the branch menu, or start a worktree directly from a PR / issue, and if you don't want to choose, go with Quick worktree. When you're done, use **Integrate** in the Git view to merge back into the target branch; when you delete or archive a session, you can choose to clean up the local and remote branches with it.
+
+**Multi-run** gives the same task to up to 5 models to run in parallel, each in its own worktree, and lets you compare the results afterward; if you only want one result, **Fusion** can keep the best one or merge the strongest parts of several results into one. Isolated runs require the repo to be a Git repository - if it isn't a Git directory, isolation turns off automatically; and one run failing to start doesn't affect the others.
+
+The price is that model call costs multiply with the number of models, so it's worth knowing that before you run it.
+
+### Changes Walkthrough and the Git workflow
+
+Reviewing a large change is a pain in itself: with hundreds of lines of diff smeared together, it's hard to see how the change was put together.
+
+OpenChamber's approach is the **Changes Walkthrough**: it splits a large diff into ordered, explained steps, so you read it as "how many steps this change has, and what each step is doing". That's much less effort than spreading out hundreds of lines of diff all at once, especially when the change spans several files.
+
+I also do just about all my Git operations inside OpenChamber: separating staged and unstaged changes, per-file added/removed line counts, diffs, commits (with the option to let AI generate the commit message), branch switching, push / pull / fetch, history and single-commit diffs, stash. Once GitHub is connected you can also create and update PRs, mark them ready, merge, and reply to review comments - without switching back to the terminal.
+
+![Changes view and the Walkthrough entry](https://blog-assets.ruixe.net/2026-10/052ea0fd7e12d79b16e25e45a45dae6e-03-changes-diff.png)
+
+Two more I use in passing: **Browser Use** puts the running app into a built-in browser - you can click, the agent can click, and it can also see errors and verify its own work; **previews and dev servers** let you turn common project commands into reusable actions and start services right in this window.
+
+## Features I value but haven't really put to use
+
+### Session goals (Goal mode)
+
+The entry point is small: there's a **bullseye button** (a crosshair icon) next to the input box; press it and the button lights up to show goal mode is ready, then write your first message as usual and send it - that message becomes the session's goal. The official [docs](https://docs.openchamber.dev/session-goals/) put it precisely: **a goal turns a prompt into a finish line**.
+
+Once it starts, the loop works like this:
+
+1. The agent stops and the session goes quiet for a moment, then it asks a **separate small model to audit** the round: relative to the goal, is the progress "continue", "done", or "stuck"?
+2. If the verdict is "continue", it automatically sends a continuation prompt so the agent keeps going
+3. If the goal is judged achieved, the goal ends and you get a notification
+4. If the verdict is "stuck" (it needs you to step in), the goal stops in a blocked state - but it **only stops after three rounds in a row are judged stuck**; a one-off hiccup won't kill an entire goal by mistake
+
+In other words, it hands off the "is it done, should it continue" judgment from the human. With a regular coding agent before this, I was the one asking questions: after each round, I had to decide whether to continue and then manually send another message.
+
+A few design details worth noting:
+
+- **There are hard safety valves** - you can set an optional token budget and a cap on automatic continuations (the cap can be set in settings to between 1 and 200), and it also stops if a round errors out
+- **Goals must be written to be self-contained** - the audit model **only sees your goal text and the agent's latest reply**, not the chat history. So the goal has to be written so that someone without the context can tell what "done" looks like. The official examples are good: "add tests for the export module and make the whole test suite pass" is a good goal; "fix it" is not
+- **The loop lives on the server** - close the window, lock your phone, it keeps running and pushes a notification when it finishes; but the flip side is that the server process has to stay up
+- **One goal at a time** - each session can only have one goal at a time; a finished goal is read-only, and to run a new goal you first have to remove the old one
+
+The `Craft a Goal` on the new-session home page is one of its entry points:
+
+![New session home page](https://blog-assets.ruixe.net/2026-10/bf713eb843f2e367cad5152cb2c49e1e-02-projects-home.png)
+
+### Scheduled tasks
+
+[Scheduled tasks](https://docs.openchamber.dev/scheduled-tasks/) support **one-off, daily, weekly, and cron** schedules; the prompt can contain slash commands directly (like `/review`), and after saving you can **run now** to try it out immediately. Combined with session goals, tick **Run as goal** and **every run keeps pushing until the task is complete**, rather than ending after one round.
+
+Another design is **Loops**: write scheduled tasks as markdown files in the repo's `.agents/loops/` directory (user-level ones go in `~/.agents/loops/` and apply to all projects), with `name / schedule / model` in the frontmatter and the execution prompt as the body. That way scheduled tasks get committed, reviewed, and versioned along with the code, instead of sitting in some app's black-box config. For safety, loops that come in from a repo are off by default and need to be enabled manually on your machine.
+
+One thing to watch: scheduling and execution both live **on the server** - you can close the client window, but the OpenChamber server process has to stay up, or it won't fire on time.
+
+## The parts that feel awkward to use
+
+**Some features I can't find the entry point for, and have to dig through the docs to learn where they're hidden.** Most of its capabilities are tucked into icon buttons and dialogs: the session-goal entry is the crosshair icon next to the input box, and the scheduled-tasks entry is at the top of the session sidebar. Without reading the docs, it's easy to assume the feature doesn't exist.
+
+**It iterates so fast that things move around a lot.** My local version is 2.3.3, and it went from 2.0.1 to 2.3.3 in three weeks - almost a release a day. The upside is that bugs get fixed fast and new features arrive fast; the downside is that the spot you got familiar with today may have moved tomorrow. I like trying new things, though, so I can live with the pace for now.
+
+A few more things that aren't about the experience but are worth knowing up front:
+
+- **It's not an official project** - it has nothing to do with the OpenCode team. The good news is that it's open source, the code is auditable, and the privacy statement promises not to upload project names, paths, prompts, code, or diffs; but before handing over full agent permissions, I'd still suggest taking a look yourself
+- **It has a serious security vulnerability record** - two high-severity vulnerabilities were disclosed in August 2026: CVE-2026-53975 (unauthenticated remote code execution, CVSS 9.8) and CVE-2026-53977 (unauthenticated denial of service, CVSS 7.5), affecting 1.11.7 and earlier; one of the root causes of the first was precisely that "with no UI_PASSWORD set, authentication is effectively nonexistent". I'm on 2.3.3, well clear of the affected range, but the record shows the inherent risk of tools like this: it is essentially opening a machine that can execute arbitrary commands to an interface
+- **It only supports one harness, OpenCode** - the community often compares it with tools like Paseo and Conductor that can mix Claude Code / Codex / OpenCode. If you don't want to be locked into OpenCode, think this through in advance
+- **It isn't an IDE** - there's no built-in code editor, so editing code still means going back to your own editor or just handing it to the agent
+
+## Head-to-head comparison with OpenCode Desktop
+
+| Capability                      | OpenChamber                                                     | OpenCode Desktop (official)                                                      |
+| ------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Automatic goal continuation     | ✅ External audit every round + auto-continue + budget cap      | ⚠️ Only "auto-continue after truncated output", no goal loop                     |
+| Subscription plan usage display | ✅ Quota window + per-model breakdown + pace                    | ⚠️ Session-level tokens and cumulative cost, no plan-quota gauge                 |
+| Scheduled / recurring tasks     | ✅ One-off / daily / weekly / cron + Loop                       | ❌ Not seen in the official docs or changelog                                    |
+| Mobile                          | ✅ Native iOS / Android (Beta) + PWA                            | ⚠️ Has PWA and device pairing, no native app                                     |
+| Multi-model parallel comparison | ✅ Up to 5 models + worktree isolation + fusion                 | ⚠️ Can run several sessions in parallel, but no same-task multi-model comparison |
+| Worktree isolation              | ✅ Full workflow, including starting sessions from a PR / issue | ✅ Built-in worktree tool already present                                        |
+| Git and GitHub                  | ✅ commit → PR → merge, and replying to reviews                 | ✅ Official GitHub / GitLab integration                                          |
+| Open source and cost            | ✅ MIT, free software                                           | ✅ Open source, free software (model subscriptions separate)                     |
+| Independence                    | ⚠️ Third-party project, not official                            | ✅ Officially maintained                                                         |
+
+The "not seen in the official docs" in the table means it wasn't in the official docs or changelog as of this writing, not that it will never be there - as I said earlier, the official client only added device pairing on 2026-10-14, and the gap is narrowing.
+
+## Final thoughts
+
+After switching to OpenChamber, my actual state splits into two halves: the day-to-day work part is already entirely in it - usage, phone takeover, worktree, multi-model parallelism, change review, Git, and PRs are all in use; but goal mode and scheduled tasks are two features I still haven't really run. What I can present as hands-on testing in this post is mainly the first half.
+
+But the first half is already enough for me to have replaced OpenCode Desktop. I never wanted to switch a whole ecosystem for a few new features, and it happens to be built on top of OpenCode: models, config, Skills, and MCP all stay untouched - only the shell changes. And I like trying new things anyway; with almost no moving to do this time, the cost of trial and error is low.
+
+So if you're already using OpenCode and find the official desktop client too limited, it's worth a try - you can always switch back if it doesn't fit. But if you haven't entered the OpenCode ecosystem yet, or you need to use other harnesses like Claude Code and Codex at the same time, then it may not be worth a dedicated migration.
+
+One last note on the timing: this was written on 2.3.3, OpenChamber is iterating fast, and the official desktop client is catching up too - change either variable and the comparison and judgments above need rechecking. As for the "solid" from the opening - at least in my case, it still holds up.
