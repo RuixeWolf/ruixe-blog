@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "skills": {
+    "ai-writing-humanizer": {
+      "source": "ZaynJarvis/ai-writing-humanizer",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "9c0dde894a1a91af0b821336b028e41709540e9b0b4a08d3cab97c9653e03094"
+    },
+    "blog-writer": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "ce806a83d185473449e6e9152b7958fef618853759db08b2d8869807fd95457d"
+    },
+    "humanize-writing": {
+      "source": "Lanqingsong/humanize-writing",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "061605984eed94fec538ab7942e37c9f2a7767e3b089562c2a28520602158baa"
+    }
+  }
+}

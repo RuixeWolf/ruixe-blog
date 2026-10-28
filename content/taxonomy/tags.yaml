@@ -62,3 +62,11 @@ electron:
   name:
     zh: Electron
     en: Electron
+openchamber:
+  name:
+    zh: OpenChamber
+    en: OpenChamber
+opencode:
+  name:
+    zh: OpenCode
+    en: OpenCode
