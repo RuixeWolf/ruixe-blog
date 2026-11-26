@@ -29,6 +29,10 @@ const GISCUS_MAPPING_VALUES = ['specific'] as const
  */
 const GITHUB_REPOSITORY_PATTERN = /^[^\s/]+\/[^\s/]+$/
 
+/** A single mailbox with a dot-atom local part and a DNS domain. */
+const PROFILE_EMAIL_PATTERN =
+  /^(?=[^@]{1,64}@)[a-z\d!#$%&'*+\-/=?^_`{|}~]+(?:\.[a-z\d!#$%&'*+\-/=?^_`{|}~]+)*@(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z](?:[a-z\d-]{0,61}[a-z\d])?$/i
+
 /**
  * Giscus (GitHub Discussions) comment configuration.
  *
@@ -107,6 +111,12 @@ export interface VibeCafeConfig {
  */
 export type GitHubRepository = `${string}/${string}`
 
+/** Public identity and contact details for the author's homepage. */
+interface ProfileConfig {
+  displayName: string
+  email: string
+}
+
 /** Raw shape of `content/site.yaml` - static site identifiers. */
 interface SiteConfigRaw {
   /** GitHub login used by the profile card and external links. */
@@ -119,6 +129,9 @@ interface SiteConfigRaw {
   githubRepository: GitHubRepository
   /** Site title shown in the header, mobile drawer, and browser tab metadata. */
   siteTitle: string
+  profile: ProfileConfig
+  /** Ordered post slugs shared by all localized homepages. */
+  featuredPosts?: string[]
   /** Default site description for SEO metadata and Open Graph. */
   siteDescription: string
   /** Search-engine site verification tokens (rendered as `<meta>` tags). */
@@ -186,6 +199,28 @@ function assertGitHubRepository(value: unknown, field: string): asserts value is
   if (!GITHUB_REPOSITORY_PATTERN.test(value)) {
     throw new Error(
       `Invalid site config: field "${field}" in ${siteConfigPath} must be a GitHub repository full name ("owner/repo")`,
+    )
+  }
+}
+
+/**
+ * Validates the public profile fields before they are rendered or used in links.
+ *
+ * @param block - The parsed `profile` value from the raw config.
+ * @throws When the display name is blank or the email is missing or invalid.
+ */
+function validateProfileConfig(block: unknown): asserts block is ProfileConfig {
+  const profile =
+    typeof block === 'object' && block !== null ? (block as Record<string, unknown>) : {}
+  const { displayName, email } = profile
+
+  assertNonEmptyString(
+    typeof displayName === 'string' ? displayName.trim() : displayName,
+    'profile.displayName',
+  )
+  if (typeof email !== 'string' || email.length > 254 || !PROFILE_EMAIL_PATTERN.test(email)) {
+    throw new Error(
+      `Invalid site config: field "profile.email" in ${siteConfigPath} must be a single valid email address`,
     )
   }
 }
@@ -291,6 +326,20 @@ function validateSiteConfig(raw: unknown): asserts raw is SiteConfigRaw {
   }
 
   assertGitHubRepository(candidate.githubRepository, 'githubRepository')
+  validateProfileConfig(candidate.profile)
+  const { featuredPosts } = candidate
+  if (
+    featuredPosts !== undefined &&
+    (!Array.isArray(featuredPosts) ||
+      !featuredPosts.every(
+        (slug) => typeof slug === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug),
+      ) ||
+      new Set(featuredPosts).size !== featuredPosts.length)
+  ) {
+    throw new Error(
+      `Invalid site config: "featuredPosts" in ${siteConfigPath} must be a list of unique post slugs`,
+    )
+  }
   validateGiscusConfig(candidate.giscus)
   validateVerificationConfig(candidate.verification)
   validateVibeCafeConfig(candidate.vibecafe)

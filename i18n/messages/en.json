@@ -1,8 +1,16 @@
 {
   "Nav": {
     "Home": "Home",
+    "Articles": "Articles",
     "About": "About",
     "Github": "GitHub"
+  },
+  "Profile": {
+    "Role": "Full-stack developer",
+    "Bio": "I’m interested in frontend engineering, the React ecosystem, and developer experience. I write about what I build and how I work through problems along the way.",
+    "BrowseArticles": "Browse articles",
+    "AboutMe": "About me",
+    "Contact": "Work with me"
   },
   "Header": {
     "Search": "Search",
@@ -38,6 +46,7 @@
     "ViewGithubProfile": "View GitHub Profile"
   },
   "PostList": {
+    "Featured": "Featured articles",
     "Title": "All Posts",
     "ReadMore": "Read more",
     "PublishedTime": "Published on {date}",
@@ -84,10 +93,12 @@
     "Title": "About",
     "AboutAuthor": "About the Author",
     "AboutBlog": "About the Blog",
-    "AuthorContent": "Hi, I'm Ruixe, a full-stack developer passionate about frontend engineering, the React ecosystem, and developer experience. This blog records my technical learning and project practices.",
-    "BlogContent": "Ruixe Blog is a personal blog built with Next.js 16, HeroUI v3, and MDX. It uses a file-driven content architecture and supports both Chinese and English.",
+    "AuthorContent": "Hi, I’m {name}, a full-stack developer. I’m interested in frontend engineering, the React ecosystem, and developer experience. I’m also exploring how AI coding tools fit into my day-to-day work.",
+    "AuthorMotivation": "In college, I wanted a blog of my own where I could choose how to publish my technical notes and show what I could build for the web. I finally started building it in mid-2026.",
+    "BlogContent": "I built Ruixe Blog with Next.js 16 and HeroUI v3. I keep both the Chinese and English posts in MDX files.",
+    "BuildStory": "I wrote about the technical choices and the work of getting the site online in <story>The Birth of My Personal Blog Website</story>.",
     "BlogLicenseTitle": "Copyright & License",
-    "BlogLicenseContent": "The content of this blog (post text, images, etc.) is licensed under the <linkLicense>Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)</linkLicense> — you may freely share and adapt it, provided you credit <linkSite>Ruixe</linkSite> and do not use it commercially. Code snippets embedded in posts are additionally released under the <linkCode>MIT License</linkCode> and may be reused freely in any project, including commercial ones."
+    "BlogLicenseContent": "The content of this blog (post text, images, etc.) is licensed under the <linkLicense>Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)</linkLicense> — you may freely share and adapt it, provided you credit <linkSite>{name}</linkSite> and do not use it commercially. Code snippets embedded in posts are additionally released under the <linkCode>MIT License</linkCode> and may be reused freely in any project, including commercial ones."
   },
   "NotFound": {
     "Title": "Page Not Found",

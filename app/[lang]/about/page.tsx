@@ -6,6 +6,8 @@ import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import ogImage from '@/app/opengraph-image.png'
+import { BlogLayout } from '@/components/layout/BlogLayout'
+import { Link as NavLink } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
 import { buildAlternates, buildOpenGraph, buildPageUrl, buildPersonJsonLd } from '@/lib/seo'
@@ -105,11 +107,10 @@ export async function generateMetadata({
 }
 
 /**
- * About page (`/[lang]/about`).
+ * Presents the author, the site's creation, and its licensing terms.
  *
- * Renders localized "About the Author" and "About the Blog" sections from
- * `next-intl` messages. In a future phase this may be replaced with a dedicated
- * MDX file (`content/about.{lang}.mdx`).
+ * @param params - Route parameters containing the current locale.
+ * @returns Localized author and blog sections with author structured data.
  */
 export default async function AboutPage({
   params,
@@ -120,43 +121,57 @@ export default async function AboutPage({
   }
 
   const t = await getTranslations('About')
+  const { displayName } = siteConfig.profile
 
   const personJsonLd = {
     ...buildPersonJsonLd(),
-    description: t('AuthorContent'),
+    name: displayName,
+    description: t('AuthorContent', { name: displayName }),
     jobTitle: 'Blogger',
   }
 
   return (
-    <>
+    <BlogLayout locale={lang}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
       <div className="mx-auto flex max-w-2xl flex-col gap-8">
-        <Image
-          src={ogImage}
-          alt="Ruixe Blog"
-          priority
-          sizes="(max-width: 767px) 100vw, 672px"
-          className="h-auto w-full rounded-xl"
-        />
-
         <h1 className="text-3xl font-bold text-foreground">{t('Title')}</h1>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-xl font-semibold text-foreground">{t('AboutAuthor')}</h2>
-          <p className="text-base text-pretty text-muted">{t('AuthorContent')}</p>
+          <p className="text-base text-pretty text-muted">{personJsonLd.description}</p>
+          <p className="text-base text-pretty text-muted">{t('AuthorMotivation')}</p>
         </section>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-xl font-semibold text-foreground">{t('AboutBlog')}</h2>
           <p className="text-base text-pretty text-muted">{t('BlogContent')}</p>
+          <Image
+            src={ogImage}
+            alt={siteConfig.siteTitle}
+            sizes="(max-width: 703px) calc(100vw - 32px), 672px"
+            className="h-auto w-full rounded-xl"
+          />
+          <p className="text-base text-pretty text-muted">
+            {t.rich('BuildStory', {
+              story: (chunks) => (
+                <NavLink
+                  href="/posts/my-first-blog-website"
+                  className="text-foreground underline underline-offset-4"
+                >
+                  {chunks}
+                </NavLink>
+              ),
+            })}
+          </p>
 
           <div className="border-default-200 mt-2 flex flex-col gap-2 rounded-xl border p-4">
             <h3 className="text-sm font-semibold text-foreground">{t('BlogLicenseTitle')}</h3>
             <p className="text-sm text-pretty text-muted">
               {t.rich('BlogLicenseContent', {
+                name: displayName,
                 linkLicense: ContentLicenseLink,
                 linkSite: SiteCreditLink,
                 linkCode: CodeLicenseLink,
@@ -165,6 +180,6 @@ export default async function AboutPage({
           </div>
         </section>
       </div>
-    </>
+    </BlogLayout>
   )
 }

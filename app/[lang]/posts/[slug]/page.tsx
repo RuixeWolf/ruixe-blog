@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
+import { BlogLayout } from '@/components/layout/BlogLayout'
 import { PostLayout } from '@/components/posts/PostLayout'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
@@ -99,7 +100,7 @@ export default async function PostDetailPage({
   const { default: Post } = await import(`@/content/posts/${slug}.${locale}.mdx`)
 
   return (
-    <>
+    <BlogLayout locale={locale}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
@@ -111,6 +112,6 @@ export default async function PostDetailPage({
       <PostLayout meta={post} toc={toc} locale={locale}>
         <Post />
       </PostLayout>
-    </>
+    </BlogLayout>
   )
 }

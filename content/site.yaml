@@ -23,6 +23,17 @@ githubRepository: RuixeWolf/ruixe-blog
 # Site title shown in the header, mobile drawer, and browser tab metadata.
 siteTitle: Ruixe Blog
 
+# Public identity and collaboration address shown on the homepage.
+profile:
+  displayName: Ruixe
+  email: RuixeWolf@outlook.com
+
+# Shared homepage reading order. Each locale uses its own MDX frontmatter.
+featuredPosts:
+  - my-first-blog-website
+  - ai-coding-workflow-2026-mid
+  - modbus-simulator-ai-support
+
 # Default site description for SEO metadata and Open Graph.
 siteDescription: >-
   A personal blog by Ruixe, sharing web development insights and project notes.
