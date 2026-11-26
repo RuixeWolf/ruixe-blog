@@ -8,7 +8,6 @@ import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { NavLinks } from '@/components/layout/NavLinks'
-import { Sidebar } from '@/components/layout/Sidebar'
 import { SidebarContent } from '@/components/layout/SidebarContent'
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
 import { SearchProvider } from '@/components/search/SearchProvider'
@@ -224,7 +223,7 @@ function PersonJsonLd() {
  * This is BOTH the root layout (renders `<html>`/`<body>`, loads Geist fonts,
  * wraps everything in `ThemeProvider`, includes Analytics + SpeedInsights +
  * global JSON-LD) AND the locale layout (validates the `[lang]` segment, loads
- * `next-intl` messages, renders the responsive Header/Sidebar chrome).
+ * `next-intl` messages, renders the responsive headers and mobile drawer).
  *
  * Because the root layout sits inside the `[lang]` dynamic segment, `[lang]` is
  * a **root parameter** (Next.js 16.3+) readable via `next/root-params`. This
@@ -289,10 +288,7 @@ export default async function LocaleLayout({
                   sidebar={<SidebarContent locale={locale} />}
                   githubRepoUrl={siteConfig.githubRepoUrl}
                 />
-                <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 px-4 lg:gap-8 lg:px-6">
-                  <Sidebar locale={locale} />
-                  <main className="min-w-0 flex-1 py-6 lg:py-8">{children}</main>
-                </div>
+                {children}
               </div>
             </SearchProvider>
           </NextIntlClientProvider>

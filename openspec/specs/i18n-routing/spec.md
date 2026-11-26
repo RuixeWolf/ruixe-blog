@@ -12,8 +12,10 @@
 
 #### Scenario: 访问带 locale 前缀的首页
 
-- **WHEN** 用户访问 `/zh`
-- **THEN** 系统渲染中文版首页（文章列表）
+- **WHEN** 用户访问 `/zh` 或 `/en`
+- **THEN** 系统渲染对应语言的个人名片和精选文章，精选入口指向该语言的文章详情
+
+#### Scenario: 访问带 locale 前缀的文章列表页
 
 - **WHEN** 用户访问 `/en/posts`
 - **THEN** 系统渲染英文版文章列表页
@@ -145,12 +147,12 @@ matcher MUST 继续排除含点路径（`/((?!api|_next|_vercel|.*\..*).*)`）�
 #### Scenario: 中文环境下渲染导航
 
 - **WHEN** 当前 locale 为 `zh` 且渲染 Header 导航
-- **THEN** "首页"、"关于" 等导航文案来自 `messages/zh.json`
+- **THEN** 「首页」「文章」「关于」等导航文案来自 `messages/zh.json`
 
 #### Scenario: 英文环境下渲染导航
 
 - **WHEN** 当前 locale 为 `en` 且渲染 Header 导航
-- **THEN** "Home"、"About" 等导航文案来自 `messages/en.json`
+- **THEN** 「Home」「Articles」「About」等导航文案来自 `messages/en.json`
 
 #### Scenario: 缺失翻译键
 
@@ -173,12 +175,12 @@ matcher MUST 继续排除含点路径（`/((?!api|_next|_vercel|.*\..*).*)`）�
 
 ### Requirement: 静态渲染支持
 
-系统 SHALL 在所有 `[lang]` 下的 layout 与 page 中调用 `setRequestLocale(lang)` 以启用按 locale 的静态渲染。`setRequestLocale` MUST 在任何 `next-intl` 翻译函数（`getTranslations`、`useTranslations`、`getMessages`）之前调用。
+系统 SHALL 在构建时为 `zh` 与 `en` 预渲染首页及其他由 `generateStaticParams` 声明的路由。服务端翻译 SHALL 根据当前 URL 的根语言参数选择文案。
 
 #### Scenario: 构建时为每个 locale 生成静态页面
 
 - **WHEN** `next build` 执行
-- **THEN** 每个声明了 `generateStaticParams` 的页面为 `zh` 与 `en` 各生成一份静态 HTML
+- **THEN** `/zh` 与 `/en` 的首页生成相应语言的静态 HTML，其他由 `generateStaticParams` 声明的页面继续按语言静态生成
 
 ### Requirement: 内部导航使用 locale 感知的 Link
 

@@ -1,8 +1,16 @@
 {
   "Nav": {
     "Home": "首页",
+    "Articles": "文章",
     "About": "关于",
     "Github": "GitHub"
+  },
+  "Profile": {
+    "Role": "全栈开发者",
+    "Bio": "我关注前端工程化、React 生态和开发者体验，在这里记录做过的项目和解决问题的过程。",
+    "BrowseArticles": "浏览文章",
+    "AboutMe": "关于我",
+    "Contact": "合作联系"
   },
   "Header": {
     "Search": "搜索",
@@ -38,6 +46,7 @@
     "ViewGithubProfile": "查看 GitHub 主页"
   },
   "PostList": {
+    "Featured": "精选文章",
     "Title": "全部文章",
     "ReadMore": "阅读更多",
     "PublishedTime": "发布于 {date}",
@@ -84,10 +93,12 @@
     "Title": "关于",
     "AboutAuthor": "关于博主",
     "AboutBlog": "关于博客",
-    "AuthorContent": "你好，我是 Ruixe，一名全栈开发者，热衷于探索前端工程化、React 生态与开发者体验。这个博客记录我的技术学习与项目实践。",
-    "BlogContent": "Ruixe Blog 是一个基于 Next.js 16、HeroUI v3 与 MDX 构建的个人博客，采用文件驱动的内容架构，支持中英双语。",
+    "AuthorContent": "你好，我是 {name}，一名全栈开发者。我关注前端工程化、React 生态和开发者体验，也在实践中摸索怎样把 AI 编程融入日常开发。",
+    "AuthorMotivation": "上大学时，我就想做一个自己能决定怎么写、怎么呈现的博客，既用来记下技术学习和项目实践，也用来展示自己的 Web 开发作品。直到 2026 年年中，我才开始动手做这个网站。",
+    "BlogContent": "Ruixe Blog 用 Next.js 16 和 HeroUI v3 搭建，中英文文章都以 MDX 文件维护。",
+    "BuildStory": "从大学时的构想到网站上线，技术选型和开发过程都记在<story>《我的个人博客网站的诞生》</story>里。",
     "BlogLicenseTitle": "版权与许可",
-    "BlogLicenseContent": "本站内容（文章正文、配图等）采用 <linkLicense>知识共享 署名-非商业性使用 4.0 国际许可协议（CC BY-NC 4.0）</linkLicense> 授权，可自由分享与演绎，但需署名 <linkSite>Ruixe</linkSite> 且不得用于商业用途。文章内嵌的代码片段另以 <linkCode>MIT 许可</linkCode> 发布，可在任何项目（包括商业项目）中自由使用。"
+    "BlogLicenseContent": "本站内容（文章正文、配图等）采用 <linkLicense>知识共享 署名-非商业性使用 4.0 国际许可协议（CC BY-NC 4.0）</linkLicense> 授权，可自由分享与演绎，但需署名 <linkSite>{name}</linkSite> 且不得用于商业用途。文章内嵌的代码片段另以 <linkCode>MIT 许可</linkCode> 发布，可在任何项目（包括商业项目）中自由使用。"
   },
   "NotFound": {
     "Title": "页面未找到",

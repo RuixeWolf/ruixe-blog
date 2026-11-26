@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { BlogLayout } from '@/components/layout/BlogLayout'
 import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
@@ -40,8 +41,10 @@ export async function generateMetadata({
 }
 
 /**
- * Post list page (`/[lang]/posts`) -- renders the same post list as the home
- * page, but without the mobile profile card.
+ * Lists all posts published in the current locale, newest first.
+ *
+ * @param params - Route parameters containing the current locale.
+ * @returns The localized post index in the shared blog layout.
  */
 export default async function PostsPage({
   params,
@@ -57,9 +60,11 @@ export default async function PostsPage({
   const t = await getTranslations('PostList')
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-foreground">{t('Title')}</h1>
-      <PostList posts={posts} locale={locale} />
-    </div>
+    <BlogLayout locale={locale}>
+      <div className="flex flex-col gap-6">
+        <h1 className="text-2xl font-bold text-foreground lg:sr-only">{t('Title')}</h1>
+        <PostList posts={posts} locale={locale} />
+      </div>
+    </BlogLayout>
   )
 }

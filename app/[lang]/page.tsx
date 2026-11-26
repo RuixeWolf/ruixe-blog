@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
+import { ArrowRight } from 'lucide-react'
 import { hasLocale } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { ProfileCard } from '@/components/layout/ProfileCard'
-import { PostList } from '@/components/posts/PostList'
+import { HomeProfile } from '@/components/layout/HomeProfile'
+import { Link } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
-import type { Locale } from '@/i18n/routing'
-import { getAllPosts } from '@/lib/posts'
+import { getPostBySlug } from '@/lib/posts'
 import { buildAlternates } from '@/lib/seo'
+import { siteConfig } from '@/lib/site-config'
 
 /**
  * Generates alternates-only metadata: canonical + hreflang group (with
@@ -34,13 +35,10 @@ export async function generateMetadata({
 }
 
 /**
- * Home page (`/[lang]`) -- equivalent to the post list, plus a compact profile
- * card on mobile.
+ * Renders the author's profile and hand-picked articles for the current locale.
  *
- * Fetches all posts for the active locale and renders them via `PostList`. On
- * mobile (`<lg`) a compact `ProfileCard` is shown above the list to compensate
- * for the hidden sidebar. Static rendering is enabled automatically by
- * `next/root-params` (see `i18n/request.ts`) - no `setRequestLocale` needed.
+ * @param params - Route parameters containing the current locale.
+ * @returns The homepage's standalone main content.
  */
 export default async function HomePage({
   params,
@@ -50,18 +48,48 @@ export default async function HomePage({
     notFound()
   }
 
-  const locale = lang as Locale
-
-  const posts = getAllPosts(locale)
-  const t = await getTranslations('Nav')
+  const t = await getTranslations('PostList')
+  const featuredPosts = (siteConfig.featuredPosts ?? [])
+    .map((slug) => getPostBySlug(slug, lang))
+    .filter((post) => post !== null)
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="sr-only">{t('Home')}</h1>
-      <div className="lg:hidden">
-        <ProfileCard />
-      </div>
-      <PostList posts={posts} locale={locale} />
-    </div>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-12 lg:px-6 lg:pt-6">
+      <HomeProfile />
+      {featuredPosts.length > 0 && (
+        <section
+          aria-labelledby="featured-heading"
+          className="mx-auto mt-5 max-w-5xl sm:mt-8 md:mt-12"
+        >
+          <h2
+            id="featured-heading"
+            className="mb-2 text-2xl font-semibold tracking-tight sm:mb-4 sm:text-3xl"
+          >
+            {t('Featured')}
+          </h2>
+          <ul className="divide-y divide-border border-y border-border">
+            {featuredPosts.map((post) => (
+              <li key={post.slug}>
+                <Link
+                  href={`/posts/${post.slug}`}
+                  className="group grid grid-cols-[1fr_auto] items-center gap-x-5 gap-y-1.5 py-4 focus-visible:outline-2 focus-visible:outline-focus sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] sm:gap-x-8 sm:py-5"
+                >
+                  <h3 className="font-semibold text-foreground underline-offset-4 group-hover:underline sm:text-lg">
+                    {post.title}
+                  </h3>
+                  <p className="col-start-1 text-sm leading-relaxed text-muted sm:col-start-auto">
+                    {post.description}
+                  </p>
+                  <ArrowRight
+                    className="col-start-2 row-start-1 size-4 text-muted sm:col-start-3"
+                    aria-hidden="true"
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
   )
 }

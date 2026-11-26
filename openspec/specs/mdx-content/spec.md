@@ -2,9 +2,38 @@
 
 ## Purpose
 
-定义 Ruixe Blog 的文件驱动 MDX 内容架构，包括 `content/` 目录结构、frontmatter schema、taxonomy 多语言、MDX 渲染管线、全局 MDX 组件映射、文章列表与详情页读取与渲染、TOC 目录导航、占位内容，以及分类/标签列表页与关于页面。
+定义 Ruixe Blog 的文件驱动 MDX 内容架构，包括 `content/` 目录结构、frontmatter schema、taxonomy 多语言、MDX 渲染管线、全局 MDX 组件映射、文章列表与详情页读取与渲染、TOC 目录导航、首页精选文章与独立的全部文章页，以及分类/标签列表页与关于页面。
 
 ## Requirements
+
+### Requirement: 首页精选文章
+
+首页 SHALL 按 `featuredPosts` 顺序展示当前语言的文章标题和摘要，点击条目 SHALL 打开当前语言的文章详情。标题与摘要取自该文章的 MDX frontmatter。
+
+#### Scenario: 两种语言按手选顺序阅读
+
+- **WHEN** 用户访问中文或英文首页
+- **THEN** 初始配置依次展示建站记录、2026 年中旬的 AI Coding 工作流和 Modbus 模拟器 AI 支持三篇文章
+- **AND** 更改配置顺序后重新构建，两个首页同步调整，全部文章页仍按发布时间排序
+
+#### Scenario: 当前语言缺少精选内容
+
+- **WHEN** 某项在当前语言下没有对应文章
+- **THEN** 跳过该项并保留其余文章的相对顺序；可展示条目为零时省略整个栏目
+
+### Requirement: 独立的全部文章页
+
+系统 SHALL 在 `/[lang]/posts` 展示当前语言的全部文章，按发布时间由新到旧排列，并保留相应文章的标题、摘要、日期、分类和标签。首页的文章入口 SHALL 导向该页面。
+
+#### Scenario: 从首页查看当前语言的全部文章
+
+- **WHEN** 用户从中文或英文首页进入对应的文章列表页
+- **THEN** 系统展示该语言的全部文章，最新发布的文章排在首位
+
+#### Scenario: 验证现有文章的列表和详情
+
+- **WHEN** 用户从中文列表点击一篇已有中文版本的文章
+- **THEN** 列表展示该文的标题和摘要，点击后打开同语言的详情并渲染正文
 
 ### Requirement: Content 目录结构
 
@@ -199,23 +228,9 @@
 - **WHEN** 移动端（`<lg`）渲染文章详情页
 - **THEN** TOC 以 HeroUI `Accordion` 形式显示在文章元信息与正文之间，默认折叠
 
-### Requirement: 占位内容
-
-系统 SHALL 在 `content/posts/` 提供 1-2 篇占位文章（`hello-world.{zh,en}.mdx`），内容为简短的"Hello World"测试文章，用于验证完整内容管线。占位文章的 frontmatter MUST 符合 schema，category 与 tags MUST 引用 `taxonomy/` 中已定义的 ID。
-
-#### Scenario: 占位文章可被列表页读取
-
-- **WHEN** 访问首页 `/zh`
-- **THEN** 文章列表显示 `hello-world` 中文版本的标题与摘要
-
-#### Scenario: 占位文章可被详情页渲染
-
-- **WHEN** 访问 `/en/posts/hello-world`
-- **THEN** 页面渲染英文版占位文章的完整内容
-
 ### Requirement: 分类与标签列表页
 
-系统 SHALL 提供 `app/[lang]/categories/[categoryId]/page.tsx` 与 `app/[lang]/tags/[tagId]/page.tsx` 页面，分别展示指定分类或标签下的文章列表。页面 MUST 校验 `categoryId`/`tagId` 是否存在于对应 taxonomy 文件，不存在时返回 404。列表渲染 SHALL 复用首页文章列表组件。
+系统 SHALL 提供 `app/[lang]/categories/[categoryId]/page.tsx` 与 `app/[lang]/tags/[tagId]/page.tsx` 页面，分别展示指定分类或标签下的文章列表。页面 MUST 校验 `categoryId`/`tagId` 是否存在于对应 taxonomy 文件，不存在时返回 404。列表渲染 SHALL 复用文章列表组件。
 
 #### Scenario: 访问存在的分类页
 
@@ -229,21 +244,17 @@
 
 ### Requirement: 关于页面
 
-系统 SHALL 提供 `app/[lang]/about/page.tsx` 页面，展示关于博主与关于本博客的信息。页面内容 SHALL 通过 `next-intl` messages 或独立 MDX 文件提供多语言版本。
+系统 SHALL 提供 `app/[lang]/about/page.tsx` 页面，展示关于博主与关于本博客的信息。页面内容 SHALL 通过 `next-intl` messages 或独立 MDX 文件提供多语言版本。作者部分 SHALL 扩充作者简介、技术关注方向与创建博客的缘由。博客部分 SHALL 提供博客说明、现有博客配图、同语言的建站记录与原有版权及许可信息。
 
 #### Scenario: 访问关于页
 
 - **WHEN** 用户访问 `/zh/about`
-- **THEN** 页面显示中文版关于信息
+- **THEN** 页面显示中文版的作者介绍、建站缘由、关于博客和版权许可内容
 
-### Requirement: 文章列表页与首页等价
+#### Scenario: 从英文关于页阅读建站记录
 
-系统 SHALL 使 `app/[lang]/page.tsx`（首页）与 `app/[lang]/posts/page.tsx`（文章列表页）渲染相同的文章列表内容。首页 SHALL 额外在移动端显示简易版个人信息卡片（位于文章列表上方）。
-
-#### Scenario: 首页与文章列表页内容一致
-
-- **WHEN** 用户依次访问 `/zh` 与 `/zh/posts`
-- **THEN** 两页显示相同的文章列表（标题、摘要、日期、分类、标签）
+- **WHEN** 用户访问 `/en/about` 并点击建站记录
+- **THEN** 前往英文建站文章，英文关于页提供与中文版相同的内容栏目和许可链接
 
 ### Requirement: 文章删除与重定向
 

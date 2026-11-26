@@ -14,13 +14,14 @@ import { NavLinks } from './NavLinks'
  *
  * The bar background spans the full viewport; inner content is centered with
  * `max-w-7xl` + `px-4 lg:px-6` to align with the page content area in
- * `app/[lang]/layout.tsx`.
+ * `BlogLayout`.
  *
- * Left: site title + primary navigation via `NavLinks` (Home, About, GitHub).
+ * Left: site title and primary navigation via `NavLinks`.
  * Right: search trigger (opens the global `SearchDialog` via `⌘K`/`Ctrl+K`),
  * GitHub repository link, language switcher, theme toggle.
  *
  * @param locale - Active locale code (reserved for future search routing).
+ * @returns The desktop header and site controls.
  */
 export async function Header({ locale }: Readonly<{ locale: Locale }>) {
   return (

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { BlogLayout } from '@/components/layout/BlogLayout'
 import { PostList } from '@/components/posts/PostList'
 import { routing } from '@/i18n/routing'
 import type { Locale } from '@/i18n/routing'
@@ -86,7 +87,7 @@ export default async function TagPage({
   ])
 
   return (
-    <>
+    <BlogLayout locale={locale}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -95,6 +96,6 @@ export default async function TagPage({
         <h1 className="text-2xl font-bold text-foreground">{t('PostsIn', { name: tag.name })}</h1>
         <PostList posts={posts} locale={locale} />
       </div>
-    </>
+    </BlogLayout>
   )
 }
