@@ -116,16 +116,16 @@ AI Coding 时代更是如此，明确且详细的目标与需求会让 AI 产出
 
 文件驱动型的个人博客可以采用静态搜索方案，以下是两种静态搜索工具：
 
-- **Fuze.js** - 轻量级模糊搜索库，JS/TS 实现，Next.js 项目友好，Github Star 20k+，项目仓库与社区活跃
+- **Fuse.js** - 轻量级模糊搜索库，JS/TS 实现，Next.js 项目友好，Github Star 20k+，项目仓库与社区活跃
 - **Pagefind** - 全静态搜索库，Rust 实现，Github Star 5k+，项目仓库与社区活跃
 
-又对比了 Algolia、Meilisearch 动态搜索工具，综合考虑后，选择方案 **Fuze.js**。
+又对比了 Algolia、Meilisearch 动态搜索工具，综合考虑后，选择方案 **Fuse.js**。
 
 ### 文章内容图片资源托管
 
 我计划使用 CDN 云服务，不把图片等媒体资源存放在 Git 仓库，且考虑全球范围的可访问性，以下是几个云服务厂商的方案：
 
-- **CloudFlare R2** - ClaudeFlare 对象存储服务，免费存储数据量 10 GB
+- **CloudFlare R2** - CloudFlare 对象存储服务，免费存储数据量 10 GB
 - **Amazon S3** - 亚马逊 S3 对象存储服务，无免费额度
 - **Vercel Blob** - Vercel 对象存储服务，免费存储数据量 250 MB
 - **Alibaba Cloud OSS** - 阿里云对象存储服务，无免费额度
@@ -428,7 +428,7 @@ Github 项目仓库地址 https://github.com/RuixeWolf/ruixe-blog。
 
 二阶段是博客网站的增强功能，开发过程中总共创建了 4 个 OpenSpec Changes
 
-- **2026-07-29-add-post-search** - 实现文章搜索功能，使用 Fuze.js 静态搜索库
+- **2026-07-29-add-post-search** - 实现文章搜索功能，使用 Fuse.js 静态搜索库
 - **2026-07-29-add-post-comments** - 实现文章评论功能，使用 Giscus 第三方评论工具
 - **2026-07-31-add-post-deletion** - 实现文章删除功能，创建文章删除脚本
 - **2026-07-31-add-media-hosting** - 使用 `next/image` 包装 CloudFlare R2 对象存储，实现文章内容添加图片等媒体内容，优化 MDX 图片组件的响应式尺寸与 CLS 处理
